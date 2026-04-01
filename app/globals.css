@@ -178,7 +178,7 @@
 
   /* Handle empty paragraphs (Tiptap line breaks) */
   .prose-lumyn p:empty {
-    @apply -mb-4;
+    @apply -mb-14;
   }
   
   .prose-lumyn p:empty::before {
