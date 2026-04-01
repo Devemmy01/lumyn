@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { FilterQuery } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import AdminSearch from "@/components/admin/AdminSearch";
@@ -22,7 +23,7 @@ export default async function SubscribersPage({ searchParams }: PageProps) {
   const skip = (page - 1) * limit;
 
   // Build filter
-  const filter: any = {};
+  const filter: FilterQuery<{ email: string; createdAt: Date }> = {};
   if (query) {
     filter.email = { $regex: query, $options: "i" };
   }
@@ -77,7 +78,7 @@ export default async function SubscribersPage({ searchParams }: PageProps) {
                   </td>
                 </tr>
               ) : (
-                subscribers.map((sub: any) => (
+                subscribers.map((sub: { _id: { toString(): string }; email: string; createdAt: Date }) => (
                   <tr key={sub._id.toString()} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 sm:px-6 py-4 font-medium text-gray-900 break-all">{sub.email}</td>
                     <td className="px-4 sm:px-6 py-4 text-gray-500 whitespace-nowrap">

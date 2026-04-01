@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { FilterQuery } from "mongoose";
 import dbConnect from "@/lib/mongodb";
-import Post from "@/models/Post";
+import Post, { IPost } from "@/models/Post";
 import AdminSearch from "@/components/admin/AdminSearch";
 import AdminFilter from "@/components/admin/AdminFilter";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -25,7 +26,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
   const skip = (page - 1) * limit;
 
   // Build filter
-  const filter: any = {};
+  const filter: FilterQuery<IPost> = {};
   if (query) {
     filter.$or = [
       { title: { $regex: query, $options: "i" } },
@@ -111,7 +112,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
                   </td>
                 </tr>
               ) : (
-                posts.map((post: any) => (
+                posts.map((post: IPost) => (
                   <tr key={post._id.toString()} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{post.title}</div>
@@ -150,7 +151,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
               {query || statusFilter ? "No posts found matching filters." : "No posts yet. Create your first one!"}
             </div>
           ) : (
-            posts.map((post: any) => (
+            posts.map((post: IPost) => (
               <div key={post._id.toString()} className="p-4 hover:bg-gray-50/50 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <div className="font-medium text-gray-900 pr-4">{post.title}</div>

@@ -32,10 +32,11 @@ export async function POST(req: Request) {
 
     const post = await Post.create(data);
     return NextResponse.json(post, { status: 201 });
-  } catch (error: any) {
-    if (error.code === 11000) {
+  } catch (error: unknown) {
+    const err = error as { code?: number; message?: string };
+    if (err.code === 11000) {
       return NextResponse.json({ error: "Slug already exists" }, { status: 400 });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: err.message ?? "Unknown error" }, { status: 500 });
   }
 }

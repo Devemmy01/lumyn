@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function EditPostPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   await dbConnect();
   const { id } = await params;
@@ -41,7 +41,7 @@ export default async function EditPostPage({
         <PostEditor post={serializedPost} />
       </div>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

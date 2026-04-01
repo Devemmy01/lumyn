@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FilterQuery } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Post, { IPost } from "@/models/Post";
 import BlogCard from "@/components/BlogCard";
@@ -54,7 +55,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
   const skip = (page - 1) * limit;
 
   // Build Filter
-  const filter: any = { published: true };
+  const filter: FilterQuery<IPost> = { published: true };
   if (query) {
     filter.$or = [
       { title: { $regex: query, $options: "i" } },

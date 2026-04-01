@@ -4,7 +4,7 @@ import Post from "@/models/Post";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
@@ -22,7 +22,7 @@ export async function POST(
     }
     
     return NextResponse.json({ upvotes: post.upvotes });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ error: "Could not record upvote" }, { status: 500 });
   }
 }

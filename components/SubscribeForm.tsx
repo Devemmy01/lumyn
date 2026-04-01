@@ -30,9 +30,10 @@ export default function SubscribeForm() {
       setStatus("success");
       setMessage(data.message || "Successfully subscribed!");
       setEmail("");
-    } catch (err: any) {
+    } catch (error: unknown) {
       setStatus("error");
-      setMessage(err.message || "Failed to subscribe. Please try again.");
+      const msg = error instanceof Error ? error.message : "Failed to subscribe. Please try again.";
+      setMessage(msg);
     }
   };
 

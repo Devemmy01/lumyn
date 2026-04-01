@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminSearch({ placeholder = "Search..." }: { placeholder?: string }) {
   const router = useRouter();

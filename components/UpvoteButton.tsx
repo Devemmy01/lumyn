@@ -42,7 +42,7 @@ export default function UpvoteButton({ postId, initialUpvotes }: UpvoteButtonPro
         setHasUpvoted(false);
         localStorage.removeItem(`upvoted-${postId}`);
       }
-    } catch (error) {
+    } catch {
       setUpvotes((prev) => prev - 1);
       setHasUpvoted(false);
       localStorage.removeItem(`upvoted-${postId}`);

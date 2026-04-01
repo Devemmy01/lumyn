@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import dbConnect from "@/lib/mongodb";
-import Post, { IPost, IPostDocument } from "@/models/Post";
+import Post, { IPost } from "@/models/Post";
 import SectionWrapper from "@/components/SectionWrapper";
 import BlogCard from "@/components/BlogCard";
 import UpvoteButton from "@/components/UpvoteButton";
@@ -33,9 +34,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // NextJS dynamic params caching
 export async function generateStaticParams() {
-  await dbConnect();
-  const posts = await Post.find({ published: true }).select("slug").lean();
-  return posts.map((post) => ({ slug: post.slug }));
+  try {
+    await dbConnect();
+    const posts = await Post.find({ published: true }).select("slug").lean();
+    return posts.map((post) => ({ slug: post.slug }));
+  } catch (error) {
+    console.error("Statically generating params failed (DB connection error):", error);
+    return [];
+  }
 }
 
 export default async function JournalPostPage({ params }: PageProps) {
@@ -63,8 +69,7 @@ export default async function JournalPostPage({ params }: PageProps) {
         .limit(2)
         .lean();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
-  
+
   // Use SEO lib helper for JSON-LD
   const jsonLd = buildArticleJsonLd({
     title: post.title,
@@ -136,7 +141,7 @@ export default async function JournalPostPage({ params }: PageProps) {
       <SectionWrapper background="default" container="narrow" size="sm">
         {post.coverImage && (
           <div className="mb-12 rounded-xl overflow-hidden bg-stone/20">
-            <img src={post.coverImage} alt={post.title} className="w-full h-auto object-cover" />
+            <Image src={post.coverImage} alt={post.title} width={1200} height={630} className="w-full h-auto object-cover" />
           </div>
         )}
         <article

@@ -110,9 +110,10 @@ function NewsletterForm() {
       setStatus("success");
       setMessage(data.message || "Subscribed!");
       setEmail("");
-    } catch (err: any) {
+    } catch (error: unknown) {
       setStatus("error");
-      setMessage(err.message || "Failed");
+      const msg = error instanceof Error ? error.message : "Failed";
+      setMessage(msg);
     }
   }
 

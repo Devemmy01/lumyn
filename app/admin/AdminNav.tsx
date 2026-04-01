@@ -7,7 +7,7 @@ import { signOut } from "next-auth/react";
 import clsx from "clsx";
 import Image from "next/image";
 
-export default function AdminNav({ user }: { user: any }) {
+export default function AdminNav({ user }: { user: { name?: string | null; email?: string | null; image?: string | null } | null | undefined }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
