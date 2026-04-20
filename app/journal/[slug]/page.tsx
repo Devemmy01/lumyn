@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/journal/${post.slug}`,
     type: "article",
     publishedAt: post.createdAt?.toISOString(),
+    ...(post.coverImage && { ogImage: post.coverImage })
   });
 }
 

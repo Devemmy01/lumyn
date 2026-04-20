@@ -7,25 +7,27 @@ import { Analytics } from "@vercel/analytics/react";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
 const siteName = "Lumyn";
 const siteDescription =
-  "Lumyn is a modern product studio building calm intelligent software designed to remove noise and restore clarity.";
+  "Lumyn is a modern software development studio. We build custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity. Partner with us for premium custom software development services.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Lumyn | Calm Intelligent Digital Tools",
+    default: "Lumyn | Custom Software Development Studio",
     template: "%s — Lumyn",
   },
   description: siteDescription,
   keywords: [
+    "software development services",
+    "custom software development",
+    "web application development",
+    "PWA development",
+    "React development agency",
+    "Next.js developers",
+    "full-stack development studio",
+    "software engineering studio",
     "calm technology",
     "digital minimalism",
     "focus tools",
-    "productivity apps",
-    "information overload",
-    "intentional technology",
-    "digital product studio",
-    "focus software",
-    "calm productivity",
   ],
   authors: [{ name: "Lumyn", url: siteUrl }],
   creator: "Lumyn",
@@ -46,20 +48,20 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName,
-    title: "Lumyn | Calm Intelligent Digital Tools",
+    title: "Lumyn | Custom Software Development Studio",
     description: siteDescription,
     images: [
       {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Lumyn | Calm Intelligent Digital Tools",
+        alt: "Lumyn | Custom Software Development Studio",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lumyn | Calm Intelligent Digital Tools",
+    title: "Lumyn | Custom Software Development Studio",
     description: siteDescription,
     images: [`${siteUrl}/og-image.png`],
     creator: "@lumynstudio",

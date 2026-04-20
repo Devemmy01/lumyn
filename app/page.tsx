@@ -11,24 +11,24 @@ import Post from "@/models/Post";
 import { IPost } from "@/models/Post";
 
 export const metadata: Metadata = {
-  title: "Lumyn — Calm Intelligent Digital Tools",
+  title: "Lumyn — Custom Software Development Studio",
   description:
-    "Lumyn is a modern product studio building calm intelligent software designed to remove noise and restore clarity.",
+    "Lumyn is a modern software development studio. We build custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity.",
   openGraph: {
-    title: "Lumyn — Calm Intelligent Digital Tools",
+    title: "Lumyn — Custom Software Development Studio",
     description:
-      "Lumyn is a modern product studio building calm intelligent software designed to remove noise and restore clarity.",
+      "Lumyn is a modern software development studio. We build custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity.",
   },
 };
 
 const products = [
   {
-    name: "Mindfuel",
-    tagline: "A calm environment for focus, reflection, and intentional thinking.",
+    name: "MindFuel",
+    tagline: "A Full Stack Social PWA – Reclaiming social media for the human soul.",
     description:
-      "Step into a distraction-free space designed to help you think clearly, journal deeply, and stay grounded in what matters.",
+      "A quiet corner of the internet built for thinkers, reflectors, and curators. Share ideas that matter without chasing the algorithm.",
     href: "/products#mindfuel",
-    status: "development" as const,
+    status: "live" as const,
     accentColor: "#7C6CF6",
   },
   {
@@ -77,7 +77,7 @@ const jsonLd = {
   name: "Lumyn",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio",
   description:
-    "Lumyn is a modern product studio building calm intelligent software designed to remove noise and restore clarity.",
+    "Lumyn is a modern software development studio building custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity.",
   potentialAction: {
     "@type": "SearchAction",
     target: {
@@ -103,11 +103,10 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* ── Hero ───────────────────────────────────── */}
       <Hero
         badge="A calm digital studio"
-        headline="Software That Respects Your Attention"
-        subheadline="Lumyn is a calm product studio building intelligent digital tools designed to restore clarity."
+        headline="Custom Software That Respects Your Attention"
+        subheadline="Lumyn is a calm software development studio building intelligent digital tools and custom PWAs designed to restore clarity."
         primaryCTA={{ label: "Explore Products", href: "/products" }}
         secondaryCTA={{ label: "Read Our Philosophy", href: "/philosophy" }}
       />

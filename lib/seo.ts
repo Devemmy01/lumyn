@@ -32,6 +32,10 @@ export function buildMetadata({
     keywords: [
       ...keywords,
       "lumyn",
+      "software development services",
+      "custom software development",
+      "web application development",
+      "PWA development",
       "calm technology",
       "digital minimalism",
       "focus tools",
