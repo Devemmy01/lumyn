@@ -23,8 +23,8 @@ export function buildMetadata({
   publishedAt,
   tags = [],
 }: SEOProps): Metadata {
-  const url = `${siteUrl}${path}`;
-  const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}`;
+  const url = path.startsWith("http") ? path : `${siteUrl}/${path.replace(/^\//, "")}`;
+  const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}/${ogImage.replace(/^\//, "")}`;
 
   return {
     title,

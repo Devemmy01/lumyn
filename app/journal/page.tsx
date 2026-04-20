@@ -80,7 +80,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
 
   const totalPages = Math.ceil(totalCount / limit);
   const featured = page === 1 && !query && !tag ? posts[0] : null;
-  const rest = featured ? posts.slice(1) : posts;
+  const rest = posts;
 
   // Parse query params for links/pagination
   const queryParams = new URLSearchParams();

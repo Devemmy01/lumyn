@@ -33,14 +33,11 @@ const statusConfig = {
 /* ── Per-product SVG icons ─────────────────────────────────────── */
 function MindfuelIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.35"/>
-      <line x1="10" y1="2.5"  x2="10" y2="5"    stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
-      <line x1="10" y1="15"   x2="10" y2="17.5"  stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
-      <line x1="2.5"  y1="10" x2="5"   y2="10"   stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
-      <line x1="15"   y1="10" x2="17.5" y2="10"  stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
-      <circle cx="10" cy="10" r="2.25" fill="currentColor"/>
-    </svg>
+    <img 
+      src="/mindlogo.png" 
+      alt="MindFuel" 
+      className="w-full h-full object-cover rounded-xl"
+    />
   );
 }
 
@@ -68,6 +65,7 @@ function EdTurboIcon() {
 }
 
 const productIcons: Record<string, () => React.JSX.Element> = {
+  MindFuel: MindfuelIcon,
   Mindfuel: MindfuelIcon,
   Summai:   SummaiIcon,
   EdTurbo:  EdTurboIcon,
