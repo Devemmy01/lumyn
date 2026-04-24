@@ -172,8 +172,8 @@ export default function AboutPage() {
       {/* CTA */}
       <SectionWrapper background="default" size="sm">
         <CTA
-          headline="Want to work with us or follow along?"
-          subtext="We share thinking through our journal and occasionally take on collaborative work with people building thoughtful products."
+          headline="Follow our journey"
+          subtext="We share thinking through our journal as we build and ship impactful digital products."
           primaryCTA={{ label: "Get in Touch", href: "/contact" }}
           secondaryCTA={{ label: "Read the Journal", href: "/journal" }}
           variant="dark"

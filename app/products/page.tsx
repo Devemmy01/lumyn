@@ -7,11 +7,11 @@ import CTA from "@/components/CTA";
 export const metadata: Metadata = {
   title: "Products",
   description:
-    "Explore Lumyn's suite of calm, intelligent tools — Mindfuel, Summai, and EdTurbo. Built to help you think, learn, and focus deeply.",
+    "Explore Lumyn's suite of impactful digital tools — Mindfuel, Summai, and EdTurbo. Built to solve real-world problems.",
   openGraph: {
     title: "Products — Lumyn",
     description:
-      "Calm, intelligent tools designed to remove noise and restore clarity.",
+      "Impactful digital tools designed to solve real-world problems.",
   },
 };
 
@@ -37,13 +37,13 @@ const products: Product[] = [
   {
     id: "mindfuel",
     name: "MindFuel",
-    tagline: "A Full Stack Social PWA – Reclaiming social media for the human soul.",
+    tagline: "A Full Stack Social Platform – Meaningful connection for the modern age.",
     description:
-      "MindFuel is a quiet corner of the internet built for thinkers, reflectors, and curators. Instead of chasing likes or stressing you out, it uses a Calm Decay system to surface content that stands the test of time. You can turn your ideas into beautiful Thought Cards to share something that actually matters.",
+      "MindFuel is a social platform built for meaningful interaction and curation. Instead of chasing vanity metrics, it uses a high-signal discovery system to surface content that actually matters. You can turn your ideas into beautiful Thought Cards to share something that delivers value.",
     status: "live",
     accentColor: "#7C6CF6",
     features: [
-      "Smart Feed algorithm with Calm Decay",
+      "Smart Feed algorithm with High Signal Discovery",
       "Thought Card Creator with fluid micro-animations",
       "Web Push API for real-time notifications",
       "Performance-optimised backend infrastructure",
@@ -55,16 +55,16 @@ const products: Product[] = [
     techStack: "Next.js 15, React 19, TypeScript, Tailwind CSS 4, MongoDB, Next-PWA, Resend, Radix UI, Framer Motion",
     motive: [
       {
-        title: "Connection Over Metrics",
+        title: "Connection Over Vanity",
         desc: "We believe your value isn't a number on a post. We care more about what you're saying than how many people clicked a heart button."
       },
       {
-        title: "Calm Over Chaos",
-        desc: "Our feed doesn't try to stress you out. It uses a Calm Decay system, prioritizing quality and thoughtful reflections."
+        title: "High Signal Discovery",
+        desc: "Our platform prioritizes quality and meaningful insights over viral noise."
       },
       {
-        title: "Mental Clarity",
-        desc: "Leave the app feeling better than when you opened it. More inspired, more thoughtful, and maybe a little more at peace."
+        title: "Impactful Interaction",
+        desc: "Leave the app feeling more informed and inspired, with ideas that stick."
       }
     ]
   },
@@ -116,8 +116,8 @@ export default function ProductsPage() {
     <>
       <Hero
         badge="Products"
-        headline="Tools That Protect Your Attention."
-        subheadline="Each Lumyn product starts with the same constraint: what can we remove? The result is software that helps you think, not just do."
+        headline="Products Built to Solve Problems."
+        subheadline="Each Lumyn product is engineered to address a specific challenge. We focus on execution, performance, and real-world impact."
         size="compact"
       />
 
@@ -260,10 +260,10 @@ export default function ProductsPage() {
       {/* CTA */}
       <SectionWrapper background="tinted" size="sm">
         <CTA
-          headline="Something missing? We'd love to hear from you."
-          subtext="If there's a problem you're facing that fits the Lumyn philosophy, reach out. We're always thinking about what to build next."
+          headline="Have a problem worth solving?"
+          subtext="If there's a challenge you're facing that needs an impactful solution, reach out. We're always looking for the next problem to solve."
           primaryCTA={{ label: "Start a Conversation", href: "/contact" }}
-          secondaryCTA={{ label: "Read our Philosophy", href: "/philosophy" }}
+          secondaryCTA={{ label: "Our Method", href: "/philosophy" }}
         />
       </SectionWrapper>
     </>

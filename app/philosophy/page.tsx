@@ -4,48 +4,48 @@ import SectionWrapper from "@/components/SectionWrapper";
 import CTA from "@/components/CTA";
 
 export const metadata: Metadata = {
-  title: "Philosophy",
+  title: "Our Method",
   description:
-    "We build tools that protect your attention, not compete for it. The philosophy behind every Lumyn product — restraint, clarity, and calm by design.",
+    "We build products that solve problems. The method behind every Lumyn product — efficiency, impact, and excellence by design.",
   keywords: [
-    "digital minimalism",
-    "calm technology",
-    "intentional design",
-    "focus software philosophy",
-    "attention economy alternative",
+    "product studio method",
+    "problem solving",
+    "software excellence",
+    "user-centric design",
+    "impactful products",
   ],
   openGraph: {
-    title: "Philosophy — Lumyn",
+    title: "Our Method — Lumyn",
     description:
-      "We build tools that protect your attention. Restraint, clarity, and calm by design.",
+      "We build products that solve problems. Efficiency, impact, and excellence by design.",
   },
 };
 
 const principles = [
   {
     number: "01",
-    title: "We remove before we add.",
-    body: "Every element on a screen costs something. It costs attention, it costs cognitive load, it costs the clarity that makes good thinking possible. Before we add a feature, we ask what we can take away. Subtraction is our primary tool.",
+    title: "We prioritize what matters.",
+    body: "Every feature, every button, every line of code must serve a clear purpose. We focus on the core functionality that delivers the most value to the user. We don't build fluff.",
   },
   {
     number: "02",
-    title: "We clarify before we scale.",
-    body: "A confused product with millions of users is not success. We would rather have a small number of people who genuinely understand and benefit from what we build than a large number who use it out of habit they can't name. Clarity first. Growth follows, or it doesn't.",
+    title: "We validate before we scale.",
+    body: "We believe in building the right thing before building it big. We test our assumptions, gather feedback, and iterate until we've found the most effective solution. Growth is a result of excellence, not a goal in itself.",
   },
   {
     number: "03",
-    title: "We respect the person, not the metric.",
-    body: "Engagement time is not a proxy for value. The best product interaction is often the shortest one — you came, you found what you needed, you left. We design for that. We would rather you spend ten focused minutes with our product than three distracted hours.",
+    title: "We respect the user's time.",
+    body: "The best product interaction is the one that gets the job done fastest. We design for efficiency and clarity, ensuring users can achieve their goals with minimal friction. We don't optimize for engagement; we optimize for utility.",
   },
   {
     number: "04",
-    title: "We design for depth, not breadth.",
-    body: "There is a version of every product that does everything for everyone. We don't build that. We identify the one thing our products should do better than anything else, and we make it exceptional. Everything else falls away.",
+    title: "We build for performance and durability.",
+    body: "Software should be fast, reliable, and built to last. we use modern technologies and best practices to ensure our products perform under pressure and stand the test of time.",
   },
   {
     number: "05",
-    title: "We think about what we're doing.",
-    body: "Software is not neutral. The tools we build shape how people spend their time, what they notice, and what they ignore. We take that seriously. Every design decision is a values decision. Ours are: protect attention, reduce noise, support good thinking.",
+    title: "We take ownership of the outcome.",
+    body: "We don't just ship code; we ship solutions. We take responsibility for the impact our products have and are committed to delivering results that exceed expectations.",
   },
 ];
 
@@ -56,18 +56,18 @@ export default function PhilosophyPage() {
       <section className="relative overflow-hidden bg-ivory py-32 md:py-44">
         <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
         <div className="container-mid relative">
-          <p className="label-sm mb-6 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Our Philosophy</p>
+          <p className="label-sm mb-6 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Our Method</p>
           <h1 className="heading-display text-charcoal mb-8 text-balance animate-fade-up opacity-0 max-w-4xl"
               style={{ animationDelay: "100ms", animationFillMode: "forwards" }}>
-            Designed to Help You Think.
+            Engineered for Results.
           </h1>
           <div className="max-w-2xl space-y-5 animate-fade-up opacity-0"
                style={{ animationDelay: "200ms", animationFillMode: "forwards" }}>
             <p className="body-lg text-charcoal-muted">
-              Most software competes for your attention.
+              We build products that solve problems.
             </p>
             <p className="body-lg text-charcoal-muted">
-              We build tools that protect it.
+              Impact-driven, user-centric, and built to last.
             </p>
           </div>
         </div>
@@ -77,37 +77,34 @@ export default function PhilosophyPage() {
       <SectionWrapper background="tinted" container="narrow">
         <div className="space-y-6 text-lg text-charcoal-muted leading-loose">
           <p>
-            Lumyn products are shaped by <strong className="text-charcoal font-medium">restraint</strong>,
+            Lumyn products are shaped by <strong className="text-charcoal font-medium">efficiency</strong>,
             guided by <strong className="text-charcoal font-medium">intelligence</strong>,
-            and refined through <strong className="text-charcoal font-medium">simplicity</strong>.
+            and refined through <strong className="text-charcoal font-medium">rigorous testing</strong>.
           </p>
           <p>
-            We live in an age of extraordinary abundance — of information, of tools, of options.
-            That abundance has a shadow side. More information does not mean more understanding.
-            More features do not mean more capability. More time on an app does not mean more value received.
+            We live in an age where technology is everywhere, but truly effective solutions are rare.
+            We believe that the best products are those that solve a specific problem exceptionally well.
           </p>
           <p>
-            The bottleneck is no longer access to information. It is the quality of thinking we bring to it.
+            The bottleneck is no longer capability; it is focus and execution.
           </p>
           <p>
-            That is what Lumyn is trying to support.
+            That is what Lumyn is trying to deliver.
           </p>
           <blockquote className="border-l-2 border-sage pl-6 my-8 text-charcoal italic text-xl">
-            We remove before we add.<br />
-            We clarify before we scale.
+            We validate before we scale.<br />
+            We optimize for impact.
           </blockquote>
           <p>
             These are not slogans. They are the filter through which every product decision passes.
-            If a feature adds noise, it doesn't ship. If a flow creates confusion, we redesign until
-            it doesn't. If a product does too many things, we cut until it does one thing well.
+            If a feature doesn't add value, it doesn't ship. If a flow creates friction, we redesign until
+            it's seamless. If a product does too many things, we focus it until it does one thing exceptionally.
           </p>
           <p>
-            The test we use is simple: does this help the person think, or does it interrupt
-            the person thinking?
+            The test we use is simple: does this solve the problem effectively and efficiently?
           </p>
           <p>
-            That question eliminates more than half of what would otherwise ship. The rest
-            becomes something we're proud of.
+            That question defines everything we build.
           </p>
         </div>
       </SectionWrapper>
@@ -153,16 +150,15 @@ export default function PhilosophyPage() {
         </h2>
         <div className="space-y-5 text-charcoal-muted leading-relaxed text-base md:text-lg">
           <p>
-            The world does not need more software. It needs better software.
+            The world does not need more software. It needs better solutions.
           </p>
           <p>
-            Software that fits into life without taking it over. Software that completes a job
-            and then gets out of the way. Software that makes you more capable without making
-            you more dependent.
+            Products that integrate seamlessly into workflows. Software that delivers value without complexity.
+            Tools that empower users rather than distracting them.
           </p>
           <p>
-            We believe the next important frontier in product design is not capability.
-            It is restraint. And we're spending our time exploring it.
+            We believe the next important frontier in product design is execution and impact.
+            And we're spending our time perfecting it.
           </p>
         </div>
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
@@ -178,8 +174,8 @@ export default function PhilosophyPage() {
       {/* CTA */}
       <SectionWrapper background="default" size="sm">
         <CTA
-          headline="If this resonates, we'd like to hear from you."
-          subtext="We occasionally take on advisory partnerships and collaborations with people building thoughtful products."
+          headline="Ready to build something that works?"
+          subtext="We occasionally take on partnerships and collaborations with people building high-impact products."
           primaryCTA={{ label: "Start a Conversation", href: "/contact" }}
           variant="dark"
         />

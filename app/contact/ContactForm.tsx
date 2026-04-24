@@ -149,11 +149,11 @@ export default function ContactForm() {
               <h3 className="font-semibold text-charcoal mb-3 tracking-tight">What We Work On</h3>
               <ul className="space-y-2 text-sm text-charcoal-muted">
                 {[
-                  "Digital product strategy",
-                  "Calm software design",
-                  "Thoughtful web development",
-                  "Advisory & consulting",
-                  "Partnership conversations",
+                  "Full-stack web applications",
+                  "High-performance digital tools",
+                  "Progressive Web Apps (PWAs)",
+                  "Internal productivity tools",
+                  "Modern engineering solutions",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="w-1 h-1 rounded-full bg-sage shrink-0" aria-hidden="true" />

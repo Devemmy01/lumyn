@@ -11,40 +11,48 @@ import Post from "@/models/Post";
 import { IPost } from "@/models/Post";
 
 export const metadata: Metadata = {
-  title: "Lumyn — Custom Software Development Studio",
+  title: "Lumyn — Building Products That Solve Real-World Problems",
   description:
-    "Lumyn is a modern software development studio. We build custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity.",
+    "Lumyn is a modern product studio. We build high-performance PWAs, web applications, and digital tools designed to solve real-world problems and deliver measurable impact.",
   openGraph: {
-    title: "Lumyn — Custom Software Development Studio",
+    title: "Lumyn — Building Products That Solve Real-World Problems",
     description:
-      "Lumyn is a modern software development studio. We build custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity.",
+      "Lumyn is a modern product studio. We build high-performance PWAs, web applications, and digital tools designed to solve real-world problems and deliver measurable impact.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lumyn | Modern Product Studio",
+      },
+    ],
   },
 };
 
 const products = [
   {
     name: "MindFuel",
-    tagline: "A Full Stack Social PWA – Reclaiming social media for the human soul.",
+    tagline: "A Full Stack Social Platform – Thoughtful connection for the modern age.",
     description:
-      "A quiet corner of the internet built for thinkers, reflectors, and curators. Share ideas that matter without chasing the algorithm.",
+      "A social space built for meaningful interaction and curation. Share ideas that matter and connect with others in a high-signal environment.",
     href: "/products#mindfuel",
     status: "live" as const,
     accentColor: "#7C6CF6",
   },
   {
     name: "Summai",
-    tagline: "Turn information overload into clear, concise insights.",
+    tagline: "Efficiently extract insights from any piece of content.",
     description:
-      "Paste any article, report, or document. Summai extracts the signal and removes the noise — delivering understanding in minutes.",
+      "Paste any article, report, or document. Summai identifies key takeaways and delivers actionable insights in seconds.",
     href: "/products#summai",
     status: "beta" as const,
     accentColor: "#5B7FA6",
   },
   {
     name: "EdTurbo",
-    tagline: "Master any topic faster through short lessons and smart quizzes.",
+    tagline: "Accelerate learning through targeted, high-impact lessons.",
     description:
-      "A microlearning platform for secondary and tertiary students. Short lessons, visual summaries, and adaptive quizzes help you learn more in less time.",
+      "A modern learning platform designed for speed and retention. Short lessons and adaptive testing help you master topics faster.",
     href: "/products#edturbo",
     status: "beta" as const,
     accentColor: "#2A9D8F",
@@ -53,20 +61,20 @@ const products = [
 
 const values = [
   {
-    title: "Restraint",
-    description: "We remove before we add. Every element on screen costs attention. We spend it wisely.",
+    title: "Efficiency",
+    description: "We optimize for the most direct path to value. No fluff, just results.",
   },
   {
-    title: "Clarity",
-    description: "Information that confuses serves no one. We design for understanding, not completeness.",
+    title: "Impact",
+    description: "We build features that move the needle. Every line of code serves a purpose.",
   },
   {
-    title: "Depth",
-    description: "We build tools for deep work, not shallow engagement. Quality of thought over quantity of time.",
+    title: "Scale",
+    description: "We engineer for growth and durability. Built to perform under pressure.",
   },
   {
-    title: "Calm",
-    description: "Software should reduce your cognitive load, not add to it. We design experiences that breathe.",
+    title: "Execution",
+    description: "We ship high-quality products swiftly and consistently. Excellence in motion.",
   },
 ];
 
@@ -77,7 +85,7 @@ const jsonLd = {
   name: "Lumyn",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio",
   description:
-    "Lumyn is a modern software development studio building custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity.",
+    "Lumyn is a modern product studio building high-performance PWAs, web applications, and digital tools designed to solve real-world problems and deliver measurable results.",
   potentialAction: {
     "@type": "SearchAction",
     target: {
@@ -104,11 +112,11 @@ export default async function HomePage() {
       />
 
       <Hero
-        badge="A calm digital studio"
-        headline="Custom Software That Respects Your Attention"
-        subheadline="Lumyn is a calm software development studio building intelligent digital tools and custom PWAs designed to restore clarity."
+        badge="Modern Product Studio"
+        headline="Building Impactful Products That Deliver Results."
+        subheadline="Lumyn is an independent product studio building high-performance digital tools and custom web applications designed to solve real-world problems."
         primaryCTA={{ label: "Explore Products", href: "/products" }}
-        secondaryCTA={{ label: "Read Our Philosophy", href: "/philosophy" }}
+        secondaryCTA={{ label: "Our Method", href: "/philosophy" }}
       />
 
       {/* ── Products ───────────────────────────────── */}
@@ -116,11 +124,11 @@ export default async function HomePage() {
         <Reveal className="text-center mb-14">
           <p className="label-sm mb-4">What We Build</p>
           <h2 className="heading-lg text-charcoal mb-4">
-            Tools Designed for Clarity
+            Impactful Products
           </h2>
           <p className="body-md max-w-xl mx-auto">
-            Each product starts with a single question: what can we remove?
-            The result is software that helps you think better.
+            We build software that addresses real-world challenges with precision and purpose.
+            The result is products that deliver measurable value.
           </p>
         </Reveal>
 
@@ -152,25 +160,25 @@ export default async function HomePage() {
       <SectionWrapper background="default" glow="top-left" separator>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <Reveal>
-            <p className="label-sm mb-5">Our Philosophy</p>
+            <p className="label-sm mb-5">Our Method</p>
             <h2 className="heading-lg text-charcoal mb-6 text-balance">
-              Designed to Help You Think.
+              Engineered for Results.
             </h2>
             <div className="space-y-4 mb-8">
               <p className="body-md">
-                Most software competes for your attention. We build tools that protect it.
+                We don't just build features; we build solutions. Our process is focused on execution and impact.
               </p>
               <p className="body-md">
-                Lumyn products are shaped by restraint, guided by intelligence,
-                and refined through simplicity.
+                Lumyn products are shaped by efficiency, guided by intelligence,
+                and refined through rigorous testing.
               </p>
               <p className="body-md italic text-charcoal-muted/70">
-                We remove before we add.<br />
-                We clarify before we scale.
+                We validate before we scale.<br />
+                We optimize for impact.
               </p>
             </div>
             <Link href="/philosophy" className="btn-primary">
-              Our Philosophy
+              Our Method
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
                       strokeLinecap="round" strokeLinejoin="round"/>
@@ -222,7 +230,7 @@ export default async function HomePage() {
                   className="font-semibold text-ivory text-balance mb-8"
                   style={{ fontSize: "clamp(2rem, 4.5vw, 3.25rem)", lineHeight: 1.1, letterSpacing: "-0.026em" }}
                 >
-                  We win when you close the app.
+                  We win when you solve the problem.
                 </h2>
               </Reveal>
 
@@ -230,14 +238,13 @@ export default async function HomePage() {
                 <div className="space-y-4 mb-10">
                   <p className="text-ivory/55 leading-relaxed"
                      style={{ fontSize: "clamp(0.975rem, 1.4vw, 1.1rem)" }}>
-                    Most software is engineered to keep you inside it. Every notification,
-                    every infinite scroll, every subtle nudge — all designed to hold your attention
-                    a little longer. We think that&apos;s the wrong goal.
+                    Most software is engineered to keep you inside it. We think that&apos;s the wrong goal.
+                    We build tools that help you get the job done efficiently, so you can focus on what matters most.
                   </p>
                   
                   <p className="text-ivory/30 leading-relaxed italic"
                      style={{ fontSize: "clamp(0.875rem, 1.2vw, 0.95rem)" }}>
-                    We don&apos;t optimise for time-on-screen.<br />We optimise for time freed.
+                    We don&apos;t optimize for time-on-screen.<br />We optimize for value delivered.
                   </p>
                 </div>
               </Reveal>
@@ -250,17 +257,17 @@ export default async function HomePage() {
               {[
                 {
                   label: "What we track",
-                  value: "Time you get back",
+                  value: "Value delivered",
                   sub: "Not time spent in-app",
                 },
                 {
-                  label: "How we define retention",
-                  value: "You come back because it works",
+                  label: "How we define success",
+                  value: "The problem is solved",
                   sub: "Not because we made it hard to leave",
                 },
                 {
                   label: "What a good session looks like",
-                  value: "Short and decisive",
+                  value: "Efficient and decisive",
                   sub: "Not long and habitual",
                 },
               ].map((item, i) => (
@@ -324,8 +331,8 @@ export default async function HomePage() {
       <SectionWrapper className="p-0" background="tinted" size="sm" separator>
         <Reveal>
           <CTA
-            headline="Stay curious. Stay calm."
-            subtext="Get occasional essays on thoughtful technology, focus, and what we're building at Lumyn."
+            headline="Stay updated."
+            subtext="Get occasional updates on our latest products, case studies, and what we're building at Lumyn."
             primaryCTA={{ label: "Subscribe to Journal", href: "/journal" }}
             secondaryCTA={{ label: "Read Latest", href: "/journal" }}
             variant="default"
@@ -337,8 +344,8 @@ export default async function HomePage() {
       <SectionWrapper background="default" size="sm">
         <Reveal>
           <CTA
-            headline="Ready to build something calm?"
-            subtext="We work with a small number of partners on thoughtful digital products. Let's see if it's a fit."
+            headline="Ready to build something impactful?"
+            subtext="We partner with organizations to build high-performance digital products. Let's see if it's a fit."
             primaryCTA={{ label: "Get in Touch", href: "/contact" }}
             secondaryCTA={{ label: "Learn About Us", href: "/about" }}
             variant="dark"

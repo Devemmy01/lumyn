@@ -12,18 +12,18 @@ import SubscribeForm from "@/components/SubscribeForm";
 export const metadata: Metadata = {
   title: "Journal",
   description:
-    "Essays on calm technology, digital minimalism, focus tools, and intentional software. Thinking out loud from the Lumyn.",
+    "Essays on software engineering, product strategy, and digital excellence. Thinking out loud from the Lumyn team.",
   keywords: [
-    "calm technology essays",
-    "digital minimalism blog",
-    "focus tools",
-    "information overload solutions",
-    "intentional technology",
-    "calm productivity",
+    "software engineering blog",
+    "product strategy",
+    "digital excellence",
+    "problem solving",
+    "high-performance software",
+    "product development",
   ],
   openGraph: {
     title: "Journal | Lumyn",
-    description: "Essays on calm technology, digital minimalism, and intentional software.",
+    description: "Essays on software engineering, product strategy, and digital excellence.",
   },
 };
 
@@ -31,7 +31,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Blog",
   name: "Lumyn Journal",
-  description: "Essays on calm technology, digital minimalism, and intentional software.",
+  description: "Essays on software engineering, product strategy, and digital excellence.",
   url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio"}/journal`,
   publisher: {
     "@type": "Organization",
@@ -109,7 +109,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
             className="body-lg text-charcoal-muted max-w-xl animate-fade-up opacity-0"
             style={{ animationDelay: "200ms", animationFillMode: "forwards" }}
           >
-            Essays on calm technology, digital minimalism, focus, and the philosophy behind the tools we build.
+            Essays on software engineering, product strategy, and the method behind the tools we build.
           </p>
         </div>
       </section>
@@ -224,7 +224,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
                 Subscribe
               </h2>
               <p className="text-ivory/60 text-xs leading-relaxed mb-4">
-                Occasional essays. No noise.
+                Occasional essays. No fluff.
               </p>
               <SubscribeForm />
             </div>

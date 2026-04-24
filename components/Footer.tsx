@@ -7,7 +7,7 @@ import { useState } from "react";
 const footerLinks = {
   Studio: [
     { label: "About", href: "/about" },
-    { label: "Philosophy", href: "/philosophy" },
+    { label: "Our Method", href: "/philosophy" },
     { label: "Contact", href: "/contact" },
   ],
   Products: [
@@ -36,8 +36,8 @@ export default function Footer() {
             </Link>
 
             <p className="text-ivory/60 text-sm leading-relaxed mb-6">
-              A calm digital product studio building intelligent tools
-              designed to remove noise and restore clarity.
+              A modern product studio building high-performance digital tools
+              designed to solve problems and deliver results.
             </p>
 
             {/* Newsletter mini */}
@@ -74,7 +74,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="pt-8">
           <p className="text-xs text-ivory/30">
-            &copy; {year} Lumyn. Built with restraint.
+            &copy; {year} Lumyn. Built for impact.
           </p>
         </div>
       </div>

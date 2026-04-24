@@ -23,8 +23,8 @@ export function buildMetadata({
   publishedAt,
   tags = [],
 }: SEOProps): Metadata {
-  const url = path.startsWith("http") ? path : `${siteUrl}/${path.replace(/^\//, "")}`;
-  const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}/${ogImage.replace(/^\//, "")}`;
+  const url = path.startsWith("http") ? path : `${siteUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+  const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage.startsWith("/") ? "" : "/"}${ogImage}`;
 
   return {
     title,
@@ -32,13 +32,14 @@ export function buildMetadata({
     keywords: [
       ...keywords,
       "lumyn",
+      "product studio",
       "software development services",
       "custom software development",
       "web application development",
       "PWA development",
-      "calm technology",
-      "digital minimalism",
-      "focus tools",
+      "problem solving",
+      "impactful design",
+      "efficiency",
     ],
     openGraph: {
       title: `${title} — Lumyn`,

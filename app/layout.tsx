@@ -7,16 +7,17 @@ import { Analytics } from "@vercel/analytics/react";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
 const siteName = "Lumyn";
 const siteDescription =
-  "Lumyn is a modern software development studio. We build custom PWAs, web applications, and calm intelligent software designed to remove noise and restore clarity. Partner with us for premium custom software development services.";
+  "Lumyn is a modern product studio building high-performance digital tools and custom web applications that solve real-world problems. Partner with us for premium custom software development services.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Lumyn | Custom Software Development Studio",
+    default: "Lumyn | Modern Product Studio",
     template: "%s — Lumyn",
   },
   description: siteDescription,
   keywords: [
+    "product studio",
     "software development services",
     "custom software development",
     "web application development",
@@ -25,9 +26,8 @@ export const metadata: Metadata = {
     "Next.js developers",
     "full-stack development studio",
     "software engineering studio",
-    "calm technology",
-    "digital minimalism",
-    "focus tools",
+    "problem solving software",
+    "impactful digital tools",
   ],
   authors: [{ name: "Lumyn", url: siteUrl }],
   creator: "Lumyn",
@@ -48,20 +48,20 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName,
-    title: "Lumyn | Custom Software Development Studio",
+    title: "Lumyn | Modern Product Studio",
     description: siteDescription,
     images: [
       {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Lumyn | Custom Software Development Studio",
+        alt: "Lumyn | Modern Product Studio",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lumyn | Custom Software Development Studio",
+    title: "Lumyn | Modern Product Studio",
     description: siteDescription,
     images: [`${siteUrl}/og-image.png`],
     creator: "@lumynstudio",

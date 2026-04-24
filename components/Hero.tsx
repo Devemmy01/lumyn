@@ -75,8 +75,8 @@ export default function Hero({
       <div
         className={`container-mid relative ${
           size === "compact"
-            ? "py-28 md:py-36"
-            : "py-28 md:py-36 lg:py-40"
+            ? "py-20 md:py-36"
+            : "py-24 md:py-36 lg:py-40"
         }`}
       >
         {/* ── Text block — parallax + fade on scroll ── */}
@@ -124,10 +124,7 @@ export default function Hero({
                 {primaryCTA && (
                   <Link href={primaryCTA.href} className="btn-primary">
                     {primaryCTA.label}
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                      <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
-                            strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    
                   </Link>
                 )}
                 {secondaryCTA && (

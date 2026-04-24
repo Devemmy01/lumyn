@@ -59,7 +59,7 @@
   /* ─── Headings ─── */
   .heading-display {
     @apply font-semibold tracking-tight text-charcoal;
-    font-size: clamp(2.75rem, 7vw, 5.5rem);
+    font-size: clamp(2.25rem, 8vw, 5rem);
     line-height: 1.05;
     letter-spacing: -0.03em;
   }
