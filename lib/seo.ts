@@ -24,7 +24,11 @@ export function buildMetadata({
   tags = [],
 }: SEOProps): Metadata {
   const url = path.startsWith("http") ? path : `${siteUrl}${path.startsWith("/") ? "" : "/"}${path}`;
-  const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage.startsWith("/") ? "" : "/"}${ogImage}`;
+  
+  // Detect base64/data URLs which are invalid for OG images on most platforms
+  const isDataUrl = ogImage.startsWith("data:");
+  const finalOgImage = isDataUrl ? "/og-image.png" : ogImage;
+  const fullOgImage = finalOgImage.startsWith("http") ? finalOgImage : `${siteUrl}${finalOgImage.startsWith("/") ? "" : "/"}${finalOgImage}`;
 
 
 
