@@ -26,7 +26,10 @@ export function buildMetadata({
   const url = path.startsWith("http") ? path : `${siteUrl}${path.startsWith("/") ? "" : "/"}${path}`;
   const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage.startsWith("/") ? "" : "/"}${ogImage}`;
 
+
+
   return {
+    metadataBase: new URL(siteUrl),
     title,
     description,
     keywords: [

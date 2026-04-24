@@ -19,12 +19,10 @@ async function connectDB(): Promise<typeof mongoose> {
   const MONGODB_URI = process.env.MONGODB_URI;
 
   if (!MONGODB_URI) {
-    console.error("MONGODB_URI is missing!");
     throw new Error(
       "Please define the MONGODB_URI environment variable in .env.local"
     );
   }
-  console.log("Connecting to MongoDB...", MONGODB_URI.substring(0, 20) + "...");
 
   if (cached.conn) {
     return cached.conn;

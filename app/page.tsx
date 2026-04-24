@@ -11,13 +11,13 @@ import Post from "@/models/Post";
 import { IPost } from "@/models/Post";
 
 export const metadata: Metadata = {
-  title: "Lumyn — Building Products That Solve Real-World Problems",
+  title: "Lumyn — Impactful Products, Engineered for Results.",
   description:
-    "Lumyn is a modern product studio. We build high-performance PWAs, web applications, and digital tools designed to solve real-world problems and deliver measurable impact.",
+    "Lumyn is an independent product studio building high-performance digital tools and custom web applications that solve real-world problems with precision and impact.",
   openGraph: {
-    title: "Lumyn — Building Products That Solve Real-World Problems",
+    title: "Lumyn — Impactful Products, Engineered for Results.",
     description:
-      "Lumyn is a modern product studio. We build high-performance PWAs, web applications, and digital tools designed to solve real-world problems and deliver measurable impact.",
+      "Lumyn is an independent product studio building high-performance digital tools and custom web applications that solve real-world problems with precision and impact.",
     images: [
       {
         url: "/og-image.png",

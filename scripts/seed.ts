@@ -30,7 +30,8 @@ async function seed() {
 
   console.log("📝 Seeding sample blog posts...");
   for (const post of samplePosts) {
-    await Post.create({ ...post, published: true });
+    const newPost = new Post({ ...post, published: true });
+    await newPost.save();
     console.log(`  ✓ Created: "${post.title}"`);
   }
 

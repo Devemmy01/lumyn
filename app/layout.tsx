@@ -7,12 +7,12 @@ import { Analytics } from "@vercel/analytics/react";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
 const siteName = "Lumyn";
 const siteDescription =
-  "Lumyn is a modern product studio building high-performance digital tools and custom web applications that solve real-world problems. Partner with us for premium custom software development services.";
+  "Lumyn is an independent product studio building high-performance digital tools and custom web applications that solve real-world problems with precision and impact.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Lumyn | Modern Product Studio",
+    default: "Lumyn — Impactful Products, Engineered for Results.",
     template: "%s — Lumyn",
   },
   description: siteDescription,
@@ -28,6 +28,11 @@ export const metadata: Metadata = {
     "software engineering studio",
     "problem solving software",
     "impactful digital tools",
+    "web agency",
+    "web development services",
+    "mobile app development services",
+    "website developer",
+    "web developer"
   ],
   authors: [{ name: "Lumyn", url: siteUrl }],
   creator: "Lumyn",
@@ -48,7 +53,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName,
-    title: "Lumyn | Modern Product Studio",
+    title: "Lumyn — Impactful Products, Engineered for Results.",
     description: siteDescription,
     images: [
       {
@@ -61,7 +66,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lumyn | Modern Product Studio",
+    title: "Lumyn — Impactful Products, Engineered for Results.",
     description: siteDescription,
     images: [`${siteUrl}/og-image.png`],
     creator: "@lumynstudio",
