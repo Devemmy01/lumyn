@@ -61,7 +61,7 @@ export default function AboutPage() {
       </section>
 
       {/* Mission */}
-      <SectionWrapper background="tinted" container="narrow">
+      <SectionWrapper background="secondary" container="narrow">
         <p className="label-sm mb-6">Mission</p>
         <div className="space-y-5 text-charcoal-muted leading-relaxed text-base md:text-lg">
           <p>
@@ -127,7 +127,7 @@ export default function AboutPage() {
       </SectionWrapper>
 
       {/* Approach */}
-      <SectionWrapper background="tinted" container="narrow">
+      <SectionWrapper background="secondary" container="narrow">
         <p className="label-sm mb-6">Our Approach</p>
         <h2 className="heading-md text-charcoal mb-8">
           How We Work
@@ -156,7 +156,7 @@ export default function AboutPage() {
             },
           ].map(({ step, detail }, i) => (
             <div key={step} className="flex gap-6">
-              <div className="w-8 h-8 rounded-full bg-sage/15 text-sage-dark flex items-center
+              <div className="w-8 h-8  bg-sage/15 text-sage-dark flex items-center
                               justify-center text-sm font-semibold shrink-0 mt-0.5">
                 {i + 1}
               </div>
@@ -176,7 +176,6 @@ export default function AboutPage() {
           subtext="We share thinking through our journal as we build and ship impactful digital products."
           primaryCTA={{ label: "Get in Touch", href: "/contact" }}
           secondaryCTA={{ label: "Read the Journal", href: "/journal" }}
-          variant="dark"
         />
       </SectionWrapper>
     </>

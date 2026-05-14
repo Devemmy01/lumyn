@@ -51,14 +51,18 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs font-medium text-charcoal-muted/60 uppercase tracking-widest mr-2">
+      <span className="text-xs font-medium uppercase tracking-widest mr-2" style={{ color: "var(--text-tertiary)" }}>
         Share
       </span>
       
       {/* Twitter / X */}
       <button
         onClick={shareX}
-        className="p-2 rounded-full border border-stone/30 text-charcoal-muted hover:text-charcoal hover:bg-ivory-200 transition-all active:scale-95"
+        className="p-2  border transition-all hover:bg-sage/5 active:scale-95"
+        style={{
+          borderColor: "var(--border-primary)",
+          color: "var(--text-secondary)"
+        }}
         title="Share on X"
         aria-label="Share on X"
       >
@@ -70,7 +74,11 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
       {/* LinkedIn */}
       <button
         onClick={shareLinkedIn}
-        className="p-2 rounded-full border border-stone/30 text-charcoal-muted hover:text-charcoal hover:bg-ivory-200 transition-all active:scale-95"
+        className="p-2  border transition-all hover:bg-sage/5 active:scale-95"
+        style={{
+          borderColor: "var(--border-primary)",
+          color: "var(--text-secondary)"
+        }}
         title="Share on LinkedIn"
         aria-label="Share on LinkedIn"
       >
@@ -83,7 +91,11 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
       <div className="relative">
         <button
           onClick={copyToClipboard}
-          className="p-2 rounded-full border border-stone/30 text-charcoal-muted hover:text-charcoal hover:bg-ivory-200 transition-all active:scale-95"
+          className="p-2  border transition-all hover:bg-sage/5 active:scale-95"
+          style={{
+            borderColor: "var(--border-primary)",
+            color: "var(--text-secondary)"
+          }}
           title="Copy Link"
           aria-label="Copy link to clipboard"
         >
@@ -99,7 +111,7 @@ export default function ShareButtons({ title, slug }: ShareButtonsProps) {
           )}
         </button>
         {copied && (
-          <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-charcoal text-white text-[10px] px-2 py-1 rounded animate-fade-up">
+          <span className="absolute -top-10 left-1/2 -translate-x-1/2 text-white text-[10px] px-2 py-1animate-fade-up" style={{ backgroundColor: "var(--text-primary)" }}>
             Copied!
           </span>
         )}

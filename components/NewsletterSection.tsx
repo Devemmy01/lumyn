@@ -65,13 +65,13 @@ export default function NewsletterSection({ compact = false }: NewsletterSection
     <div className="max-w-md mx-auto text-center">
       {status === "success" ? (
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-sage/15 flex items-center justify-center">
+          <div className="w-12 h-12  bg-sage/15 flex items-center justify-center">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M4 10l4 4 8-8" stroke="#7C6CF6" strokeWidth="2"
                     strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <p className="font-medium text-charcoal">{message}</p>
+          <p className="font-medium" style={{ color: "var(--text-primary)" }}>{message}</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">

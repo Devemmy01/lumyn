@@ -34,18 +34,21 @@ export default function BlogCard({
     <Link
       href={`/journal/${slug}`}
       className={clsx(
-        "group flex flex-col gap-4 p-7 rounded-2xl border border-stone/60 h-full",
-        "hover:border-stone hover:shadow-card-hover bg-white/50 hover:bg-white",
-        "transition-all duration-400 ease-out-expo",
+        "group flex flex-col gap-4 p-3 md:p-7 rounded-2xl h-full",
+        "card transition-all duration-400 ease-out-expo hover:shadow-lg",
         variant === "featured" && "md:p-10"
       )}
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        borderColor: "var(--border-primary)"
+      }}
       aria-label={`Read: ${title}`}
     >
       {/* Tags */}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="tag text-xs">
+            <span key={tag} className="tag text-xs p-2">
               {tag}
             </span>
           ))}
@@ -55,21 +58,22 @@ export default function BlogCard({
       {/* Title */}
       <h3
         className={clsx(
-          "font-semibold tracking-tight text-charcoal group-hover:text-sage-dark",
+          "font-semibold tracking-tight group-hover:text-sage",
           "transition-colors duration-200 leading-snug",
           variant === "featured" ? "text-xl md:text-2xl" : "text-lg"
         )}
+        style={{ color: "var(--text-primary)" }}
       >
         {title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-charcoal-muted/80 text-sm leading-relaxed line-clamp-3 flex-1">
+      <p className="text-sm leading-relaxed line-clamp-3 flex-1" style={{ color: "var(--text-secondary)" }}>
         {excerpt}
       </p>
 
       {/* Meta */}
-      <div className="flex items-center gap-3 text-xs text-charcoal-muted/60 pt-2 border-t border-stone/40">
+      <div className="flex items-center gap-3 text-xs pt-2 border-t" style={{ color: "var(--text-tertiary)", borderColor: "var(--border-secondary)" }}>
         <time dateTime={new Date(createdAt).toISOString()}>
           {formatDate(createdAt)}
         </time>

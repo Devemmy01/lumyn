@@ -141,7 +141,7 @@ export default function ProductsPage() {
                   {/* Status */}
                   <div className="flex items-center gap-2 mb-5">
                     <span
-                      className={`w-2 h-2 rounded-full ${status.dotClass} inline-block`}
+                      className={`w-2 h-2  ${status.dotClass} inline-block`}
                       aria-hidden="true"
                     />
                     <span className={`text-xs font-medium tracking-wide ${status.textClass}`}>
@@ -210,7 +210,7 @@ export default function ProductsPage() {
                   aria-hidden="true"
                 >
                   <div
-                    className="rounded-3xl aspect-[4/3] flex items-center justify-center
+                    className=" aspect-[4/3] flex items-center justify-center
                                shadow-soft-lg relative overflow-hidden"
                     style={{ backgroundColor: `${product.accentColor}12` }}
                   >
@@ -220,7 +220,7 @@ export default function ProductsPage() {
                         <img 
                           src={product.image} 
                           alt={product.name} 
-                          className="w-full h-full object-cover object-left-top shadow-xl rounded-tr-xl border border-white/10"
+                          className="w-full h-full object-cover object-left-top shadow-xl  border border-white/10"
                         />
                       </div>
                     ) : (
@@ -234,7 +234,7 @@ export default function ProductsPage() {
                         {/* Product icon */}
                         <div className="relative text-center">
                           <div
-                            className="w-20 h-20 rounded-2xl flex items-center justify-center
+                            className="w-20 h-20  flex items-center justify-center
                                        text-white font-bold text-3xl mx-auto mb-4 shadow-soft-md"
                             style={{ backgroundColor: product.accentColor }}
                           >
@@ -258,7 +258,7 @@ export default function ProductsPage() {
       </SectionWrapper>
 
       {/* CTA */}
-      <SectionWrapper background="tinted" size="sm">
+      <SectionWrapper background="secondary" size="sm">
         <CTA
           headline="Have a problem worth solving?"
           subtext="If there's a challenge you're facing that needs an impactful solution, reach out. We're always looking for the next problem to solve."

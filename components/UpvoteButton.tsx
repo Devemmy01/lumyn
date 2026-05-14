@@ -54,11 +54,15 @@ export default function UpvoteButton({ postId, initialUpvotes }: UpvoteButtonPro
       onClick={handleUpvote}
       disabled={hasUpvoted}
       className={clsx(
-        "group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300",
+        "group flex items-center gap-2 px-4 py-2  border transition-all duration-300",
         hasUpvoted
           ? "border-sage bg-sage/10 text-sage cursor-default"
-          : "border-stone/60 hover:border-sage hover:bg-sage/5 text-charcoal-muted hover:text-charcoal cursor-pointer"
+          : "hover:border-sage hover:bg-sage/5 cursor-pointer"
       )}
+      style={{
+        borderColor: hasUpvoted ? "var(--accent)" : "var(--border-primary)",
+        color: hasUpvoted ? "var(--accent)" : "var(--text-secondary)"
+      }}
       aria-label="Upvote this post"
     >
       <div className="relative flex items-center justify-center">

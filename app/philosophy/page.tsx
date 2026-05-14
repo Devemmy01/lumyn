@@ -74,7 +74,7 @@ export default function PhilosophyPage() {
       </section>
 
       {/* Full philosophy statement */}
-      <SectionWrapper background="tinted" container="narrow">
+      <SectionWrapper background="secondary" container="narrow">
         <div className="space-y-6 text-lg text-charcoal-muted leading-loose">
           <p>
             Lumyn products are shaped by <strong className="text-charcoal font-medium">efficiency</strong>,
@@ -122,7 +122,7 @@ export default function PhilosophyPage() {
               key={principle.number}
               className="group grid grid-cols-1 md:grid-cols-[80px_1fr] gap-4 md:gap-10
                          py-10 border-t border-stone/60 hover:bg-ivory-200/50
-                         transition-colors duration-300 px-0 md:px-4 rounded-xl"
+                         transition-colors duration-300 px-0 md:px-4 "
             >
               <div className="text-4xl font-semibold text-stone group-hover:text-sage
                               transition-colors duration-300 tabular-nums tracking-tight">
@@ -143,7 +143,7 @@ export default function PhilosophyPage() {
       </SectionWrapper>
 
       {/* On building */}
-      <SectionWrapper background="tinted" container="narrow">
+      <SectionWrapper background="secondary" container="narrow">
         <p className="label-sm mb-6">On Building</p>
         <h2 className="heading-md text-charcoal mb-6">
           Why We Build Software at All
@@ -177,7 +177,6 @@ export default function PhilosophyPage() {
           headline="Ready to build something that works?"
           subtext="We occasionally take on partnerships and collaborations with people building high-impact products."
           primaryCTA={{ label: "Start a Conversation", href: "/contact" }}
-          variant="dark"
         />
       </SectionWrapper>
     </>

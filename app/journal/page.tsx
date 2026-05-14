@@ -8,6 +8,7 @@ import SectionWrapper from "@/components/SectionWrapper";
 import JournalSearch from "@/components/JournalSearch";
 import JournalPagination from "@/components/JournalPagination";
 import SubscribeForm from "@/components/SubscribeForm";
+import JournalTagsFilter from "@/components/JournalTagsFilter";
 
 export const metadata: Metadata = {
   title: "Journal",
@@ -95,19 +96,19 @@ export default async function JournalPage({ searchParams }: PageProps) {
       />
 
       {/* Header */}
-      <section className="relative overflow-hidden bg-ivory py-28 md:py-36">
+      <section className="relative overflow-hidden py-28 md:py-36" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
         <div className="container-mid relative">
           <p className="label-sm mb-5 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Journal</p>
           <h1
-            className="heading-display text-charcoal mb-6 text-balance animate-fade-up opacity-0 max-w-3xl"
-            style={{ animationDelay: "100ms", animationFillMode: "forwards" }}
+            className="heading-display mb-6 text-balance animate-fade-up opacity-0 max-w-3xl"
+            style={{ animationDelay: "100ms", animationFillMode: "forwards", color: "var(--text-primary)" }}
           >
             Thinking Out Loud
           </h1>
           <p
-            className="body-lg text-charcoal-muted max-w-xl animate-fade-up opacity-0"
-            style={{ animationDelay: "200ms", animationFillMode: "forwards" }}
+            className="body-lg max-w-xl animate-fade-up opacity-0"
+            style={{ animationDelay: "200ms", animationFillMode: "forwards", color: "var(--text-secondary)" }}
           >
             Essays on software engineering, product strategy, and the method behind the tools we build.
           </p>
@@ -120,8 +121,8 @@ export default async function JournalPage({ searchParams }: PageProps) {
           {/* Posts Column */}
           <div>
             {!posts.length && (
-              <div className="py-12 border border-stone/40 border-dashed rounded-2xl text-center">
-                <p className="text-charcoal-muted">No posts found matching your criteria.</p>
+              <div className="py-12 border border-dashed  text-center" style={{ borderColor: "var(--border-primary)", color: "var(--text-secondary)" }}>
+                <p>No posts found matching your criteria.</p>
                 {(query || tag) && (
                   <Link href="/journal" className="text-sage font-medium mt-4 inline-block hover:underline">
                     Clear filters
@@ -148,7 +149,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
 
             {/* Rest */}
             {rest.length > 0 && (
-              <div className={featured ? "border-t border-stone/60 pt-10" : ""}>
+              <div className={featured ? "border-t pt-10" : ""} style={featured ? { borderColor: "var(--border-primary)" } : {}}>
                 {featured && <p className="label-sm mb-6">All Articles</p>}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {rest.map((post: IPost, i: number) => (
@@ -178,52 +179,34 @@ export default async function JournalPage({ searchParams }: PageProps) {
           {/* Sidebar */}
           <aside className="space-y-8" aria-label="Journal sidebar">
             {/* Search */}
-            <div className="card-flat">
-              <h2 className="font-semibold text-charcoal text-sm mb-4 tracking-tight">
+            <div className="card-flat rounded-2xl p-6" style={{
+              backgroundColor: "var(--bg-primary)",
+              borderColor: "var(--border-primary)",
+              border: "1px solid var(--border-primary)"
+            }}>
+              <h2 className="font-semibold text-sm mb-4 tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Search
               </h2>
               <JournalSearch />
             </div>
 
             {/* Tags */}
-            <div className="card-flat">
-              <h2 className="font-semibold text-charcoal text-sm mb-4 tracking-tight flex items-center justify-between">
-                Browse by Topic
-                {tag && (
-                  <Link href={`/journal${query ? `?q=${query}` : ''}`} className="text-xs text-sage font-medium hover:underline">
-                    Clear Tag
-                  </Link>
-                )}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {allTags.sort().map((t) => {
-                  const isActive = tag === t;
-                  const tagParams = new URLSearchParams(queryParams.toString());
-                  if (isActive) tagParams.delete("tag");
-                  else tagParams.set("tag", t);
-                  tagParams.delete("page");
-                  
-                  return (
-                    <Link 
-                      key={t} 
-                      href={`/journal?${tagParams.toString()}`}
-                      className={`tag transition-colors hover:bg-sage hover:text-white ${
-                        isActive ? "bg-sage text-white" : "bg-stone/20 text-charcoal-muted"
-                      }`}
-                    >
-                      {t.replace(/-/g, " ")}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+            <JournalTagsFilter 
+              allTags={allTags as string[]} 
+              currentTag={tag}
+              currentQuery={query}
+            />
 
             {/* Subscribe box */}
-            <div className="rounded-2xl bg-charcoal p-6">
-              <h2 className="font-semibold text-ivory text-sm mb-2 tracking-tight">
+            <div className="rounded-2xl p-6" style={{
+              backgroundColor: "var(--bg-secondary)",
+              borderColor: "var(--border-primary)",
+              border: "1px solid var(--border-primary)"
+            }}>
+              <h2 className="font-semibold text-sm mb-2 tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Subscribe
               </h2>
-              <p className="text-ivory/60 text-xs leading-relaxed mb-4">
+              <p className="text-xs leading-relaxed mb-4" style={{ color: "var(--text-secondary)" }}>
                 Occasional essays. No fluff.
               </p>
               <SubscribeForm />

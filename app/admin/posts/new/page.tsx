@@ -9,7 +9,7 @@ export default function NewPostPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-3xl font-bold tracking-tighter uppercase text-white">
           Create New Post
         </h1>
       </div>

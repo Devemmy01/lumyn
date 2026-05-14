@@ -6,29 +6,39 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        ivory: {
-          DEFAULT: "#F8F7F4",
-          50: "#FDFCFA",
-          100: "#F8F7F4",
-          200: "#EEECEA",
+        // Light theme palette
+        bg: {
+          light: "#FFFFFF",
+          50: "#F9F9F9",
+          100: "#F3F3F3",
+          200: "#EBEBEB",
         },
-        charcoal: {
-          DEFAULT: "#1F1F1F",
-          light: "#3A3A3A",
-          muted: "#6B6B6B",
+        text: {
+          primary: "#0D0D0D",
+          secondary: "#525252",
+          tertiary: "#808080",
         },
+        // Dark theme palette
+        dark: {
+          bg: "#0D0D0D",
+          50: "#1A1A1A",
+          100: "#262626",
+          200: "#333333",
+        },
+        // Accent color (brand)
         sage: {
           DEFAULT: "#7C6CF6",
           light: "#A99EF9",
           dark: "#5E4EE0",
         },
-        stone: {
-          DEFAULT: "#D8D6CF",
-          light: "#E8E7E2",
-          dark: "#B8B5AD",
+        // Borders & dividers
+        border: {
+          light: "#E8E8E8",
+          dark: "#2D2D2D",
         },
       },
       fontFamily: {
@@ -42,11 +52,6 @@ const config: Config = {
       },
       spacing: {
         "section": "clamp(5rem, 10vw, 9rem)",
-      },
-      borderRadius: {
-        "xl": "1rem",
-        "2xl": "1.5rem",
-        "3xl": "2rem",
       },
       boxShadow: {
         soft: "0 2px 20px rgba(31,31,31,0.06)",

@@ -32,7 +32,8 @@ export const metadata: Metadata = {
 const products = [
   {
     name: "MindFuel",
-    tagline: "A Full Stack Social Platform – Thoughtful connection for the modern age.",
+    tagline:
+      "A Full Stack Social Platform – Thoughtful connection for the modern age.",
     description:
       "A social space built for meaningful interaction and curation. Share ideas that matter and connect with others in a high-signal environment.",
     href: "/products#mindfuel",
@@ -62,22 +63,25 @@ const products = [
 const values = [
   {
     title: "Efficiency",
-    description: "We optimize for the most direct path to value. No fluff, just results.",
+    description:
+      "We optimize for the most direct path to value. No fluff, just results.",
   },
   {
     title: "Impact",
-    description: "We build features that move the needle. Every line of code serves a purpose.",
+    description:
+      "We build features that move the needle. Every line of code serves a purpose.",
   },
   {
     title: "Scale",
-    description: "We engineer for growth and durability. Built to perform under pressure.",
+    description:
+      "We engineer for growth and durability. Built to perform under pressure.",
   },
   {
     title: "Execution",
-    description: "We ship high-quality products swiftly and consistently. Excellence in motion.",
+    description:
+      "We ship high-quality products swiftly and consistently. Excellence in motion.",
   },
 ];
-
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -98,7 +102,7 @@ const jsonLd = {
 
 export default async function HomePage() {
   await dbConnect();
-  
+
   const latestPosts = (await Post.find({ published: true })
     .sort({ createdAt: -1 })
     .limit(3)
@@ -120,68 +124,112 @@ export default async function HomePage() {
       />
 
       {/* ── Products ───────────────────────────────── */}
-      <SectionWrapper id="products" background="tinted" glow="top-right" separator>
+      <SectionWrapper id="products" background="secondary" separator>
         <Reveal className="text-center mb-14">
           <p className="label-sm mb-4">What We Build</p>
-          <h2 className="heading-lg text-charcoal mb-4">
-            Impactful Products
-          </h2>
+          <h2 className="heading-lg text-charcoal mb-4">Impactful Products</h2>
           <p className="body-md max-w-xl mx-auto">
-            We build software that addresses real-world challenges with precision and purpose.
-            The result is products that deliver measurable value.
+            We build software that addresses real-world challenges with
+            precision and purpose. The result is products that deliver
+            measurable value.
           </p>
         </Reveal>
 
         {/* Cards — individually revealed with stagger */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {products.map((product, i) => (
-            <Reveal key={product.name} delay={i * 120} variant="scale" className="flex flex-col h-full">
+            <Reveal
+              key={product.name}
+              delay={i * 120}
+              variant="scale"
+              className="flex flex-col h-full"
+            >
               <ProductCard {...product} index={i} />
             </Reveal>
           ))}
         </div>
+      </SectionWrapper>
 
-        <Reveal delay={400} className="text-center mt-10">
-          <Link href="/products" className="btn-ghost group">
-            View all products
-            <svg
-              width="14" height="14" viewBox="0 0 14 14" fill="none"
-              className="transition-transform duration-200 group-hover:translate-x-1"
-              aria-hidden="true"
-            >
-              <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
-                    strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </Link>
+      {/* ── Services Section ─────────────────────── */}
+      <SectionWrapper background="secondary" separator>
+        <Reveal className="text-center mb-16">
+          <p className="label-sm mb-4">How We Work</p>
+          <h2 className="heading-lg mb-4">Full-Spectrum Development</h2>
+          <p className="body-lg max-w-2xl mx-auto">
+            We handle everything from concept to launch, combining design,
+            engineering, and strategy to build products that solve real
+            problems.
+          </p>
         </Reveal>
+
+        {/* Simple service cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              title: "Product Development",
+              description:
+                "From idea to market-ready product. We design, build, and validate every step.",
+            },
+            {
+              title: "Engineering & Infrastructure",
+              description:
+                "Scalable, performant systems built on modern tech stacks with high standards.",
+            },
+            {
+              title: "Design & UX",
+              description:
+                "User-centered design that balances beauty with functionality and accessibility.",
+            },
+          ].map((service, i) => (
+            <Reveal key={service.title} delay={i * 80} variant="scale">
+              <div className="card-elevated">
+                <h3 className="heading-sm mb-3">{service.title}</h3>
+                <p className="body-md">{service.description}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </SectionWrapper>
 
       {/* ── Philosophy teaser ─────────────────────── */}
-      <SectionWrapper background="default" glow="top-left" separator>
+      <SectionWrapper background="default" separator>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <Reveal>
             <p className="label-sm mb-5">Our Method</p>
-            <h2 className="heading-lg text-charcoal mb-6 text-balance">
+            <h2 className="heading-lg mb-6 text-balance">
               Engineered for Results.
             </h2>
             <div className="space-y-4 mb-8">
               <p className="body-md">
-                We don't just build features; we build solutions. Our process is focused on execution and impact.
+                We don't just build features; we build solutions. Our process is
+                focused on execution and impact.
               </p>
               <p className="body-md">
                 Lumyn products are shaped by efficiency, guided by intelligence,
                 and refined through rigorous testing.
               </p>
-              <p className="body-md italic text-charcoal-muted/70">
-                We validate before we scale.<br />
+              <p className="body-md italic opacity-70">
+                We validate before we scale.
+                <br />
                 We optimize for impact.
               </p>
             </div>
             <Link href="/philosophy" className="btn-primary">
               Our Method
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
-                      strokeLinecap="round" strokeLinejoin="round"/>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M1 7h12M8 3l4 4-4 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </Link>
           </Reveal>
@@ -190,13 +238,9 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-2 gap-4">
             {values.map((value, i) => (
               <Reveal key={value.title} delay={i * 80} variant="scale">
-                <div className="card-flat h-full">
-                  <h3 className="font-semibold text-charcoal mb-2 tracking-tight">
-                    {value.title}
-                  </h3>
-                  <p className="text-charcoal-muted text-sm leading-relaxed">
-                    {value.description}
-                  </p>
+                <div className="card-elevated">
+                  <h3 className="heading-sm mb-2">{value.title}</h3>
+                  <p className="body-md text-sm">{value.description}</p>
                 </div>
               </Reveal>
             ))}
@@ -205,114 +249,114 @@ export default async function HomePage() {
       </SectionWrapper>
 
       {/* ── Anti-engagement section ─────────────── */}
-      <div className="relative bg-charcoal overflow-hidden py-20 md:py-28">
-        {/* ambient glow */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 60% 55% at 30% 60%, rgba(124,108,246,0.10) 0%, transparent 65%)",
-          }}
-          aria-hidden="true"
-        />
+      <SectionWrapper background="secondary" separator>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+          {/* Left — headline + copy */}
+          <div>
+            <Reveal variant="fade">
+              <p className="label-sm mb-6 opacity-60">A Different Measure</p>
+            </Reveal>
 
-        <div className="container-mid relative">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+            <Reveal delay={80}>
+              <h2 className="heading-lg text-balance mb-8">
+                We win when you solve the problem.
+              </h2>
+            </Reveal>
 
-            {/* Left — headline + copy */}
-            <div>
-              <Reveal variant="fade">
-                <p className="label-sm text-ivory/40 mb-6">A Different Measure</p>
-              </Reveal>
+            <Reveal delay={160} variant="fade">
+              <div className="space-y-4 mb-10">
+                <p className="body-lg opacity-70">
+                  Most software is engineered to keep you inside it. We think
+                  that&apos;s the wrong goal. We build tools that help you get
+                  the job done efficiently, so you can focus on what matters
+                  most.
+                </p>
 
-              <Reveal delay={80}>
-                <h2
-                  className="font-semibold text-ivory text-balance mb-8"
-                  style={{ fontSize: "clamp(2rem, 4.5vw, 3.25rem)", lineHeight: 1.1, letterSpacing: "-0.026em" }}
+                <p className="body-md opacity-50 italic">
+                  We don&apos;t optimize for time-on-screen.
+                  <br />
+                  We optimize for value delivered.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Right — contrast stats */}
+          <div className="grid grid-cols-1 gap-4 pt-2">
+            {[
+              {
+                label: "What we track",
+                value: "Value delivered",
+                sub: "Not time spent in-app",
+              },
+              {
+                label: "How we define success",
+                value: "The problem is solved",
+                sub: "Not because we made it hard to leave",
+              },
+              {
+                label: "What a good session looks like",
+                value: "Efficient and decisive",
+                sub: "Not long and habitual",
+              },
+            ].map((item, i) => (
+              <Reveal key={item.label} delay={i * 100} variant="scale">
+                <div
+                  className="border rounded-2xl p-5 transition-colors duration-300"
+                  style={{
+                    borderColor: "var(--border-primary)",
+                    backgroundColor: "var(--bg-secondary)",
+                  }}
                 >
-                  We win when you solve the problem.
-                </h2>
-              </Reveal>
-
-              <Reveal delay={160} variant="fade">
-                <div className="space-y-4 mb-10">
-                  <p className="text-ivory/55 leading-relaxed"
-                     style={{ fontSize: "clamp(0.975rem, 1.4vw, 1.1rem)" }}>
-                    Most software is engineered to keep you inside it. We think that&apos;s the wrong goal.
-                    We build tools that help you get the job done efficiently, so you can focus on what matters most.
-                  </p>
-                  
-                  <p className="text-ivory/30 leading-relaxed italic"
-                     style={{ fontSize: "clamp(0.875rem, 1.2vw, 0.95rem)" }}>
-                    We don&apos;t optimize for time-on-screen.<br />We optimize for value delivered.
-                  </p>
+                  <p className="label-sm mb-2 opacity-50">{item.label}</p>
+                  <p className="heading-sm mb-1">{item.value}</p>
+                  <p className="body-sm opacity-60">{item.sub}</p>
                 </div>
               </Reveal>
-
-              
-            </div>
-
-            {/* Right — contrast stats */}
-            <div className="grid grid-cols-1 gap-4 pt-2">
-              {[
-                {
-                  label: "What we track",
-                  value: "Value delivered",
-                  sub: "Not time spent in-app",
-                },
-                {
-                  label: "How we define success",
-                  value: "The problem is solved",
-                  sub: "Not because we made it hard to leave",
-                },
-                {
-                  label: "What a good session looks like",
-                  value: "Efficient and decisive",
-                  sub: "Not long and habitual",
-                },
-              ].map((item, i) => (
-                <Reveal key={item.label} delay={i * 100} variant="scale">
-                  <div className="rounded-2xl border border-ivory/8 bg-ivory/4 px-6 py-5">
-                    <p className="text-xs font-medium text-ivory/30 uppercase tracking-widest mb-2">
-                      {item.label}
-                    </p>
-                    <p className="text-ivory font-semibold tracking-tight mb-1"
-                       style={{ fontSize: "clamp(0.95rem, 1.4vw, 1.05rem)" }}>
-                      {item.value}
-                    </p>
-                    <p className="text-ivory/35 text-sm">{item.sub}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-
+            ))}
           </div>
         </div>
-      </div>
+      </SectionWrapper>
 
       {/* ── Journal ───────────────────────────────── */}
-      <SectionWrapper background="default" glow="bottom-center" separator>
+      <SectionWrapper background="default" separator>
         <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
             <p className="label-sm mb-3">From the Journal</p>
             <h2 className="heading-md text-charcoal">Thinking Out Loud</h2>
           </div>
-          <Link href="/journal" className="btn-ghost group shrink-0">
+          <Link
+            href="/journal"
+            className="btn-ghost flex gap-2 items-center group shrink-0"
+          >
             All articles
             <svg
-              width="14" height="14" viewBox="0 0 14 14" fill="none"
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
               className="transition-transform duration-200 group-hover:translate-x-1"
               aria-hidden="true"
             >
-              <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
-                    strokeLinecap="round" strokeLinejoin="round"/>
+              <path
+                d="M1 7h12M8 3l4 4-4 4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </Link>
         </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {latestPosts.map((post, i) => (
-            <Reveal key={post.slug} delay={i * 90} variant="scale" className="flex flex-col h-full">
+            <Reveal
+              key={post.slug}
+              delay={i * 90}
+              variant="scale"
+              className="flex flex-col h-full"
+            >
               <BlogCard
                 title={post.title}
                 slug={post.slug}
@@ -328,30 +372,23 @@ export default async function HomePage() {
       </SectionWrapper>
 
       {/* ── Newsletter CTA ────────────────────────── */}
-      <SectionWrapper className="p-0" background="tinted" size="sm" separator>
+      <SectionWrapper
+        className="p-0"
+        background="secondary"
+        size="sm"
+        separator
+      >
         <Reveal>
           <CTA
             headline="Stay updated."
             subtext="Get occasional updates on our latest products, case studies, and what we're building at Lumyn."
             primaryCTA={{ label: "Subscribe to Journal", href: "/journal" }}
             secondaryCTA={{ label: "Read Latest", href: "/journal" }}
-            variant="default"
           />
         </Reveal>
       </SectionWrapper>
 
-      {/* ── Final CTA ─────────────────────────────── */}
-      <SectionWrapper background="default" size="sm">
-        <Reveal>
-          <CTA
-            headline="Ready to build something impactful?"
-            subtext="We partner with organizations to build high-performance digital products. Let's see if it's a fit."
-            primaryCTA={{ label: "Get in Touch", href: "/contact" }}
-            secondaryCTA={{ label: "Learn About Us", href: "/about" }}
-            variant="dark"
-          />
-        </Reveal>
-      </SectionWrapper>
+      
     </>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
+import "@/app/globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { Analytics } from "@vercel/analytics/react";
@@ -114,7 +114,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -140,11 +140,14 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col antialiased">
-        <AuthProvider>
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
-        </AuthProvider>
+        <div className="pointer-events-none fixed inset-0 z-[9999] h-full w-full opacity-30 mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")" }}></div>
+        
+          <AuthProvider>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </AuthProvider>
+        
         <Analytics />
       </body>
     </html>

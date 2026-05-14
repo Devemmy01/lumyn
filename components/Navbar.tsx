@@ -4,19 +4,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import Image from "next/image";
 
 const navLinks = [
-  { href: "/products",   label: "Products"   },
-  { href: "/philosophy", label: "Our Method" },
-  { href: "/journal",    label: "Journal"    },
-  { href: "/about",      label: "About"      },
+  { href: "/products", label: "Products" },
+  { href: "/philosophy", label: "Method" },
+  { href: "/journal", label: "Journal" },
+  { href: "/about", label: "About" },
 ];
 
-
 export default function Navbar() {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [menuOpen,  setMenuOpen]  = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -25,150 +23,126 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
-
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [menuOpen]);
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
     <>
-      <header
-        className={clsx(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-          scrolled
-            ? "bg-ivory shadow-soft border-b border-stone/50"
-            : "bg-ivory border-b border-stone/30"
-        )}
-      >
-        <nav className="container-wide flex items-center justify-between h-16 md:h-20">
-
-          {/* ── Logo lockup ── */}
+      <header className="fixed top-2 md:top-4 left-0 right-0 z-50 flex justify-center w-full pointer-events-none transition-all duration-700 px-4 md:px-8">
+        <nav
+          className={clsx(
+            "pointer-events-auto flex md:items-center justify-between w-full max-w-7xl mx-auto px-2 md:px-12 py- md:py-6 transition-all duration-700 rounded-full",
+            scrolled
+              ? "bg-black/80 backdrop-blur-xl border border-white/10 shadow-2xl"
+              : "bg-transparent border border-transparent",
+          )}
+        >
+          {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-[10px] group"
-            aria-label="Lumyn home"
+            className=""
           >
-            <Image src="/lumyn.png" alt="Lumyn" width={120} height={120} className="h-8 w-auto" />
+            {/* <Image
+              src="/footer.png"
+              alt="Lumyn"
+              width={100}
+              height={30}
+              className="h-6 w-auto"
+            /> */} <h2 className="text-[22px] font-[900] ">Lumyn<span className="text-[#7c6cf6] text-[30px]">.</span></h2>
           </Link>
 
-          {/* ── Desktop nav ── */}
-          <div className="hidden md:flex items-center gap-7">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-10">
             {navLinks.map(({ href, label }) => {
-              const active = pathname === href || pathname.startsWith(href + "/");
+              const active =
+                pathname === href || pathname.startsWith(href + "/");
               return (
                 <Link
                   key={href}
                   href={href}
                   className={clsx(
-                    "relative py-1 text-sm font-medium tracking-wide",
-                    "transition-colors duration-200",
-                    active ? "text-charcoal" : "text-charcoal-muted hover:text-charcoal"
+                    "text-xs uppercase font-medium tracking-[0.1em] transition-all duration-300",
+                    active ? "text-white" : "text-neutral-500 hover:text-white",
                   )}
                 >
                   {label}
-                  {/* Active indicator */}
-                  <span
-                    className={clsx(
-                      "absolute -bottom-0.5 left-0 right-0 h-px rounded-full bg-sage",
-                      "transition-all duration-300",
-                      active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
-                    )}
-                    style={{ transformOrigin: "left" }}
-                  />
                 </Link>
               );
             })}
-          </div>
-
-          {/* ── Right CTA + hamburger ── */}
-          <div className="flex items-center gap-4">
+            <div className="w-[1px] h-4 bg-white/20 mx-2" />
             <Link
               href="/contact"
-              className="hidden md:inline-flex btn-primary text-xs px-5 py-2.5"
+              className="text-xs uppercase text-white font-semibold hover:opacity-75 transition-all duration-300 relative group overflow-hidden"
             >
-              Get in Touch
+              <span className="relative z-10">Contact</span>
             </Link>
-
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-xl text-charcoal-muted hover:text-charcoal hover:bg-ivory-200 focus:outline-none transition-all active:scale-95"
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-            >
-              {menuOpen ? (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 8h16M4 16h16" />
-                </svg>
-              )}
-            </button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden text-white p-2 focus:outline-none z-50 pointer-events-auto"
+          >
+            {menuOpen ? (
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                  strokeWidth={1}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                  strokeWidth={1}
+                  d="M4 8h16M4 16h16"
+                />
+              </svg>
+            )}
+          </button>
         </nav>
       </header>
 
-      {/* ── Mobile menu overlay ── */}
+      {/* Mobile Menu */}
       <div
         className={clsx(
-          "fixed inset-0 z-40 bg-ivory md:hidden flex flex-col",
-          "transition-all duration-400 ease-out-expo",
-          menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          "fixed inset-0 z-40 bg-black flex flex-col items-center justify-center transition-all duration-700",
+          menuOpen
+            ? "opacity-100 pointer-events-auto translate-y-0"
+            : "opacity-0 pointer-events-none -translate-y-4",
         )}
       >
-        {/* Subtle ambient glow in mobile menu */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(124,108,246,0.06) 0%, transparent 65%)"
-          }}
-          aria-hidden="true"
-        />
-
-        <div className="relative flex-1 flex flex-col container-wide pt-24 pb-12">
-          <nav className="flex flex-col gap-1 flex-1" aria-label="Mobile navigation">
-            {navLinks.map(({ href, label }, i) => (
-              <Link
-                key={href}
-                href={href}
-                className={clsx(
-                  "text-[2rem] font-semibold tracking-tight py-3 border-b border-stone/30",
-                  "transition-colors duration-200 hover:text-sage",
-                  "flex items-center justify-between",
-                  pathname === href ? "text-charcoal" : "text-charcoal-muted",
-                  menuOpen ? "animate-fade-up opacity-0" : "opacity-0"
-                )}
-                style={{
-                  animationDelay: `${i * 55 + 60}ms`,
-                  animationFillMode: "forwards"
-                }}
-              >
-                {label}
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                     className="opacity-30" aria-hidden="true">
-                  <path d="M2 8h12M9 4l4 4-4 4"
-                        stroke="currentColor" strokeWidth="1.5"
-                        strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
-            ))}
-          </nav>
-
-          <div
-            className={clsx(
-              "pt-8",
-              menuOpen ? "animate-fade-up opacity-0" : "opacity-0"
-            )}
-            style={{ animationDelay: "360ms", animationFillMode: "forwards" }}
-          >
-            <Link href="/contact" className="btn-primary w-full justify-center">
-              Get in Touch
+        <nav className="flex flex-col gap-10 text-center">
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="text-4xl md:text-6xl font-medium tracking-tighter uppercase text-white hover:text-neutral-500 transition-colors duration-300"
+            >
+              {label}
             </Link>
-          </div>
-        </div>
+          ))}
+          <Link
+            href="/contact"
+            className="text-4xl md:text-6xl font-medium tracking-tighter uppercase text-white hover:text-neutral-500 transition-colors duration-300 mt-8"
+          >
+            Contact
+          </Link>
+        </nav>
       </div>
     </>
   );

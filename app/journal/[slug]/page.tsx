@@ -88,14 +88,14 @@ export default async function JournalPostPage({ params }: PageProps) {
       />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-ivory py-2 mt-5 md:py-12">
+      <section className="relative overflow-hidden py-2 mt-5 md:py-12" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <div className="absolute inset-0 bg-dots opacity-25 pointer-events-none" aria-hidden="true" />
         <div className="container-narrow relative">
           {/* Back */}
           <Link
             href="/journal"
-            className="inline-flex items-center gap-2 text-charcoal-muted hover:text-charcoal
-                       text-sm mb-10 transition-colors duration-200 group"
+            className="inline-flex items-center gap-2 text-sm mb-10 transition-colors duration-200 group hover:text-sage"
+            style={{ color: "var(--text-secondary)" }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
                  className="transition-transform duration-200 group-hover:-translate-x-1"
@@ -115,12 +115,15 @@ export default async function JournalPostPage({ params }: PageProps) {
             </div>
           )}
 
-          <h1 className="heading-lg text-charcoal mb-6 text-balance animate-fade-up opacity-0"
-              style={{ animationDelay: "100ms", animationFillMode: "forwards" }}>
+          <h1 className="heading-md mb-6 text-balance animate-fade-up opacity-0" style={{
+            color: "var(--text-primary)",
+            animationDelay: "100ms",
+            animationFillMode: "forwards"
+          }}>
             {post.title}
           </h1>
 
-          <div className="flex items-center gap-2 md:gap-4 text-sm text-charcoal-muted/60">
+          <div className="flex items-center gap-2 md:gap-4 text-sm" style={{ color: "var(--text-tertiary)" }}>
             <span>Lumyn</span>
             <span aria-hidden="true">·</span>
             <time dateTime={post.createdAt?.toISOString()}>
@@ -141,28 +144,30 @@ export default async function JournalPostPage({ params }: PageProps) {
       {/* Content */}
       <SectionWrapper background="default" container="narrow" size="sm">
         {post.coverImage && (
-          <div className="mb-12 rounded-xl overflow-hidden bg-stone/20">
+          <div className="mb-12  overflow-hidden bg-stone/20">
             <Image src={post.coverImage} alt={post.title} width={1200} height={630} className="w-full h-auto object-cover" />
           </div>
         )}
         <article
-          className="prose prose-lumyn max-w-none text-charcoal-muted prose-headings:text-charcoal prose-a:text-sage prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl"
+          className="prose prose-lumyn max-w-none prose-a:text-sage prose-a:no-underline hover:prose-a:underline prose-img:"
           aria-label="Article content"
+          style={{
+            color: "var(--text-secondary)"
+          }}
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
         
-        <div className="mt-16 pt-8 border-t border-stone/60 flex flex-col sm:flex-row justify-between items-center gap-8">
+        <div className="mt-16 pt-8 flex flex-col sm:flex-row justify-between items-center gap-8 border-t" style={{ borderColor: "var(--border-primary)" }}>
           <UpvoteButton postId={post._id.toString()} initialUpvotes={post.upvotes || 0} />
           <ShareButtons title={post.title} slug={post.slug} />
         </div>
       </SectionWrapper>
 
       {/* Share + Tags */}
-      <SectionWrapper background="tinted" container="narrow" size="sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6
-                        border-t border-stone/60 pt-8">
+      <SectionWrapper background="secondary" container="narrow" size="sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-t pt-8" style={{ borderColor: "var(--border-primary)" }}>
           <div>
-            <p className="text-xs text-charcoal-muted/60 mb-2 uppercase tracking-widest font-medium">
+            <p className="text-xs mb-2 uppercase tracking-widest font-medium" style={{ color: "var(--text-tertiary)" }}>
               Filed under
             </p>
             <div className="flex flex-wrap gap-2">

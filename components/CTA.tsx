@@ -1,88 +1,54 @@
+"use client";
+
 import Link from "next/link";
-import clsx from "clsx";
+import { motion } from "framer-motion";
 
 interface CTAProps {
   headline: string;
   subtext?: string;
   primaryCTA: { label: string; href: string };
   secondaryCTA?: { label: string; href: string };
-  variant?: "default" | "dark" | "sage";
-  centered?: boolean;
 }
 
-export default function CTA({
-  headline,
-  subtext,
-  primaryCTA,
-  secondaryCTA,
-  variant = "default",
-  centered = true,
-}: CTAProps) {
+export default function CTA({ headline, subtext, primaryCTA, secondaryCTA }: CTAProps) {
   return (
-    <div
-      className={clsx(
-        "rounded-3xl p-10 md:p-16",
-        variant === "default" && "bg-ivory-200/80 border border-stone/60",
-        variant === "dark" && "bg-charcoal",
-        variant === "sage" && "bg-sage/10 border border-sage/20",
-        centered && "text-center"
-      )}
-    >
-      <h2
-        className={clsx(
-          "heading-md mb-4 text-balance",
-          variant === "dark" ? "text-ivory" : "text-charcoal"
-        )}
-      >
-        {headline}
-      </h2>
-
-      {subtext && (
-        <p
-          className={clsx(
-            "text-base md:text-lg leading-relaxed mb-8 max-w-xl",
-            centered && "mx-auto",
-            variant === "dark" ? "text-ivory/60" : "text-charcoal-muted"
-          )}
+    <section className="py-24">
+      <div className="container-wid relative">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true }}
+          className="relative overflow-hidden rounded-3xl bg-[#0a0a0a] border border-[#333] p-6 md:p-24 text-center z-10"
         >
-          {subtext}
-        </p>
-      )}
+          {/* Noise/Texture Background if available, else CSS Gradient */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(124,108,246,0.15)_0%,transparent_70%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay" />
 
-      <div
-        className={clsx(
-          "flex flex-col sm:flex-row gap-4",
-          centered && "justify-center"
-        )}
-      >
-        <Link
-          href={primaryCTA.href}
-          className={clsx(
-            variant === "dark"
-              ? "inline-flex items-center gap-2 px-7 py-3.5 bg-ivory text-charcoal font-medium rounded-xl hover:bg-ivory-200 transition-all duration-300 text-sm"
-              : "btn-primary"
-          )}
-        >
-          {primaryCTA.label}
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </Link>
-
-        {secondaryCTA && (
-          <Link
-            href={secondaryCTA.href}
-            className={clsx(
-              variant === "dark"
-                ? "inline-flex items-center gap-2 px-7 py-3.5 bg-transparent text-ivory/70 font-medium rounded-xl border border-ivory/20 hover:border-ivory/40 hover:text-ivory transition-all duration-300 text-sm"
-                : "btn-secondary"
+          <div className="relative z-20 max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tighter">
+              {headline}
+            </h2>
+            
+            {subtext && (
+              <p className="text-lg md:text-xl text-neutral-400 mb-10 text-balance leading-relaxed">
+                {subtext}
+              </p>
             )}
-          >
-            {secondaryCTA.label}
-          </Link>
-        )}
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href={primaryCTA.href} className="btn-primary py-3 md:py-4 px-6 md:px-8 text-base md:text-lg w-full sm:w-auto">
+                {primaryCTA.label}
+              </Link>
+              {secondaryCTA && (
+                <Link href={secondaryCTA.href} className="btn-secondary py-3 md:py-4 px-6 md:px-8 text-base md:text-lg w-full sm:w-auto bg-[#111] hover:bg-[#1a1a1a]">
+                  {secondaryCTA.label}
+                </Link>
+              )}
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
 }

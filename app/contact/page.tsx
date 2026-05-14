@@ -15,19 +15,19 @@ export default function ContactPage() {
   return (
     <>
       {/* Header */}
-      <section className="relative overflow-hidden bg-ivory py-28 md:py-40">
+      <section className="relative overflow-hidden py-28 md:py-40" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
         <div className="container-mid relative">
           <p className="label-sm mb-5 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Contact</p>
           <h1
-            className="heading-display text-charcoal mb-6 text-balance animate-fade-up opacity-0 max-w-3xl"
-            style={{ animationDelay: "100ms", animationFillMode: "forwards" }}
+            className="heading-display mb-6 text-balance animate-fade-up opacity-0 max-w-3xl"
+            style={{ animationDelay: "100ms", animationFillMode: "forwards", color: "var(--text-primary)" }}
           >
             Start a Conversation
           </h1>
           <p
-            className="body-lg text-charcoal-muted max-w-lg animate-fade-up opacity-0"
-            style={{ animationDelay: "200ms", animationFillMode: "forwards" }}
+            className="body-lg max-w-lg animate-fade-up opacity-0"
+            style={{ animationDelay: "200ms", animationFillMode: "forwards", color: "var(--text-secondary)" }}
           >
             Have a project in mind? Want to collaborate? Or just want to say hello?
             We&apos;d love to hear from you.

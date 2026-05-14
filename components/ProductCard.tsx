@@ -36,7 +36,7 @@ function MindfuelIcon() {
     <img 
       src="/mindlogo.png" 
       alt="MindFuel" 
-      className="w-full h-full object-cover rounded-xl"
+      className="w-full h-full object-cover "
     />
   );
 }
@@ -76,7 +76,7 @@ export default function ProductCard({
   tagline,
   description,
   href,
-  status      = "development",
+  status = "development",
   accentColor = "#7C6CF6",
 }: ProductCardProps) {
   const StatusCfg = statusConfig[status];
@@ -85,75 +85,64 @@ export default function ProductCard({
   return (
     <Link
       href={href}
-      className={clsx(
-        "group relative flex flex-col gap-5 p-7 cursor-pointer overflow-hidden h-full",
-        "bg-white/75 backdrop-blur-sm rounded-2xl border border-stone/50 shadow-card",
-        "hover:shadow-[0_14px_50px_rgba(124,108,246,0.11),0_3px_12px_rgba(31,31,31,0.06)]",
-        "hover:-translate-y-2 hover:border-sage/20 hover:bg-white/90",
-        "transition-all duration-500 ease-out-expo"
-      )}
+      className="group relative flex flex-col gap-6 p-8 cursor-pointer overflow-hidden h-full
+                  border rounded-2xl transition-all duration-300 card"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        borderColor: "var(--border-primary)",
+      }}
       aria-label={`${name} — ${tagline}`}
     >
-      {/* Accent top-edge line — appears on hover */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[1.5px] rounded-t-2xl
-                   opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{
-          background: `linear-gradient(to right, ${accentColor}66, ${accentColor}22, transparent)`,
-        }}
-        aria-hidden="true"
-      />
-
       {/* Icon + status row */}
-      <div className="flex items-start justify-between gap-3">
-        {/* Icon with glow ring */}
+      <div className="flex items-start justify-between gap-4 relative z-10">
+        {/* Icon */}
         <div className="relative flex-shrink-0">
-          <div className="icon-glow-ring group-hover:opacity-100" aria-hidden="true" />
           <div
-            className="relative w-11 h-11 rounded-xl flex items-center justify-center text-white
-                       transition-all duration-500 ease-out-expo group-hover:scale-110"
-            style={{ backgroundColor: accentColor }}
+            className="relative w-12 h-12 rounded-2xl flex items-center justify-center text-white
+                       transition-all duration-300 group-hover:scale-110"
+            style={{
+              backgroundColor: accentColor,
+              boxShadow: `0 4px 12px ${accentColor}40`,
+            }}
           >
-            {Icon ? <Icon /> : (
-              <span className="text-base font-semibold leading-none">{name.charAt(0)}</span>
-            )}
+            {Icon ? <Icon /> : <span className="text-lg font-bold leading-none">{name.charAt(0)}</span>}
           </div>
         </div>
 
         {/* Status badge */}
-        <span className={clsx(
-          "inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-[10px]",
-          "font-semibold tracking-wide border whitespace-nowrap shrink-0",
-          StatusCfg.badge
-        )}>
-          <span className={clsx("w-1.5 h-1.5 rounded-full", StatusCfg.dot)} aria-hidden="true" />
+        <span
+          className="inline-flex items-center gap-1.5 px-3 py-1.5  text-[11px]
+                     font-semibold tracking-widest border rounded-2xl whitespace-nowrap shrink-0
+                     transition-all duration-300 badge-secondary"
+        >
+          <span className={clsx("w-1.5 h-1.5  animate-pulse", StatusCfg.dot)} aria-hidden="true" />
           {StatusCfg.label}
         </span>
       </div>
 
       {/* Text content */}
-      <div className="flex-1 flex flex-col gap-2">
-        <h3 className="heading-sm text-charcoal transition-colors duration-200 group-hover:text-sage">
-          {name}
-        </h3>
-        <p className="text-charcoal text-[13px] font-medium leading-snug">
+      <div className="flex-1 flex flex-col gap-3 relative z-10">
+        <h3 className="heading-sm transition-colors duration-200 group-hover:text-sage-dark">{name}</h3>
+        <p className="font-semibold text-sm leading-snug tracking-tight" style={{ color: "var(--text-primary)" }}>
           {tagline}
         </p>
-        <p className="text-charcoal-muted/80 text-sm leading-relaxed mt-1">
+        <p className="text-sm leading-relaxed opacity-70" style={{ color: "var(--text-secondary)" }}>
           {description}
         </p>
       </div>
 
-      {/* Animated arrow — slides in from left */}
-      <div className="flex items-center gap-1.5 text-sage text-sm font-medium
-                      -translate-x-1 opacity-0
-                      group-hover:translate-x-0 group-hover:opacity-100
-                      transition-all duration-300 ease-out-expo">
-        Learn more
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-          <path d="M1 6.5h11M7.5 2.5l4 4-4 4"
-                stroke="currentColor" strokeWidth="1.4"
-                strokeLinecap="round" strokeLinejoin="round"/>
+      {/* CTA */}
+      <div
+        className="flex items-center gap-2.5 font-medium relative z-10 pt-2
+                   transition-all duration-300 group-hover:translate-x-1"
+        style={{
+          color: "var(--accent)",
+          borderTopColor: "var(--border-primary)",
+        }}
+      >
+        <span>Learn more</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     </Link>

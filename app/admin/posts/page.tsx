@@ -60,12 +60,12 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-3xl font-bold tracking-tighter text-white uppercase">
           Posts
         </h1>
         <Link
           href="/admin/posts/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition"
+          className="inline-flex items-center px-4 py-2 border border-[#222] rounded-xl text-sm font-bold tracking-widest uppercase text-white bg-[#0a0a0a] hover:bg-[#111] hover:border-[#7c6cf6] transition-all"
         >
           <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -74,8 +74,8 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <div className="bg-white border rounded-lg shadow-sm">
-        <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50/50 rounded-t-lg gap-4">
+      <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl shadow-soft overflow-hidden">
+        <div className="p-6 border-b border-[#222] flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#050505] gap-4">
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <AdminSearch placeholder="Search title or slug..." />
             <AdminFilter 
@@ -87,7 +87,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
               ]} 
             />
           </div>
-          <div className="text-sm text-gray-500 whitespace-nowrap">
+          <div className="text-xs font-semibold text-neutral-500 uppercase tracking-widest whitespace-nowrap">
             Total posts: {total}
           </div>
         </div>
@@ -96,43 +96,43 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b bg-gray-50/50">
-                <th className="px-6 py-4 text-sm font-medium text-gray-600">Title</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-600">Status</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-600">Upvotes</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-600">Created</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-600 text-right">Actions</th>
+              <tr className="border-b border-[#222] bg-[#050505]">
+                <th className="px-6 py-4 text-xs font-bold tracking-widest uppercase text-neutral-500">Title</th>
+                <th className="px-6 py-4 text-xs font-bold tracking-widest uppercase text-neutral-500">Status</th>
+                <th className="px-6 py-4 text-xs font-bold tracking-widest uppercase text-neutral-500">Upvotes</th>
+                <th className="px-6 py-4 text-xs font-bold tracking-widest uppercase text-neutral-500">Created</th>
+                <th className="px-6 py-4 text-xs font-bold tracking-widest uppercase text-neutral-500 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y text-sm">
+            <tbody className="divide-y divide-[#222] text-sm">
               {posts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-neutral-600 uppercase tracking-widest text-sm font-semibold">
                     {query || statusFilter ? "No posts found matching filters." : "No posts yet. Create your first one!"}
                   </td>
                 </tr>
               ) : (
                 posts.map((post: IPost) => (
-                  <tr key={post._id.toString()} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={post._id.toString()} className="hover:bg-[#111] transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{post.title}</div>
-                      <div className="text-xs text-gray-500 mt-1">/{post.slug}</div>
+                      <div className="font-bold tracking-wide text-white">{post.title}</div>
+                      <div className="text-xs font-medium text-neutral-500 mt-1 tracking-wider">/{post.slug}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${post.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 border text-xs font-bold uppercase tracking-wider rounded-md ${post.published ? 'bg-[#7c6cf6]/10 text-[#7c6cf6] border-[#7c6cf6]/30' : 'bg-neutral-900 text-neutral-400 border-[#222]'}`}>
                         {post.published ? "Published" : "Draft"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 font-medium">
+                    <td className="px-6 py-4 text-neutral-400 font-bold">
                       {post.upvotes}
                     </td>
-                    <td className="px-6 py-4 text-gray-500">
+                    <td className="px-6 py-4 text-neutral-400 font-semibold tracking-wide">
                       {new Date(post.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/admin/posts/${post._id}`}
-                        className="text-blue-600 hover:text-blue-900 font-medium text-sm transition"
+                        className="text-[#7c6cf6] hover:text-white font-bold uppercase tracking-widest text-xs transition-colors"
                       >
                         Edit
                       </Link>
@@ -145,29 +145,29 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden divide-y">
+        <div className="md:hidden divide-y divide-[#222]">
           {posts.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500 text-sm">
+            <div className="px-6 py-12 text-center text-neutral-600 uppercase tracking-widest text-sm font-semibold">
               {query || statusFilter ? "No posts found matching filters." : "No posts yet. Create your first one!"}
             </div>
           ) : (
             posts.map((post: IPost) => (
-              <div key={post._id.toString()} className="p-4 hover:bg-gray-50/50 transition-colors">
+              <div key={post._id.toString()} className="p-6 hover:bg-[#111] transition-colors">
                 <div className="flex justify-between items-start mb-2">
-                  <div className="font-medium text-gray-900 pr-4">{post.title}</div>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap ${post.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                  <div className="font-bold tracking-wide text-white pr-4">{post.title}</div>
+                  <span className={`inline-flex items-center px-2 py-0.5 border text-[10px] font-bold uppercase tracking-wider rounded whitespace-nowrap ${post.published ? 'bg-[#7c6cf6]/10 text-[#7c6cf6] border-[#7c6cf6]/30' : 'bg-neutral-900 text-neutral-400 border-[#222]'}`}>
                     {post.published ? "Published" : "Draft"}
                   </span>
                 </div>
-                <div className="text-xs text-gray-500 mb-3">/{post.slug}</div>
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-3 border-t border-gray-100">
+                <div className="text-xs font-medium text-neutral-500 mb-3 tracking-wider">/{post.slug}</div>
+                <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-neutral-500 mt-4 pt-4 border-t border-[#222]">
                    <div className="flex gap-4">
-                    <span>Upvotes: <span className="font-medium text-gray-700">{post.upvotes}</span></span>
+                    <span>Upvotes: <span className="font-bold text-white">{post.upvotes}</span></span>
                     <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                    </div>
                    <Link
                       href={`/admin/posts/${post._id}`}
-                      className="text-blue-600 font-semibold px-3 py-1 bg-blue-50 rounded-md"
+                      className="text-[#7c6cf6] font-bold uppercase tracking-widest px-4 py-2 bg-[#7c6cf6]/10 border border-[#7c6cf6]/30 rounded-lg"
                     >
                       Edit
                     </Link>
@@ -178,7 +178,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         </div>
 
         {totalPages > 0 && (
-          <div className="p-4 border-t">
+          <div className="p-6 border-t border-[#222] bg-[#050505]">
             <AdminPagination
               currentPage={page}
               totalPages={totalPages}

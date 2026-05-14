@@ -43,8 +43,8 @@ export default function ContactForm() {
             <h2 className="heading-sm text-charcoal mb-8">Send a Message</h2>
 
             {status === "success" ? (
-              <div className="rounded-2xl bg-sage/10 border border-sage/20 p-8 text-center">
-                <div className="w-14 h-14 rounded-full bg-sage/15 flex items-center justify-center mx-auto mb-4">
+              <div className=" bg-sage/10 border border-sage/20 p-8 text-center">
+                <div className="w-14 h-14  bg-sage/15 flex items-center justify-center mx-auto mb-4">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M5 12l5 5 9-9" stroke="#7C6CF6" strokeWidth="2"
                           strokeLinecap="round" strokeLinejoin="round"/>
@@ -111,7 +111,7 @@ export default function ContactForm() {
                 </div>
 
                 {status === "error" && (
-                  <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                  <p className="text-red-600 text-sm bg-red-50 border border-red-200  px-4 py-3">
                     {responseMessage}
                   </p>
                 )}
@@ -156,7 +156,7 @@ export default function ContactForm() {
                   "Modern engineering solutions",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-sage shrink-0" aria-hidden="true" />
+                    <span className="w-1 h-1  bg-sage shrink-0" aria-hidden="true" />
                     {item}
                   </li>
                 ))}
