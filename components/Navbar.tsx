@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 const navLinks = [
+  { href: "/services", label: "Services" },
   { href: "/products", label: "Products" },
   { href: "/philosophy", label: "Method" },
   { href: "/journal", label: "Journal" },
@@ -126,7 +127,7 @@ export default function Navbar() {
             : "opacity-0 pointer-events-none -translate-y-4",
         )}
       >
-        <nav className="flex flex-col gap-10 text-center">
+        <nav className="flex flex-col gap-6 text-center">
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}

@@ -1,9 +1,12 @@
 import type { MetadataRoute } from "next";
-import { samplePosts } from "@/lib/data";
+import dbConnect from "@/lib/mongodb";
+import Post from "@/models/Post";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  await dbConnect();
+
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: siteUrl,
@@ -30,16 +33,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${siteUrl}/services`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${siteUrl}/services/custom-software-development`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${siteUrl}/services/mvp-development`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${siteUrl}/services/web-application-development`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${siteUrl}/services/pwa-development`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
       url: `${siteUrl}/about`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
-    },
-    {
-      url: `${siteUrl}/now`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
     },
     {
       url: `${siteUrl}/contact`,
@@ -49,9 +76,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const blogPages: MetadataRoute.Sitemap = samplePosts.map((post) => ({
+  type SitemapPost = {
+    slug: string;
+    updatedAt?: Date;
+    createdAt?: Date;
+  };
+
+  // Fetch all published blog posts from the DB for a dynamic sitemap
+  const posts =
+    ((await Post.find({ published: true })
+      .select("slug updatedAt createdAt")
+      .lean()) as SitemapPost[]) || [];
+
+  const blogPages: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${siteUrl}/journal/${post.slug}`,
-    lastModified: new Date(),
+    lastModified: post.updatedAt || post.createdAt || new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }));

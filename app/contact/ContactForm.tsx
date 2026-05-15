@@ -40,11 +40,11 @@ export default function ContactForm() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-16 lg:gap-20">
           {/* Form */}
           <div>
-            <h2 className="heading-sm text-charcoal mb-8">Send a Message</h2>
+            <h2 className="heading-sm mb-8">Send a Message</h2>
 
             {status === "success" ? (
-              <div className=" bg-sage/10 border border-sage/20 p-8 text-center">
-                <div className="w-14 h-14  bg-sage/15 flex items-center justify-center mx-auto mb-4">
+              <div className=" bg-sage/10 border border-sage/20 p-8 text-center rounded-2xl">
+                <div className="w-14 h-14 rounded-2xl bg-sage/15 flex items-center justify-center mx-auto mb-4">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M5 12l5 5 9-9" stroke="#7C6CF6" strokeWidth="2"
                           strokeLinecap="round" strokeLinejoin="round"/>

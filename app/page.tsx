@@ -169,25 +169,37 @@ export default async function HomePage() {
               title: "Product Development",
               description:
                 "From idea to market-ready product. We design, build, and validate every step.",
+              href: "/services/mvp-development",
             },
             {
               title: "Engineering & Infrastructure",
               description:
                 "Scalable, performant systems built on modern tech stacks with high standards.",
+              href: "/services/custom-software-development",
             },
             {
               title: "Design & UX",
               description:
                 "User-centered design that balances beauty with functionality and accessibility.",
+              href: "/services/web-application-development",
             },
           ].map((service, i) => (
             <Reveal key={service.title} delay={i * 80} variant="scale">
-              <div className="card-elevated">
+              <Link href={service.href} className="card-elevated block group">
                 <h3 className="heading-sm mb-3">{service.title}</h3>
-                <p className="body-md">{service.description}</p>
-              </div>
+                <p className="body-md mb-4">{service.description}</p>
+                <span className="text-xs uppercase tracking-[0.12em] text-sage group-hover:text-sage-light transition-colors">
+                  Learn More
+                </span>
+              </Link>
             </Reveal>
           ))}
+        </div>
+
+        <div className="mt-8 text-center">
+          <Link href="/services" className="btn-secondary">
+            View All Services
+          </Link>
         </div>
       </SectionWrapper>
 

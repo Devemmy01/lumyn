@@ -65,19 +65,20 @@
 
   /* ─── Premium Fluid Typography ─── */
   .heading-display {
-    font-size: clamp(3rem, 11vw, 14rem);
-    line-height: 0.85;
-    letter-spacing: -0.06em;
+    font-size: clamp(2.5rem, 9vw, 10rem);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
     @apply font-bold tracking-tighter text-white uppercase;
   }
 
   @media (max-width: 640px) {
     .heading-display {
-      font-size: clamp(3rem, 14vw, 5rem);
+      font-size: clamp(2rem, 12vw, 4rem);
       line-height: 0.95;
-      letter-spacing: -0.05em;
-      word-break: keep-all;
-      overflow-wrap: break-word;
+      letter-spacing: -0.02em;
     }
   }
 
@@ -110,6 +111,22 @@
 
   .glass-panel {
     @apply bg-transparent border border-white/10 rounded-2xl;
+  }
+
+  .card-flat {
+    @apply rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-all duration-300;
+  }
+
+  .card-flat:hover {
+    @apply border-white/20 bg-white/[0.05];
+  }
+
+  .input-field {
+    @apply w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none transition-all duration-300 focus:border-[#7c6cf6] focus:bg-white/[0.06] focus:shadow-[0_0_0_4px_rgba(124,108,246,0.12)] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .textarea-field {
+    @apply w-full min-h-40 resize-y rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none transition-all duration-300 focus:border-[#7c6cf6] focus:bg-white/[0.06] focus:shadow-[0_0_0_4px_rgba(124,108,246,0.12)] disabled:cursor-not-allowed disabled:opacity-60;
   }
 }
 

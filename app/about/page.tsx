@@ -40,18 +40,18 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-ivory py-32 md:py-44">
+      <section className="relative overflow-hidden bg-ivory py-36 md:py-48">
         <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
-        <div className="container-mid relative">
+        <div className="container-wide relative">
           <p className="label-sm mb-6 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>About Lumyn</p>
           <h1
-            className="heading-display text-charcoal mb-8 text-balance animate-fade-up opacity-0 max-w-3xl"
+            className="heading-display text-charcoal mb-8 text-balance animate-fade-up opacity-0 max-w-5xl"
             style={{ animationDelay: "100ms", animationFillMode: "forwards" }}
           >
             We Build Tools That Help People Think.
           </h1>
           <p
-            className="body-lg text-charcoal-muted max-w-xl animate-fade-up opacity-0"
+            className="body-lg text-charcoal-muted max-w-2xl animate-fade-up opacity-0"
             style={{ animationDelay: "200ms", animationFillMode: "forwards" }}
           >
             Lumyn is an independent digital studio focused on thoughtful software —
@@ -84,7 +84,7 @@ export default function AboutPage() {
 
       {/* Who we are */}
       <SectionWrapper background="default">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-32 items-start">
           <div>
             <p className="label-sm mb-5">Who We Are</p>
             <h2 className="heading-lg text-charcoal mb-6">
@@ -111,7 +111,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             {teamValues.map((value) => (
               <div key={value.title} className="card-flat">
                 <h3 className="font-semibold text-charcoal mb-2 tracking-tight text-sm">
@@ -156,7 +156,7 @@ export default function AboutPage() {
             },
           ].map(({ step, detail }, i) => (
             <div key={step} className="flex gap-6">
-              <div className="w-8 h-8  bg-sage/15 text-sage-dark flex items-center
+              <div className="w-8 h-8 rounded-2xl bg-sage/15 text-sage-dark flex items-center
                               justify-center text-sm font-semibold shrink-0 mt-0.5">
                 {i + 1}
               </div>

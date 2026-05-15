@@ -42,7 +42,7 @@ export default function Hero({
   return (
     <section
       ref={containerRef}
-      className="relative w-full text-white flex flex-col items-center justify-center min-h-[100svh] overflow-hidden bg-[#050505] border-b border-[#222]"
+      className="relative w-full text-white mt-5 flex flex-col items-center justify-center min-h-[100svh] overflow-hidden bg-[#050505] border-b border-[#222]"
     >
       {/* Stark background, with purple accent glow at top */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#7c6cf6] opacity-[0.07] blur-[120px] pointer-events-none" />

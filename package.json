@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts"
+    "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts",
+    "draft:seo": "ts-node --project tsconfig.seed.json scripts/generate_seo_drafts.ts",
+    "publish:seo": "ts-node --project tsconfig.seed.json scripts/publish_seo_drafts.ts"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
