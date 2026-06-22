@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import AnimeBackground from "./AnimeBackground";
 
@@ -30,28 +30,18 @@ export default function Hero({
   const words = headline.split(" ");
   const containerRef = useRef<HTMLElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  });
-
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const opacityOut = useTransform(scrollYProgress, [0.5, 1], [1, 0]);
-
   return (
     <section
       ref={containerRef}
-      className="relative w-full text-white mt-5 flex flex-col items-center justify-center min-h-[100svh] overflow-hidden bg-[#050505] border-b border-[#222]"
+      className="relative mt-5 flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden border-b border-[#222] bg-[#050505] text-white"
     >
-      {/* Stark background, with purple accent glow at top */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#7c6cf6] opacity-[0.07] blur-[120px] pointer-events-none" />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[360px] w-[900px] -translate-x-1/2 bg-[#7c6cf6] opacity-[0.1] blur-[130px]" />
+      <div className="lumyn-soft-glow pointer-events-none absolute inset-0" />
 
       <AnimeBackground />
 
       <motion.div
-        style={{ y: y1, opacity: opacityOut }}
-        className={`container-wide relative z-10 w-full flex flex-col items-start ${size === "compact" ? "py-24" : "py-32 md:py-48"}`}
+        className={`container-wide relative z-10 flex w-full flex-col items-start ${size === "compact" ? "py-24" : "py-28 md:py-40"}`}
       >
         <motion.div className="w-full">
           {badge && (
@@ -59,31 +49,14 @@ export default function Hero({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
-              className="inline-flex items-center gap-3 mb-8 md:mb-12 border border-[#333] px-4 py-2 bg-black uppercase tracking-widest text-xs font-bold rounded-full"
-              aria-hidden={false}
-              role="img"
-              aria-label="Five star rating"
+              className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/55 backdrop-blur-md md:mb-12"
             >
-              <div className="flex items-center gap-1 text-[#7c6cf6]">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <svg
-                    key={i}
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 .587l3.668 7.431L23.5 9.75l-5.75 5.602L19.335 24 12 20.013 4.665 24l1.585-8.648L.5 9.75l7.832-1.732L12 .587z" />
-                  </svg>
-                ))}
-              </div>
-              {/* Optionally render short label if provided */}
-              <span className="text-[#9aa0a6] ml-2 text-xs">Top rated</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#7c6cf6] shadow-[0_0_20px_rgba(124,108,246,0.8)]" />
+              {badge}
             </motion.div>
           )}
 
-          <h1 className="heading-display mb-10 w-full max-w-[1200px] flex flex-wrap gap-x-4 gap-y-2 md:gap-y-6">
+          <h1 className="heading-display mb-10 flex w-full max-w-[1200px] flex-wrap gap-x-4 gap-y-2 md:gap-y-6">
             {words.map((word, idx) => (
               <span
                 key={idx}
@@ -105,12 +78,12 @@ export default function Hero({
             ))}
           </h1>
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between w-full gap-12 mt-12 md:mt-24">
+          <div className="mt-12 flex w-full flex-col justify-between gap-10 md:mt-20 md:flex-row md:items-end">
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 1.5, ease: EASE }}
-              className="text-lg md:text-2xl text-neutral-400 font-medium max-w-xl text-balance leading-snug"
+              className="max-w-xl text-balance text-lg font-medium leading-snug text-neutral-400 md:text-2xl"
             >
               {subheadline}
             </motion.p>
@@ -120,12 +93,12 @@ export default function Hero({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5, duration: 1.2, ease: EASE }}
-                className="flex items-start md:items-center gap-6"
+                className="flex flex-col items-start gap-4 sm:flex-row sm:items-center"
               >
                 {primaryCTA && (
                   <Link
                     href={primaryCTA.href}
-                    className="border rounded-full p-3 hover:bg-[#7c6cf6] transition-all flex gap-1 items-center group"
+                    className="btn-primary"
                   >
                     {primaryCTA.label}
                   </Link>
@@ -133,7 +106,7 @@ export default function Hero({
                 {secondaryCTA && (
                   <Link
                     href={secondaryCTA.href}
-                    className="border rounded-full p-3 hover:border-[#7c6cf6] text-[#7c6cf6]"
+                    className="btn-secondary"
                   >
                     {secondaryCTA.label}
                   </Link>
@@ -148,7 +121,7 @@ export default function Hero({
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 1.5, ease: EASE }}
-            className="mt-32 relative w-full"
+            className="relative mt-12 w-full md:mt-16"
           >
             {children}
           </motion.div>

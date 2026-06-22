@@ -84,13 +84,13 @@ export default function AboutPage() {
 
       {/* Who we are */}
       <SectionWrapper background="default">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-32 items-start">
-          <div>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 md:p-8">
             <p className="label-sm mb-5">Who We Are</p>
-            <h2 className="heading-lg text-charcoal mb-6">
-              An Independent Studio
+            <h2 className="heading-md text-charcoal mb-6 max-w-xl">
+              Independent by design.
             </h2>
-            <div className="space-y-4 text-charcoal-muted leading-relaxed">
+            <div className="space-y-5 text-charcoal-muted leading-relaxed">
               <p>
                 Lumyn is a small, independent digital product studio. We don't have investors
                 pushing for scale. We don't have a mandate to grow user counts above all else.
@@ -109,18 +109,43 @@ export default function AboutPage() {
                 demand it.
               </p>
             </div>
+
+            <div className="mt-10 grid grid-cols-3 gap-3 border-t border-white/10 pt-6">
+              {[
+                ["Small", "team"],
+                ["Long", "view"],
+                ["High", "craft"],
+              ].map(([value, label]) => (
+                <div key={label}>
+                  <p className="text-2xl font-medium tracking-tight text-white md:text-3xl">
+                    {value}
+                  </p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/35">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {teamValues.map((value) => (
-              <div key={value.title} className="card-flat">
-                <h3 className="font-semibold text-charcoal mb-2 tracking-tight text-sm">
-                  {value.title}
-                </h3>
-                <p className="text-charcoal-muted text-sm leading-relaxed">
-                  {value.description}
-                </p>
-              </div>
+          <div className="space-y-3">
+            {teamValues.map((value, index) => (
+              <article
+                key={value.title}
+                className="group grid gap-5 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 transition duration-300 hover:border-[#7c6cf6]/45 hover:bg-white/[0.05] sm:grid-cols-[72px_1fr]"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-white/40 transition group-hover:text-[#7c6cf6]">
+                  0{index + 1}
+                </div>
+                <div>
+                  <h3 className="mb-2 text-xl font-medium tracking-tight text-white">
+                    {value.title}
+                  </h3>
+                  <p className="max-w-xl text-sm leading-7 text-white/55">
+                    {value.description}
+                  </p>
+                </div>
+              </article>
             ))}
           </div>
         </div>

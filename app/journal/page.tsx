@@ -10,6 +10,8 @@ import JournalPagination from "@/components/JournalPagination";
 import SubscribeForm from "@/components/SubscribeForm";
 import JournalTagsFilter from "@/components/JournalTagsFilter";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Journal",
   description:
@@ -96,7 +98,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
       />
 
       {/* Header */}
-      <section className="relative overflow-hidden py-28 md:py-36" style={{ backgroundColor: "var(--bg-secondary)" }}>
+      <section className="relative overflow-hidden mt-5 py-28 md:py-36" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
         <div className="container-mid relative">
           <p className="label-sm mb-5 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Journal</p>

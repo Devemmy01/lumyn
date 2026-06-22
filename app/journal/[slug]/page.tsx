@@ -110,7 +110,7 @@ export default async function JournalPostPage({ params }: PageProps) {
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6" aria-label="Article topics">
               {post.tags.map((tag: string) => (
-                <span key={tag} className="tag">{tag.replace(/-/g, " ")}</span>
+                <span key={tag} className="tag p-2">{tag.replace(/-/g, " ")}</span>
               ))}
             </div>
           )}
@@ -172,7 +172,9 @@ export default async function JournalPostPage({ params }: PageProps) {
             </p>
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag: string) => (
-                <span key={tag} className="tag">{tag.replace(/-/g, " ")}</span>
+                <span key={tag} className="tag p-2">
+                  {tag.replace(/-/g, " ")}
+                </span>
               ))}
             </div>
           </div>

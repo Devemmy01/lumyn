@@ -10,10 +10,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // Simple default static admin login for the CMS
+        const adminUsername = process.env.ADMIN_USERNAME;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        if (!adminUsername || !adminPassword) return null;
         if (
-          credentials?.username === (process.env.ADMIN_USERNAME || "admin") &&
-          credentials?.password === (process.env.ADMIN_PASSWORD || "password")
+          credentials?.username === adminUsername &&
+          credentials?.password === adminPassword
         ) {
           return { id: "1", name: "Admin", email: "admin@lumyn.studio" };
         }

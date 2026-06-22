@@ -5,7 +5,6 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import clsx from "clsx";
-import Image from "next/image";
 
 export default function AdminNav({ user }: { user: { name?: string | null; email?: string | null; image?: string | null } | null | undefined }) {
   const pathname = usePathname();
@@ -13,9 +12,11 @@ export default function AdminNav({ user }: { user: { name?: string | null; email
 
   const links = [
     { href: "/admin", label: "Dashboard" },
+    { href: "/admin/academy", label: "Academy" },
     { href: "/admin/posts", label: "Posts" },
     { href: "/admin/subscribers", label: "Subscribers" },
     { href: "/admin/inquiries", label: "Inquiries" },
+    { href: "/admin/inbox", label: "Inbox" },
   ];
 
   return (

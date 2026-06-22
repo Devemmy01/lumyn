@@ -11,8 +11,12 @@ export default function LayoutWrapper({
 }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
+  const isAcademyStandalone =
+    pathname?.startsWith("/academy/dashboard") ||
+    pathname?.startsWith("/academy/sign-in") ||
+    pathname?.startsWith("/academy/payment");
 
-  if (isAdmin) {
+  if (isAdmin || isAcademyStandalone) {
     return <>{children}</>;
   }
 

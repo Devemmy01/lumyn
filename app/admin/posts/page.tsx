@@ -7,6 +7,8 @@ import AdminSearch from "@/components/admin/AdminSearch";
 import AdminFilter from "@/components/admin/AdminFilter";
 import AdminPagination from "@/components/admin/AdminPagination";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Posts | Admin",
 };

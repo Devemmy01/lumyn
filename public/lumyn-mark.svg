@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#090712"/>
+  <rect x="1" y="1" width="510" height="510" rx="111" stroke="#B88CFF" stroke-opacity="0.18" stroke-width="2"/>
+  <circle cx="164" cy="80" r="210" fill="#7C2EE6" fill-opacity="0.18"/>
+  <defs>
+    <linearGradient id="main" x1="134" y1="70" x2="396" y2="410" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4D9FF"/>
+      <stop offset="0.42" stop-color="#9B58FF"/>
+      <stop offset="1" stop-color="#2B0D55"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="136" y1="72" x2="288" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.72"/>
+      <stop offset="0.5" stop-color="#8C38F0" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#130522" stop-opacity="0.82"/>
+    </linearGradient>
+  </defs>
+  <path d="M160 88C254 105 320 180 320 276v145h-58c-108 0-180-71-180-177V88h78Z" fill="url(#main)"/>
+  <path d="M82 232c0 108 77 189 197 189h164c-16-94-92-160-186-160h-49c-76 0-126-26-126-29Z" fill="url(#main)"/>
+  <path d="M177 98v201c0 68 36 110 102 122-98 0-180-64-180-175V97c24 2 48 2 78 1Z" fill="url(#shine)"/>
+  <path d="M206 269c49-24 88-73 104-130 32 52 32 146 11 222-48-20-88-49-115-92Z" fill="#1D0737" fill-opacity="0.46"/>
+  <path d="M82 88h78c94 17 160 92 160 188v145" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="8"/>
+</svg>

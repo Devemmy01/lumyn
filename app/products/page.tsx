@@ -2,268 +2,184 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Hero from "@/components/Hero";
 import SectionWrapper from "@/components/SectionWrapper";
+import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
+import { mindFuelPositioning } from "@/lib/ecosystem";
 
 export const metadata: Metadata = {
   title: "Products",
   description:
-    "Explore Lumyn's suite of impactful digital tools — Mindfuel, Summai, and EdTurbo. Built to solve real-world problems.",
+    "Explore products owned and built by Lumyn, including MindFuel and Lumyn Academy.",
   openGraph: {
     title: "Products — Lumyn",
     description:
-      "Impactful digital tools designed to solve real-world problems.",
+      "Products owned and built by Lumyn: thoughtful software, learning systems, and digital experiences designed with intention.",
   },
 };
 
-type Product = {
-  id: string;
-  name: string;
-  tagline: string;
-  description: string;
-  status: "live" | "beta" | "development";
-  accentColor: string;
-  features: string[];
-  availability: string;
-  image?: string;
-  url?: string;
-  techStack?: string;
-  motive?: {
-    title: string;
-    desc: string;
-  }[];
-};
-
-const products: Product[] = [
+const ownedProducts = [
   {
-    id: "mindfuel",
-    name: "MindFuel",
-    tagline: "A Full Stack Social Platform – Meaningful connection for the modern age.",
-    description:
-      "MindFuel is a social platform built for meaningful interaction and curation. Instead of chasing vanity metrics, it uses a high-signal discovery system to surface content that actually matters. You can turn your ideas into beautiful Thought Cards to share something that delivers value.",
-    status: "live",
-    accentColor: "#7C6CF6",
-    features: [
-      "Smart Feed algorithm with High Signal Discovery",
-      "Thought Card Creator with fluid micro-animations",
-      "Web Push API for real-time notifications",
-      "Performance-optimised backend infrastructure",
-      "Scalable, accessible design system",
-    ],
-    availability: "Now live — visit the platform",
-    image: "/mindfuel.png",
-    url: "https://www.mind-fuel.app",
-    techStack: "Next.js 15, React 19, TypeScript, Tailwind CSS 4, MongoDB, Next-PWA, Resend, Radix UI, Framer Motion",
-    motive: [
-      {
-        title: "Connection Over Vanity",
-        desc: "We believe your value isn't a number on a post. We care more about what you're saying than how many people clicked a heart button."
-      },
-      {
-        title: "High Signal Discovery",
-        desc: "Our platform prioritizes quality and meaningful insights over viral noise."
-      },
-      {
-        title: "Impactful Interaction",
-        desc: "Leave the app feeling more informed and inspired, with ideas that stick."
-      }
-    ]
+    status: "Live",
+    title: "MindFuel",
+    href: "/mindfuel",
+    description: mindFuelPositioning,
+    primaryAction: "Explore MindFuel",
+    secondaryAction: "Visit app",
+    secondaryHref: "https://www.mind-fuel.app",
+    visual: "mindfuel",
   },
   {
-    id: "summai",
-    name: "Summai",
-    tagline: "Turn long articles and information overload into clear, concise insights.",
+    status: "Education product",
+    title: "Lumyn Academy",
+    href: "/academy",
     description:
-      "Paste any article, PDF, or long-form text. Summai uses intelligent summarisation to extract the key ideas and deliver them clearly — so you spend time understanding, not reading.",
-    status: "beta",
-    accentColor: "#5B7FA6",
-    features: [
-      "Intelligent article summarisation",
-      "Key point extraction",
-      "Reading time reduction",
-      "Multi-format support (URL, PDF, text)",
-      "Save and revisit summaries",
-    ],
-    availability: "Now in beta — request early access",
-  },
-  {
-    id: "edturbo",
-    name: "EdTurbo",
-    tagline: "Master any topic faster through microlearning.",
-    description:
-      "EdTurbo is a microlearning platform for secondary and tertiary students. Short lessons, visual summaries, and adaptive smart quizzes help you build real understanding — not just memorise answers.",
-    status: "beta",
-    accentColor: "#2A9D8F",
-    features: [
-      "Turbo Lessons — bite-sized, high-impact lessons",
-      "Smart Quizzes — adaptive questions that target weak spots",
-      "Progress Tracker — see exactly how far you've come",
-      "Study Groups — learn together, stay accountable",
-      "Leaderboard — friendly competition that motivates",
-      "AI Study Assistant — get help any time, on any topic",
-    ],
-    availability: "Now in beta — request early access",
+      "A paid software engineering academy with AI-generated learning paths, guided mentorship, practical projects, progress tracking, and certificates.",
+    primaryAction: "Explore Academy",
+    secondaryAction: "View pricing",
+    secondaryHref: "/academy#learning-options",
+    visual: "academy",
   },
 ];
 
-const statusConfig = {
-  live: { label: "Live", dotClass: "bg-green-500", textClass: "text-green-700" },
-  beta: { label: "Beta", dotClass: "bg-amber-500", textClass: "text-amber-700" },
-  development: { label: "In Development", dotClass: "bg-sage", textClass: "text-sage-dark" },
-};
+const productPrinciples = [
+  "Owned by Lumyn",
+  "Built around real user value",
+  "Designed for calmer digital behavior",
+  "Supported by modern engineering systems",
+];
+
+function ProductVisual({ type }: { type: string }) {
+  if (type === "mindfuel") {
+    return (
+      <div className="dark-visual relative min-h-72 overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#070707]">
+        <div className="lumyn-soft-glow absolute inset-0" />
+        <img
+          src="/mindfuel1.png"
+          alt="MindFuel product preview"
+          className="relative h-full min-h-72 w-full object-cover object-left-top opacity-85 transition duration-500 group-hover:scale-[1.02]"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="dark-visual relative min-h-72 overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#070707] p-5">
+      <div className="lumyn-grid lumyn-soft-glow absolute inset-0" />
+      <div className="relative grid h-full gap-4">
+        <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
+          <div className="mb-5 flex items-center justify-between">
+            <p className="text-sm font-semibold text-white">Lumyn Academy</p>
+            <span className="rounded-full bg-[#7c6cf6]/15 px-3 py-1 text-xs text-[#c9c1ff]">
+              Paid
+            </span>
+          </div>
+          <div className="space-y-3">
+            {["AI Learning Path", "Guided Mentorship", "Certificate Progress"].map(
+              (item, index) => (
+                <div key={item} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                  <div className="mb-2 flex items-center justify-between text-xs text-white/40">
+                    <span>0{index + 1}</span>
+                    <span>{64 + index * 12}%</span>
+                  </div>
+                  <p className="text-sm font-medium text-white">{item}</p>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ProductsPage() {
   return (
     <>
       <Hero
-        badge="Products"
-        headline="Products Built to Solve Problems."
-        subheadline="Each Lumyn product is engineered to address a specific challenge. We focus on execution, performance, and real-world impact."
+        badge="Lumyn Products"
+        headline="Lumyn-owned products."
+        subheadline="A focused portfolio of thoughtful software and learning products designed to feel calm, useful, and human."
+        primaryCTA={{ label: "Explore Products", href: "#owned-products" }}
+        secondaryCTA={{ label: "Explore Academy", href: "/academy" }}
         size="compact"
       />
 
-      {/* Product list */}
-      <SectionWrapper background="default">
-        <div className="space-y-24 md:space-y-36">
-          {products.map((product, i) => {
-            const status = statusConfig[product.status];
-            const isEven = i % 2 === 0;
+      <SectionWrapper id="owned-products" background="default" size="lg" separator>
+        <Reveal className="mb-12 max-w-3xl">
+          <p className="label-sm mb-5">Owned Products</p>
+            <h2 className="heading-md mb-5">Products in the Lumyn portfolio.</h2>
+          <p className="body-lg">
+            This page is reserved for products Lumyn owns, operates, and builds
+            intentionally. MindFuel is live now. Lumyn Academy is the learning
+            product layer of the same ecosystem.
+          </p>
+        </Reveal>
 
-            return (
-              <div
-                key={product.id}
-                id={product.id}
-                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center ${
-                  !isEven ? "lg:flex-row-reverse" : ""
-                }`}
-              >
-                {/* Text */}
-                <div className={!isEven ? "lg:order-2" : ""}>
-                  {/* Status */}
-                  <div className="flex items-center gap-2 mb-5">
-                    <span
-                      className={`w-2 h-2  ${status.dotClass} inline-block`}
-                      aria-hidden="true"
-                    />
-                    <span className={`text-xs font-medium tracking-wide ${status.textClass}`}>
-                      {status.label}
-                    </span>
-                  </div>
-
-                  <h2 className="heading-lg text-charcoal mb-3">{product.name}</h2>
-                  <p className="text-lg text-charcoal-muted font-medium mb-4 leading-snug">
-                    {product.tagline}
+        <div className="space-y-6">
+          {ownedProducts.map((product, index) => (
+            <Reveal key={product.title} delay={index * 90} variant="scale">
+              <article className="grid gap-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] p-4 md:grid-cols-[0.9fr_1.1fr] md:p-6">
+                <Link href={product.href} className="group block">
+                  <ProductVisual type={product.visual} />
+                </Link>
+                <div className="flex flex-col justify-center p-2 md:p-6">
+                  <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-white/35">
+                    {product.status}
                   </p>
-                  <p className="body-md mb-8">{product.description}</p>
-
-                  {/* Architecture & Motive Sections for MindFuel */}
-                  {product.techStack && (
-                    <div className="mb-8">
-                      <p className="text-sm font-semibold text-charcoal mb-2 uppercase tracking-wide">Tech Stack</p>
-                      <p className="text-sm text-charcoal-muted mb-6">{product.techStack}</p>
-                      
-                      <div className="space-y-4">
-                        {product.motive?.map((m) => (
-                          <div key={m.title}>
-                            <p className="text-sm font-semibold text-charcoal">{m.title}</p>
-                            <p className="text-sm text-charcoal-muted">{m.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Features */}
-                  {!product.techStack && (
-                    <ul className="space-y-3 mb-10" aria-label={`${product.name} features`}>
-                      {product.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-3 text-sm text-charcoal-muted">
-                          <svg
-                            width="16" height="16" viewBox="0 0 16 16" fill="none"
-                            className="mt-0.5 shrink-0 text-sage"
-                            aria-hidden="true"
-                          >
-                            <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="1.5"
-                                  strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  <p className="text-sm text-charcoal-muted/70 italic mb-6">
-                    {product.availability}
+                  <h3 className="mb-5 text-4xl font-medium tracking-tight text-white md:text-6xl">
+                    {product.title}
+                  </h3>
+                  <p className="max-w-xl text-lg leading-8 text-white/60">
+                    {product.description}
                   </p>
-
-                  <Link href={product.status === "live" ? (product.url || `https://${product.id}.com`) : "/contact"} className={product.status === "live" ? "btn-primary" : "btn-primary"}>
-                    {product.status === "live" ? "Visit App" : "Express Interest"}
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                      <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
-                            strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </Link>
-                </div>
-
-                {/* Visual card */}
-                <div
-                  className={`${!isEven ? "lg:order-1" : ""}`}
-                  aria-hidden="true"
-                >
-                  <div
-                    className=" aspect-[4/3] flex items-center justify-center
-                               shadow-soft-lg relative overflow-hidden"
-                    style={{ backgroundColor: `${product.accentColor}12` }}
-                  >
-                    {product.image ? (
-                      <div className="absolute inset-0 w-full h-full">
-                        {/* Use img for simplicity here or next/image if imported, but img is safe */}
-                        <img 
-                          src={product.image} 
-                          alt={product.name} 
-                          className="w-full h-full object-cover object-left-top shadow-xl  border border-white/10"
-                        />
-                      </div>
-                    ) : (
-                      <>
-                        {/* Decorative background */}
-                        <div
-                          className="absolute inset-0 bg-dots opacity-50"
-                          style={{ color: product.accentColor }}
-                        />
-
-                        {/* Product icon */}
-                        <div className="relative text-center">
-                          <div
-                            className="w-20 h-20  flex items-center justify-center
-                                       text-white font-bold text-3xl mx-auto mb-4 shadow-soft-md"
-                            style={{ backgroundColor: product.accentColor }}
-                          >
-                            {product.name.charAt(0)}
-                          </div>
-                          <p className="font-semibold text-charcoal text-lg tracking-tight">
-                            {product.name}
-                          </p>
-                          <p className="text-sm text-charcoal-muted mt-1">
-                            {product.tagline.split(".")[0]}
-                          </p>
-                        </div>
-                      </>
-                    )}
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <Link href={product.href} className="btn-primary">
+                      {product.primaryAction}
+                    </Link>
+                    <Link href={product.secondaryHref} className="btn-secondary">
+                      {product.secondaryAction}
+                    </Link>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              </article>
+            </Reveal>
+          ))}
         </div>
       </SectionWrapper>
 
-      {/* CTA */}
-      <SectionWrapper background="secondary" size="sm">
+      <SectionWrapper background="secondary" size="lg" separator>
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <Reveal>
+            <p className="label-sm mb-5">Product Standard</p>
+            <h2 className="heading-md mb-6">Small portfolio. High intention.</h2>
+            <p className="body-lg">
+              Lumyn does not list client projects or loose experiments here.
+              Products earn this page when they are owned by Lumyn and shaped by
+              the studio's long-term product philosophy.
+            </p>
+          </Reveal>
+
+          <Reveal delay={120} variant="fade">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {productPrinciples.map((principle) => (
+                <div
+                  key={principle}
+                  className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 text-white/70"
+                >
+                  {principle}
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </SectionWrapper>
+
+      <SectionWrapper background="default" size="sm">
         <CTA
-          headline="Have a problem worth solving?"
-          subtext="If there's a challenge you're facing that needs an impactful solution, reach out. We're always looking for the next problem to solve."
-          primaryCTA={{ label: "Start a Conversation", href: "/contact" }}
-          secondaryCTA={{ label: "Our Method", href: "/philosophy" }}
+          headline="Start with the live product."
+          subtext="MindFuel is the current public expression of Lumyn's product philosophy."
+          primaryCTA={{ label: "Open MindFuel", href: "/mindfuel" }}
+          secondaryCTA={{ label: "Explore Academy", href: "/academy" }}
         />
       </SectionWrapper>
     </>

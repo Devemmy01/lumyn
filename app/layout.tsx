@@ -1,46 +1,41 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import ThemeProvider from "@/components/ThemeProvider";
+import FirebaseAnalytics from "@/components/FirebaseAnalytics";
 import { Analytics } from "@vercel/analytics/react";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
 const siteName = "Lumyn";
 const siteDescription =
-  "Lumyn is an independent product studio building high-performance digital tools and custom web applications that solve real-world problems with precision and impact.";
+  "Lumyn is an independent product studio building thoughtful digital products and educational experiences for a calmer, more intentional internet.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Lumyn — Impactful Products, Engineered for Results.",
+    default: "Lumyn - Building Thoughtful Digital Experiences.",
     template: "%s — Lumyn",
   },
   description: siteDescription,
   keywords: [
     "product studio",
-    "software development services",
-    "custom software development",
-    "web application development",
-    "PWA development",
-    "React development agency",
-    "Next.js developers",
-    "full-stack development studio",
-    "software engineering studio",
-    "problem solving software",
-    "impactful digital tools",
-    "web agency",
-    "web development services",
-    "mobile app development services",
-    "website developer",
-    "web developer"
+    "product studio",
+    "independent software studio",
+    "MindFuel",
+    "Lumyn Academy",
+    "AI course generator",
+    "AI learning platform",
+    "engineering academy",
+    "software engineering courses",
+    "African technology brand",
+    "software education",
+    "thoughtful software",
+    "intentional technology",
+    "digital product studio",
+    "modern web products",
+    "founder-led studio",
   ],
   authors: [{ name: "Lumyn", url: siteUrl }],
   creator: "Lumyn",
@@ -61,7 +56,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName,
-    title: "Lumyn — Impactful Products, Engineered for Results.",
+    title: "Lumyn - Building Thoughtful Digital Experiences.",
     description: siteDescription,
     images: [
       {
@@ -74,7 +69,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lumyn — Impactful Products, Engineered for Results.",
+    title: "Lumyn - Building Thoughtful Digital Experiences.",
     description: siteDescription,
     images: [`${siteUrl}/og-image.png`],
     creator: "@lumynstudio",
@@ -82,10 +77,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.ico", type: "image/svg+xml" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: "/lumyn-mark.svg",
   },
   manifest: "/manifest.json",
   alternates: {
@@ -99,7 +94,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F8F7F4",
+  themeColor: "#050505",
   width: "device-width",
   initialScale: 1,
 };
@@ -109,7 +104,7 @@ const jsonLd = {
   "@type": "Organization",
   name: "Lumyn",
   url: siteUrl,
-  logo: `${siteUrl}/logo.png`,
+  logo: `${siteUrl}/lumyn-mark.svg`,
   description: siteDescription,
   sameAs: [
     "https://twitter.com/lumynstudio",
@@ -119,36 +114,34 @@ const jsonLd = {
     contactType: "customer support",
     url: `${siteUrl}/contact`,
   },
-  hasOfferCatalog: {
-    "@type": "OfferCatalog",
-    name: "Services",
-    itemListElement: [
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Custom Software Development",
-          description: "Full-stack web applications, APIs, and bespoke software tailored to your business needs.",
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Product Strategy & Design",
-          description: "Product discovery, UX/UI design, and roadmapping to turn ideas into shippable products.",
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Progressive Web Apps (PWAs)",
-          description: "High-performance, installable web apps that behave like native apps.",
-        },
-      },
-    ],
-  },
+  makesOffer: [
+    {
+      "@type": "CreativeWork",
+      name: "MindFuel",
+      url: "https://www.mind-fuel.app",
+      description:
+        "A personal growth network where people document what they're learning from life and grow together through reflection.",
+    },
+    {
+      "@type": "EducationalOrganization",
+      name: "Lumyn Academy",
+      url: `${siteUrl}/academy`,
+      description:
+        "A paid software engineering academy with AI-generated learning paths, guided mentorship, practical projects, progress tracking, and certificates.",
+    },
+  ],
+  hasPart: [
+    {
+      "@type": "WebPage",
+      name: "Products",
+      url: `${siteUrl}/products`,
+    },
+    {
+      "@type": "WebPage",
+      name: "Academy",
+      url: `${siteUrl}/academy`,
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -157,8 +150,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var s=localStorage.getItem('theme');var t=s==='light'||s==='dark'?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(t);document.documentElement.style.colorScheme=t;}catch(e){document.documentElement.classList.add('dark');}})();",
+          }}
+        />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -170,16 +169,17 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.variable} min-h-screen flex flex-col antialiased`}>
+      <body className="min-h-screen flex flex-col antialiased">
         <Script id="sw-register" strategy="afterInteractive">
           {`if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }`}
         </Script>
-        <div className="pointer-events-none fixed inset-0 z-[9999] h-full w-full opacity-30 mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")" }}></div>
-        
+          <FirebaseAnalytics />
           <AuthProvider>
-            <LayoutWrapper>
-              {children}
-            </LayoutWrapper>
+            <ThemeProvider>
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
+            </ThemeProvider>
           </AuthProvider>
         
         <Analytics />

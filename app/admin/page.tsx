@@ -4,6 +4,10 @@ import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import Subscriber from "@/models/Subscriber";
 import Contact, { IContactDocument } from "@/models/Contact";
+import AcademyCourse from "@/models/AcademyCourse";
+import AcademyStudent from "@/models/AcademyStudent";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Dashboard | Admin",
@@ -12,27 +16,31 @@ export const metadata: Metadata = {
 export default async function AdminDashboard() {
   await dbConnect();
 
-  const [postsCount, subscribersCount, inquiriesCount, recentInquiries] = (await Promise.all([
+  const [postsCount, subscribersCount, inquiriesCount, recentInquiries, academyStudentsCount, academyCoursesCount] = (await Promise.all([
     Post.countDocuments(),
     Subscriber.countDocuments(),
     Contact.countDocuments(),
     Contact.find().sort({ createdAt: -1 }).limit(5).lean(),
-  ])) as unknown as [number, number, number, IContactDocument[]];
+    AcademyStudent.countDocuments(),
+    AcademyCourse.countDocuments(),
+  ])) as unknown as [number, number, number, IContactDocument[], number, number];
 
   const stats = [
     { label: "Total Posts", value: postsCount, href: "/admin/posts" },
     { label: "Subscribers", value: subscribersCount, href: "/admin/subscribers" },
     { label: "Inquiries", value: inquiriesCount, href: "/admin/inquiries" },
+    { label: "Academy Students", value: academyStudentsCount, href: "/admin/academy" },
+    { label: "AI Courses", value: academyCoursesCount, href: "/admin/academy" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tighter text-white">Dashboard</h1>
-        <p className="text-neutral-500 mt-2">Welcome back to your CMS dashboard.</p>
+        <p className="text-neutral-500 mt-2">Website, Academy, audience, and communications at a glance.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
         {stats.map((stat) => (
           <Link
             key={stat.label}
@@ -87,6 +95,18 @@ export default async function AdminDashboard() {
                 <div className="text-left">
                   <div className="text-sm font-bold text-white tracking-wide">Write New Post</div>
                   <div className="text-xs text-neutral-500 mt-1">Draft or publish a new article</div>
+                </div>
+              </Link>
+              <Link
+                href="/admin/academy"
+                className="flex items-center gap-4 p-4 border border-[#222] rounded-xl hover:border-[#7c6cf6] hover:bg-[#111] transition-all group"
+              >
+                <div className="w-12 h-12 rounded-lg bg-[#7c6cf6]/10 text-[#a99eff] flex items-center justify-center font-bold text-lg group-hover:bg-[#7c6cf6] group-hover:text-white transition-colors">
+                  AI
+                </div>
+                <div className="text-left">
+                  <div className="text-sm font-bold text-white tracking-wide">Manage Academy</div>
+                  <div className="text-xs text-neutral-500 mt-1">Students, courses, subscriptions, and exemptions</div>
                 </div>
               </Link>
               <Link

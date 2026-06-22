@@ -5,6 +5,8 @@ import Subscriber from "@/models/Subscriber";
 import AdminSearch from "@/components/admin/AdminSearch";
 import AdminPagination from "@/components/admin/AdminPagination";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Subscribers | Admin",
 };

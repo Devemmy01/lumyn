@@ -13,25 +13,23 @@ interface CTAProps {
 export default function CTA({ headline, subtext, primaryCTA, secondaryCTA }: CTAProps) {
   return (
     <section className="py-24">
-      <div className="container-wid relative">
+      <div className="container-wide relative">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}
-          className="relative overflow-hidden rounded-3xl bg-[#0a0a0a] border border-[#333] p-6 md:p-24 text-center z-10"
+          className="relative z-10 overflow-hidden rounded-3xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-6 text-center md:p-24"
         >
           {/* Noise/Texture Background if available, else CSS Gradient */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(124,108,246,0.15)_0%,transparent_70%)] pointer-events-none" />
-          <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay" />
-
           <div className="relative z-20 max-w-3xl mx-auto">
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tighter">
+            <h2 className="mb-6 text-4xl font-bold tracking-tighter text-[var(--text-primary)] md:text-6xl">
               {headline}
             </h2>
             
             {subtext && (
-              <p className="text-lg md:text-xl text-neutral-400 mb-10 text-balance leading-relaxed">
+              <p className="mb-10 text-balance text-lg leading-relaxed text-[var(--text-secondary)] md:text-xl">
                 {subtext}
               </p>
             )}
@@ -41,7 +39,7 @@ export default function CTA({ headline, subtext, primaryCTA, secondaryCTA }: CTA
                 {primaryCTA.label}
               </Link>
               {secondaryCTA && (
-                <Link href={secondaryCTA.href} className="btn-secondary py-3 md:py-4 px-6 md:px-8 text-base md:text-lg w-full sm:w-auto bg-[#111] hover:bg-[#1a1a1a]">
+                <Link href={secondaryCTA.href} className="btn-secondary w-full px-6 py-3 text-base sm:w-auto md:px-8 md:py-4 md:text-lg">
                   {secondaryCTA.label}
                 </Link>
               )}

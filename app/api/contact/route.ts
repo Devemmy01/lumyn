@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Contact from "@/models/Contact";
+import { lumynEmailLayout, sendLumynEmail } from "@/lib/resend";
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +46,29 @@ export async function POST(request: NextRequest) {
       email: email.toLowerCase().trim(),
       message: message.trim(),
     });
+
+    const adminEmail = process.env.LUMYN_ADMIN_EMAIL;
+    if (adminEmail) {
+      sendLumynEmail({
+        to: adminEmail,
+        subject: `New Lumyn inquiry from ${name.trim()}`,
+        replyTo: email.toLowerCase().trim(),
+        html: lumynEmailLayout({
+          title: "New Lumyn inquiry",
+          intro: `${escapeHtml(name.trim())} sent a message through the Lumyn website.`,
+          body: `
+            <p><strong style="color:#ffffff;">Email:</strong> ${escapeHtml(email.toLowerCase().trim())}</p>
+            <p><strong style="color:#ffffff;">Message:</strong></p>
+            <p>${escapeHtml(message.trim())}</p>
+          `,
+          ctaLabel: "Open Admin",
+          ctaHref: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio"}/admin/inquiries`,
+        }),
+        text: `${name.trim()} <${email.toLowerCase().trim()}>: ${message.trim()}`,
+      }).catch((error) => {
+        console.error("[resend/contact]", error);
+      });
+    }
 
     return NextResponse.json(
       {

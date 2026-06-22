@@ -30,7 +30,7 @@ const defaultCaseStudies: CaseStudy[] = [
     result: "Achieved sustainable growth with 40% MoM retention.",
     metrics: [{ label: "Users", value: "50K+" }, { label: "Retention", value: "+40%" }, { label: "Time", value: "4mo" }],
     tags: ["Product Design", "Engineering"],
-    href: "/products#mindfuel",
+    href: "/mindfuel",
     accentColor: "#7C6CF6",
   },
   {
@@ -41,7 +41,7 @@ const defaultCaseStudies: CaseStudy[] = [
     result: "Launched beta with 95%+ accuracy.",
     metrics: [{ label: "Accuracy", value: "95%+" }, { label: "Speed", value: "<1s" }, { label: "Users", value: "5K+" }],
     tags: ["AI", "Performance"],
-    href: "/products#summai",
+    href: "/products",
     accentColor: "#3B82F6",
   },
 ];
