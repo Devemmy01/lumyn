@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SectionWrapper from "@/components/SectionWrapper";
 import { services } from "@/lib/services";
+import { buildMetadata, serializeJsonLd, SITE_URL } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Software Development Services",
   description:
-    "Explore Lumyn software development services: custom software development, MVP development, web application development, and PWA development.",
+    "Custom software, startup MVP, web application, and progressive web app development for founders and growing businesses. Explore Lumyn's end-to-end services.",
+  path: "/services",
   keywords: [
     "software development services",
     "custom software development company",
@@ -14,24 +16,17 @@ export const metadata: Metadata = {
     "web application development services",
     "PWA development company",
   ],
-  openGraph: {
-    title: "Software Development Services — Lumyn",
-    description:
-      "Custom software, MVP, web app, and PWA development services for founders and growing businesses.",
-  },
-};
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
+});
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   name: "Lumyn Services",
-  url: `${siteUrl}/services`,
+  url: `${SITE_URL}/services`,
   itemListElement: services.map((service, index) => ({
     "@type": "ListItem",
     position: index + 1,
-    url: `${siteUrl}/services/${service.slug}`,
+    url: `${SITE_URL}/services/${service.slug}`,
     name: service.name,
   })),
 };
@@ -41,7 +36,7 @@ export default function ServicesPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <section className="relative overflow-hidden mt-5 py-28 md:py-36" style={{ backgroundColor: "var(--bg-secondary)" }}>

@@ -8,7 +8,12 @@ import SectionWrapper from "@/components/SectionWrapper";
 import BlogCard from "@/components/BlogCard";
 import UpvoteButton from "@/components/UpvoteButton";
 import ShareButtons from "@/components/ShareButtons";
-import { buildMetadata, buildArticleJsonLd } from "@/lib/seo";
+import {
+  buildArticleJsonLd,
+  buildBreadcrumbJsonLd,
+  buildMetadata,
+  serializeJsonLd,
+} from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -29,7 +34,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/journal/${post.slug}`,
     type: "article",
     publishedAt: post.createdAt?.toISOString(),
-    ogImage: post.coverImage || "/og-image.png"
+    modifiedAt: post.updatedAt?.toISOString(),
+    tags: post.tags || [],
+    ogImage: post.coverImage || "/og-image.png",
+    imageAlt: post.title,
   });
 }
 
@@ -77,14 +85,26 @@ export default async function JournalPostPage({ params }: PageProps) {
     description: post.excerpt,
     slug: post.slug,
     publishedAt: post.createdAt?.toISOString() || new Date().toISOString(),
+    modifiedAt: post.updatedAt?.toISOString(),
     tags: post.tags || [],
+    image: post.coverImage,
   });
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Journal", path: "/journal" },
+    { name: post.title, path: `/journal/${post.slug}` },
+  ]);
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
 
       {/* Hero */}
@@ -172,9 +192,9 @@ export default async function JournalPostPage({ params }: PageProps) {
             </p>
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag: string) => (
-                <span key={tag} className="tag p-2">
+                <Link key={tag} href={`/journal?tag=${encodeURIComponent(tag)}`} className="tag p-2">
                   {tag.replace(/-/g, " ")}
-                </span>
+                </Link>
               ))}
             </div>
           </div>

@@ -19,6 +19,19 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   experimental: {},
+  async headers() {
+    const privateRouteHeaders = [
+      { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+      { key: "Cache-Control", value: "private, no-store" },
+    ];
+
+    return [
+      { source: "/admin/:path*", headers: privateRouteHeaders },
+      { source: "/academy/dashboard/:path*", headers: privateRouteHeaders },
+      { source: "/academy/sign-in", headers: privateRouteHeaders },
+      { source: "/academy/payment/:path*", headers: privateRouteHeaders },
+    ];
+  },
 };
 
 export default nextConfig;

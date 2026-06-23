@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import SectionWrapper from "@/components/SectionWrapper";
 import CTA from "@/components/CTA";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About",
+export const metadata: Metadata = buildMetadata({
+  title: "About Our Product Studio",
   description:
-    "Lumyn is an independent digital studio building calm, intelligent software. We help people think clearly in a noisy world.",
-  openGraph: {
-    title: "About — Lumyn",
-    description:
-      "An independent digital studio building tools for clarity and focus.",
-  },
-};
+    "Meet Lumyn, an independent product and software development studio building calm, intelligent digital products, custom software, and learning experiences.",
+  path: "/about",
+  keywords: ["about Lumyn", "independent product studio", "software development studio"],
+});
 
 const teamValues = [
   {

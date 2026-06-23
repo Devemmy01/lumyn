@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Academy Sign In",
   description:
     "Sign in to Lumyn Academy and open your student dashboard.",
+  robots: { index: false, follow: false, nocache: true },
 };
 
 export const dynamic = "force-dynamic";

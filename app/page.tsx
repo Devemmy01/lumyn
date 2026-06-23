@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Hero from "@/components/Hero";
 import HeroVisual from "@/components/HeroVisual";
 import SectionWrapper from "@/components/SectionWrapper";
@@ -10,26 +11,30 @@ import Post from "@/models/Post";
 import { IPost } from "@/models/Post";
 import { mindFuelPositioning } from "@/lib/ecosystem";
 import { academySkillExamples } from "@/lib/academy";
+import {
+  SITE_URL,
+  buildMetadata,
+  serializeJsonLd,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Lumyn - Thoughtful Digital Experiences for a Noisy Internet.",
-  description:
-    "Lumyn is an independent product studio creating software and educational experiences designed to feel calm, useful, and human.",
-  openGraph: {
-    title: "Lumyn - Thoughtful Digital Experiences for a Noisy Internet.",
+  ...buildMetadata({
+    title: "Product & Software Development Studio",
     description:
-      "An independent product studio building MindFuel, Lumyn Academy, and thoughtful digital experiences for the modern internet.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Lumyn | Thoughtful Product Studio",
-      },
+      "Lumyn designs and builds custom software, modern web applications, digital products, and practical learning experiences for founders, teams, and ambitious learners.",
+    path: "/",
+    keywords: [
+      "product development studio",
+      "custom software development studio",
+      "web application development",
+      "MVP development",
+      "AI learning platform",
     ],
-  },
+    imageAlt: "Lumyn product and software development studio",
+  }),
+  title: { absolute: "Lumyn — Product & Software Development Studio" },
 };
 
 const mindFuelFeatures = [
@@ -50,19 +55,15 @@ const partnershipAreas = [
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
+  "@type": "WebPage",
+  "@id": `${SITE_URL}/#webpage`,
   name: "Lumyn",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio",
+  url: SITE_URL,
   description:
-    "Lumyn is an independent product studio building thoughtful digital products and educational experiences for a calmer, more intentional internet.",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: {
-      "@type": "EntryPoint",
-      urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio"}/journal?q={search_term_string}`,
-    },
-    "query-input": "required name=search_term_string",
-  },
+    "Lumyn designs and builds custom software, modern web applications, digital products, and practical learning experiences.",
+  isPartOf: { "@id": `${SITE_URL}/#website` },
+  about: { "@id": `${SITE_URL}/#organization` },
+  inLanguage: "en",
 };
 
 function MindFuelShowcase() {
@@ -77,9 +78,11 @@ function MindFuelShowcase() {
           <div>
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img
+                <Image
                   src="/mindlogo.png"
                   alt=""
+                  width={40}
+                  height={40}
                   className="h-10 w-10 rounded-2xl object-cover"
                 />
                 <div>
@@ -130,9 +133,12 @@ function MindFuelShowcase() {
 
         <div className="relative min-h-[500px]">
           <div className="absolute left-0 top-8 w-[82%] max-w-[540px] rotate-[-3deg] rounded-[2rem] border border-white/10 bg-[#0d0d10] p-3 shadow-2xl md:left-6">
-            <img
+            <Image
               src="/mindfuel1.png"
               alt="MindFuel product interface"
+              width={1279}
+              height={924}
+              sizes="(max-width: 1024px) 82vw, 540px"
               className="aspect-[1279/924] w-full rounded-[1.45rem] object-cover object-left-top"
             />
           </div>
@@ -249,7 +255,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <Hero
@@ -455,6 +461,9 @@ export default async function HomePage() {
               Lumyn occasionally partners with founders and teams who care about
               product quality, thoughtful systems, and durable software.
             </p>
+            <Link href="/services" className="btn-secondary mt-8 inline-flex">
+              Explore software services
+            </Link>
           </Reveal>
 
           <Reveal delay={100} variant="fade">

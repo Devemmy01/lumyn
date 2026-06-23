@@ -9,43 +9,57 @@ import JournalSearch from "@/components/JournalSearch";
 import JournalPagination from "@/components/JournalPagination";
 import SubscribeForm from "@/components/SubscribeForm";
 import JournalTagsFilter from "@/components/JournalTagsFilter";
+import { buildMetadata, serializeJsonLd, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Journal",
-  description:
-    "Essays on software engineering, product strategy, and digital excellence. Thinking out loud from the Lumyn team.",
-  keywords: [
-    "software engineering blog",
-    "product strategy",
-    "digital excellence",
-    "problem solving",
-    "high-performance software",
-    "product development",
-  ],
-  openGraph: {
-    title: "Journal | Lumyn",
-    description: "Essays on software engineering, product strategy, and digital excellence.",
-  },
-};
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(String(params.page ?? "1"), 10) || 1);
+  const query = typeof params.q === "string" ? params.q.trim() : "";
+  const tag = typeof params.tag === "string" ? params.tag.trim() : "";
+  const canonicalParams = new URLSearchParams();
+
+  if (tag) canonicalParams.set("tag", tag);
+  if (page > 1) canonicalParams.set("page", String(page));
+
+  const suffix = canonicalParams.toString();
+  const title = tag
+    ? `${tag.replace(/-/g, " ")} Articles${page > 1 ? ` — Page ${page}` : ""}`
+    : `Software Engineering & Product Journal${page > 1 ? ` — Page ${page}` : ""}`;
+
+  return buildMetadata({
+    title,
+    description:
+      "Practical essays on software engineering, MVP development, web applications, product strategy, and building useful digital products.",
+    path: `/journal${suffix ? `?${suffix}` : ""}`,
+    keywords: [
+      "software engineering blog",
+      "product strategy",
+      "MVP development",
+      "web application development",
+      "product development",
+    ],
+    noIndex: Boolean(query),
+  });
+}
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Blog",
   name: "Lumyn Journal",
   description: "Essays on software engineering, product strategy, and digital excellence.",
-  url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio"}/journal`,
+  url: `${SITE_URL}/journal`,
   publisher: {
     "@type": "Organization",
     name: "Lumyn",
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio",
+    url: SITE_URL,
   },
 };
-
-interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
 
 export default async function JournalPage({ searchParams }: PageProps) {
   await dbConnect();
@@ -83,7 +97,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
 
   const totalPages = Math.ceil(totalCount / limit);
   const featured = page === 1 && !query && !tag ? posts[0] : null;
-  const rest = posts;
+  const rest = featured ? posts.slice(1) : posts;
 
   // Parse query params for links/pagination
   const queryParams = new URLSearchParams();
@@ -94,7 +108,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       {/* Header */}

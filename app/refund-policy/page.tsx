@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import PolicyPage, { type PolicySection } from "@/components/PolicyPage";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Refund Policy", description: "Refund and cancellation terms for Lumyn Academy subscriptions and guided mentorship." };
+export const metadata: Metadata = buildMetadata({ title: "Refund Policy", description: "Refund and cancellation terms for Lumyn Academy subscriptions and guided mentorship.", path: "/refund-policy" });
 
 const sections: PolicySection[] = [
   { title: "Overview", paragraphs: [<>This policy applies to payments made directly to Lumyn for Lumyn Academy and Guided Mentorship. We want payment outcomes to be predictable and will review genuine billing problems fairly.</>] },

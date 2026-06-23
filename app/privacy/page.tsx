@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import PolicyPage, { type PolicySection } from "@/components/PolicyPage";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Privacy Policy", description: "How Lumyn collects, uses, stores, and shares personal information." };
+export const metadata: Metadata = buildMetadata({ title: "Privacy Policy", description: "How Lumyn collects, uses, stores, and shares personal information.", path: "/privacy" });
 
 const sections: PolicySection[] = [
   { title: "Scope", paragraphs: [<>This Privacy Policy explains how Lumyn Product Studio processes personal information when you visit our website, contact us, subscribe to communications, create a Lumyn Academy account, purchase a plan, or use our learning and mentorship services.</>] },

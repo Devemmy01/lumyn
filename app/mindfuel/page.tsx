@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Hero from "@/components/Hero";
 import SectionWrapper from "@/components/SectionWrapper";
 import Reveal from "@/components/Reveal";
 import { mindFuelPositioning } from "@/lib/ecosystem";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "MindFuel",
-  description: mindFuelPositioning,
-  openGraph: {
-    title: "MindFuel — Lumyn",
-    description: mindFuelPositioning,
-  },
-};
+  description: `${mindFuelPositioning} Explore its reflection feed, thought cards, profiles, and calm reading experience.`,
+  path: "/mindfuel",
+  keywords: ["MindFuel", "reflection app", "personal growth community", "thought sharing app"],
+  imageAlt: "MindFuel reflection and personal growth app",
+});
 
 const features = [
   {
@@ -83,9 +84,12 @@ export default function MindFuelPage() {
             <div className="dark-visual relative min-h-[560px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#070707] p-5 shadow-[0_40px_120px_rgba(0,0,0,0.55)]">
               <div className="lumyn-soft-glow lumyn-grid absolute inset-0" />
               <div className="relative mx-auto mt-8 w-full max-w-[780px] rounded-[2rem] border border-white/15 bg-black/40 p-3 shadow-2xl">
-                <img
+                <Image
                   src="/mindfuel3.png"
                   alt="MindFuel interface"
+                  width={1599}
+                  height={918}
+                  sizes="(max-width: 1024px) 90vw, 780px"
                   className="aspect-[1599/918] w-full rounded-[1.45rem] object-contain object-center"
                 />
               </div>

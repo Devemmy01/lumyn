@@ -11,22 +11,27 @@ import {
   mentorshipBenefits,
   mentorshipSteps,
 } from "@/lib/academy";
+import { buildMetadata, serializeJsonLd, SITE_URL } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Lumyn Academy",
-  description: "Personalized AI learning paths and guided mentorship for practical software engineering skills.",
-  openGraph: {
-    title: "Lumyn Academy — Learn with a path built around you",
-    description: "Generate a practical course, build real projects, track progress, and learn with AI or guided mentorship.",
-  },
-};
+export const metadata: Metadata = buildMetadata({
+  title: "AI-Powered Software Engineering Courses",
+  description:
+    "Create a personalized software engineering course, build real projects, take assessments, track progress, and learn with an AI tutor or guided mentorship.",
+  path: "/academy",
+  keywords: [
+    "AI software engineering courses",
+    "personalized coding course",
+    "software engineering mentorship",
+    "learn programming with AI",
+  ],
+});
 export const dynamic = "force-dynamic";
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
   name: "Lumyn Academy",
-  url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio"}/academy`,
+  url: `${SITE_URL}/academy`,
   description: "A software engineering academy with AI-powered learning paths and guided mentorship.",
   offers: academyPlans.map((plan) => ({
     "@type": "Offer",
@@ -37,10 +42,21 @@ const jsonLd = {
   })),
 };
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: academyFaqs.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
 export default function AcademyPage() {
   return (
     <div className="overflow-hidden mt-5 bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
 
       <section className="relative border-b border-[var(--border-primary)] px-6 pb-24 pt-16 md:px-12 md:pb-32 md:pt-24">
         <div className="lumyn-grid pointer-events-none absolute inset-0 opacity-30 [mask-image:linear-gradient(to_bottom,black,transparent_90%)]" />

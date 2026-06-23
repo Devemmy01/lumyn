@@ -1,21 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Hero from "@/components/Hero";
 import SectionWrapper from "@/components/SectionWrapper";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { mindFuelPositioning } from "@/lib/ecosystem";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Products",
   description:
-    "Explore products owned and built by Lumyn, including MindFuel and Lumyn Academy.",
-  openGraph: {
-    title: "Products — Lumyn",
-    description:
-      "Products owned and built by Lumyn: thoughtful software, learning systems, and digital experiences designed with intention.",
-  },
-};
+    "Explore Lumyn products including MindFuel, a social reflection app, and Lumyn Academy, an AI-powered practical learning platform.",
+  path: "/products",
+  keywords: ["Lumyn products", "MindFuel app", "AI learning platform", "digital products"],
+});
 
 const ownedProducts = [
   {
@@ -53,9 +52,12 @@ function ProductVisual({ type }: { type: string }) {
     return (
       <div className="dark-visual relative min-h-72 overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#070707]">
         <div className="lumyn-soft-glow absolute inset-0" />
-        <img
+        <Image
           src="/mindfuel1.png"
           alt="MindFuel product preview"
+          width={1279}
+          height={924}
+          sizes="(max-width: 768px) 100vw, 50vw"
           className="relative h-full min-h-72 w-full object-cover object-left-top opacity-85 transition duration-500 group-hover:scale-[1.02]"
         />
       </div>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import PolicyPage, { type PolicySection } from "@/components/PolicyPage";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Terms and Conditions", description: "Terms governing Lumyn products, Lumyn Academy subscriptions, mentorship, payments, and use of the website." };
+export const metadata: Metadata = buildMetadata({ title: "Terms and Conditions", description: "Terms governing Lumyn products, Lumyn Academy subscriptions, mentorship, payments, and use of the website.", path: "/terms" });
 
 const sections: PolicySection[] = [
   { title: "About these terms", paragraphs: [<>These Terms and Conditions govern your use of the Lumyn website, Lumyn Academy, AI learning paths, guided mentorship, and related services operated by Lumyn Product Studio (“Lumyn”, “we”, “us”, or “our”). By creating an account, purchasing a plan, or using a service, you agree to these terms.</>] },

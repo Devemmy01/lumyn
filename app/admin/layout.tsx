@@ -1,6 +1,12 @@
 import { getServerSession } from "next-auth";
+import type { Metadata } from "next";
 import { authOptions } from "@/lib/auth";
 import AdminNav from "./AdminNav";
+
+export const metadata: Metadata = {
+  title: "Lumyn Admin",
+  robots: { index: false, follow: false, nocache: true },
+};
 
 export default async function AdminLayout({
   children,

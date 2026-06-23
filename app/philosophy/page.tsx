@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SectionWrapper from "@/components/SectionWrapper";
 import CTA from "@/components/CTA";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Our Method",
+export const metadata: Metadata = buildMetadata({
+  title: "Our Product Development Method",
   description:
     "We build products that solve problems. The method behind every Lumyn product — efficiency, impact, and excellence by design.",
+  path: "/philosophy",
   keywords: [
     "product studio method",
     "problem solving",
@@ -14,12 +16,7 @@ export const metadata: Metadata = {
     "user-centric design",
     "impactful products",
   ],
-  openGraph: {
-    title: "Our Method — Lumyn",
-    description:
-      "We build products that solve problems. Efficiency, impact, and excellence by design.",
-  },
-};
+});
 
 const principles = [
   {

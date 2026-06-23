@@ -1,109 +1,48 @@
 import type { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
+import { SITE_URL } from "@/lib/seo";
+import { services } from "@/lib/services";
 import Post from "@/models/Post";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio";
 
 export const dynamic = "force-dynamic";
 
+const CONTENT_UPDATED_AT = new Date("2026-06-23T00:00:00.000Z");
+const LEGAL_UPDATED_AT = new Date("2026-06-22T00:00:00.000Z");
+
+const publicPages: Array<{
+  path: string;
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  priority: number;
+  lastModified?: Date;
+}> = [
+  { path: "", changeFrequency: "weekly", priority: 1 },
+  { path: "/products", changeFrequency: "monthly", priority: 0.85 },
+  { path: "/mindfuel", changeFrequency: "monthly", priority: 0.85 },
+  { path: "/academy", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/services", changeFrequency: "monthly", priority: 0.9 },
+  { path: "/journal", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/about", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/philosophy", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/contact", changeFrequency: "yearly", priority: 0.65 },
+  { path: "/terms", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
+  { path: "/privacy", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
+  { path: "/refund-policy", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: siteUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${siteUrl}/products`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/mindfuel`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.95,
-    },
-    {
-      url: `${siteUrl}/academy`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/philosophy`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
+    ...publicPages.map((page) => ({
+      url: `${SITE_URL}${page.path}`,
+      lastModified: page.lastModified ?? CONTENT_UPDATED_AT,
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+    })),
+    ...services.map((service) => ({
+      url: `${SITE_URL}/services/${service.slug}`,
+      lastModified: CONTENT_UPDATED_AT,
+      changeFrequency: "monthly" as const,
       priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/journal`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/services`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/services/custom-software-development`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${siteUrl}/services/mvp-development`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${siteUrl}/services/web-application-development`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${siteUrl}/services/pwa-development`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${siteUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: "yearly",
-      priority: 0.6,
-    },
-    {
-      url: `${siteUrl}/terms`,
-      lastModified: new Date("2026-06-22"),
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
-    {
-      url: `${siteUrl}/privacy`,
-      lastModified: new Date("2026-06-22"),
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
-    {
-      url: `${siteUrl}/refund-policy`,
-      lastModified: new Date("2026-06-22"),
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
+    })),
   ];
 
   type SitemapPost = {
@@ -124,12 +63,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("Sitemap generated without journal posts.", error);
   }
 
-  const blogPages: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${siteUrl}/journal/${post.slug}`,
-    lastModified: post.updatedAt || post.createdAt || new Date(),
-    changeFrequency: "monthly" as const,
+  const articlePages: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${SITE_URL}/journal/${post.slug}`,
+    lastModified: post.updatedAt || post.createdAt || CONTENT_UPDATED_AT,
+    changeFrequency: "monthly",
     priority: 0.7,
   }));
 
-  return [...staticPages, ...blogPages];
+  return [...staticPages, ...articlePages];
 }

@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Contact",
+export const metadata: Metadata = buildMetadata({
+  title: "Contact Our Software Studio",
   description:
-    "Start a conversation with Lumyn. Whether you have a project in mind, want to collaborate, or just want to say hello — we'd love to hear from you.",
-  openGraph: {
-    title: "Contact — Lumyn",
-    description: "Start a conversation with Lumyn.",
-  },
-};
+    "Contact Lumyn about a custom software project, MVP, web application, product partnership, Lumyn Academy, or general support.",
+  path: "/contact",
+  keywords: ["contact software development studio", "hire software development team", "Lumyn contact"],
+});
 
 export default function ContactPage() {
   return (

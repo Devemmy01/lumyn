@@ -9,6 +9,13 @@ const footerLinks = {
     { label: "Philosophy", href: "/#philosophy" },
     { label: "Contact", href: "/contact" },
   ],
+  Services: [
+    { label: "All Services", href: "/services" },
+    { label: "Custom Software", href: "/services/custom-software-development" },
+    { label: "MVP Development", href: "/services/mvp-development" },
+    { label: "Web Applications", href: "/services/web-application-development" },
+    { label: "Progressive Web Apps", href: "/services/pwa-development" },
+  ],
   Ecosystem: [
     { label: "Products", href: "/products" },
     { label: "Lumyn Academy", href: "/academy" },
