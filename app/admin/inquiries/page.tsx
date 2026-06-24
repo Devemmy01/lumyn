@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import Contact, { IContact } from "@/models/Contact";
 import AdminSearch from "@/components/admin/AdminSearch";
 import AdminPagination from "@/components/admin/AdminPagination";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -76,12 +77,13 @@ export default async function InquiriesPage({ searchParams }: PageProps) {
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">Sender</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">Message</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">Date</th>
+                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-neutral-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#222] text-sm">
               {inquiries.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-neutral-600 uppercase tracking-widest text-sm font-semibold">
+                  <td colSpan={4} className="px-6 py-12 text-center text-neutral-600 uppercase tracking-widest text-sm font-semibold">
                     {query ? "No inquiries found matching your search." : "No inquiries yet."}
                   </td>
                 </tr>
@@ -105,6 +107,20 @@ export default async function InquiriesPage({ searchParams }: PageProps) {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
+                    </td>
+                    <td className="px-6 py-4 align-top">
+                      <div className="flex items-start justify-end gap-2">
+                        <a
+                          href={`mailto:${inquiry.email}?subject=${encodeURIComponent("Re: Your inquiry to Lumyn")}`}
+                          className="inline-flex min-h-9 items-center rounded-lg border border-[#2a2a2a] bg-white/[0.03] px-3 text-xs font-semibold text-neutral-200 transition hover:border-[#7c6cf6]/60"
+                        >
+                          Reply
+                        </a>
+                        <DeleteButton
+                          endpoint={`/api/admin/inquiries/${inquiry._id}`}
+                          itemName={`the inquiry from ${inquiry.name}`}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -139,11 +155,25 @@ export default async function InquiriesPage({ searchParams }: PageProps) {
                     {inquiry.message}
                   </p>
                 </div>
-                <div className="mt-4 text-[10px] uppercase tracking-widest font-bold text-neutral-600 flex justify-end">
-                  {new Date(inquiry.createdAt).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
+                    {new Date(inquiry.createdAt).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`mailto:${inquiry.email}?subject=${encodeURIComponent("Re: Your inquiry to Lumyn")}`}
+                      className="inline-flex min-h-9 items-center rounded-lg border border-[#2a2a2a] px-3 text-xs font-semibold text-neutral-200"
+                    >
+                      Reply
+                    </a>
+                    <DeleteButton
+                      endpoint={`/api/admin/inquiries/${inquiry._id}`}
+                      itemName={`the inquiry from ${inquiry.name}`}
+                    />
+                  </div>
                 </div>
               </div>
             ))

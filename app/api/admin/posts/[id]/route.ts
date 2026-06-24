@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import { authOptions } from "@/lib/auth";
+import { isValidObjectId } from "mongoose";
 
 export async function GET(
   req: Request,
@@ -79,6 +80,10 @@ export async function DELETE(
 
     await dbConnect();
     const { id } = await params;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid post ID" }, { status: 400 });
+    }
     
     const post = await Post.findByIdAndDelete(id);
     

@@ -6,6 +6,7 @@ import Post, { IPost } from "@/models/Post";
 import AdminSearch from "@/components/admin/AdminSearch";
 import AdminFilter from "@/components/admin/AdminFilter";
 import AdminPagination from "@/components/admin/AdminPagination";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -131,13 +132,19 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
                     <td className="px-6 py-4 text-neutral-400 font-semibold tracking-wide">
                       {new Date(post.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/posts/${post._id}`}
-                        className="text-[#7c6cf6] hover:text-white font-bold uppercase tracking-widest text-xs transition-colors"
-                      >
-                        Edit
-                      </Link>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/posts/${post._id}`}
+                          className="inline-flex min-h-9 items-center rounded-lg border border-[#2a2a2a] bg-white/[0.03] px-3 text-xs font-semibold text-neutral-200 transition hover:border-[#7c6cf6]/60 hover:text-white"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteButton
+                          endpoint={`/api/admin/posts/${post._id}`}
+                          itemName={`“${post.title}”`}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -167,12 +174,18 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
                     <span>Upvotes: <span className="font-bold text-white">{post.upvotes}</span></span>
                     <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                    </div>
-                   <Link
-                      href={`/admin/posts/${post._id}`}
-                      className="text-[#7c6cf6] font-bold uppercase tracking-widest px-4 py-2 bg-[#7c6cf6]/10 border border-[#7c6cf6]/30 rounded-lg"
-                    >
-                      Edit
-                    </Link>
+                   <div className="flex items-center gap-2">
+                     <Link
+                        href={`/admin/posts/${post._id}`}
+                        className="inline-flex min-h-9 items-center rounded-lg border border-[#7c6cf6]/30 bg-[#7c6cf6]/10 px-3 text-xs font-semibold text-[#b8b0ff]"
+                      >
+                        Edit
+                      </Link>
+                      <DeleteButton
+                        endpoint={`/api/admin/posts/${post._id}`}
+                        itemName={`“${post.title}”`}
+                      />
+                   </div>
                 </div>
               </div>
             ))

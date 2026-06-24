@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import AdminSearch from "@/components/admin/AdminSearch";
 import AdminPagination from "@/components/admin/AdminPagination";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -70,12 +71,13 @@ export default async function SubscribersPage({ searchParams }: PageProps) {
               <tr className="border-b border-[#222] bg-[#050505]">
                 <th className="px-4 sm:px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">Email</th>
                 <th className="px-4 sm:px-6 py-4 text-xs font-bold uppercase tracking-widest text-neutral-500">Subscribed On</th>
+                <th className="px-4 sm:px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-neutral-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#222] text-sm">
               {subscribers.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="px-6 py-12 text-center text-neutral-600 uppercase tracking-widest text-sm font-semibold">
+                  <td colSpan={3} className="px-6 py-12 text-center text-neutral-600 uppercase tracking-widest text-sm font-semibold">
                     {query ? "No subscribers found matching your search." : "No subscribers yet."}
                   </td>
                 </tr>
@@ -89,6 +91,12 @@ export default async function SubscribersPage({ searchParams }: PageProps) {
                         month: "short",
                         day: "numeric",
                       })}
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 text-right">
+                      <DeleteButton
+                        endpoint={`/api/admin/subscribers/${sub._id}`}
+                        itemName={sub.email}
+                      />
                     </td>
                   </tr>
                 ))

@@ -15,13 +15,15 @@ export default async function AdminLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  // Always render the admin shell so pages (including login) keep global styling
-  // AdminNav is only shown when an authenticated session exists
+  if (!session) return children;
+
   return (
-    <div className="min-h-[100svh] bg-[#050505] text-white font-sans">
-      {session && <AdminNav user={session.user} />}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {children}
+    <div className="min-h-[100svh] bg-[#060608] font-sans text-white">
+      <AdminNav user={session.user} />
+      <main className="lg:pl-72">
+        <div className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 sm:py-9 xl:px-10 xl:py-10">
+          {children}
+        </div>
       </main>
     </div>
   );

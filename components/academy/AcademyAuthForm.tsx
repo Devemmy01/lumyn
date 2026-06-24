@@ -57,7 +57,14 @@ export default function AcademyAuthForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken, planId: selectedPlan }),
     });
-    if (!response.ok) throw new Error("Could not create your academy session.");
+    const payload = (await response.json().catch(() => null)) as
+      | { error?: string }
+      | null;
+    if (!response.ok) {
+      throw new Error(
+        payload?.error ?? "Could not create your Academy session. Please try again.",
+      );
+    }
   }
 
   async function finishAuth(idToken: string) {

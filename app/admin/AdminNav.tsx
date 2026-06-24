@@ -1,134 +1,168 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import clsx from "clsx";
+import Link from "next/link";
+import { signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function AdminNav({ user }: { user: { name?: string | null; email?: string | null; image?: string | null } | null | undefined }) {
+type AdminUser = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+} | null | undefined;
+
+const links = [
+  { href: "/admin", label: "Overview", icon: "grid" },
+  { href: "/admin/posts", label: "Journal posts", icon: "file" },
+  { href: "/admin/subscribers", label: "Subscribers", icon: "users" },
+  { href: "/admin/inquiries", label: "Inquiries", icon: "message" },
+  { href: "/admin/academy", label: "Academy", icon: "spark" },
+  { href: "/admin/inbox", label: "Email inbox", icon: "mail" },
+] as const;
+
+function isActiveRoute(pathname: string, href: string) {
+  return pathname === href || (href !== "/admin" && pathname.startsWith(`${href}/`));
+}
+
+export default function AdminNav({ user }: { user: AdminUser }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const links = [
-    { href: "/admin", label: "Dashboard" },
-    { href: "/admin/academy", label: "Academy" },
-    { href: "/admin/posts", label: "Posts" },
-    { href: "/admin/subscribers", label: "Subscribers" },
-    { href: "/admin/inquiries", label: "Inquiries" },
-    { href: "/admin/inbox", label: "Inbox" },
-  ];
+  useEffect(() => setIsOpen(false), [pathname]);
 
   return (
-    <nav className="bg-[#050505] border-b border-[#222] sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <span className="text-white font-bold tracking-widest text-lg">LUMYN / ADMIN</span>
-            </div>
-            {/* Desktop links */}
-            <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
-              {links.map(({ href, label }) => {
-                const isActive = pathname === href || (href !== "/admin" && pathname.startsWith(href));
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={clsx(
-                      "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-semibold transition-colors uppercase tracking-widest",
-                      isActive
-                        ? "border-white text-white"
-                        : "border-transparent text-neutral-500 hover:text-white"
-                    )}
-                  >
-                    {label}
-                  </Link>
-                );
-              })}
+    <>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-white/[0.07] bg-[#08080b] lg:flex">
+        <div className="flex h-24 items-center border-b border-white/[0.07] px-7">
+          <Link href="/admin" className="flex items-center gap-3" aria-label="Lumyn admin home">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#9b8cff] to-[#5e4ed5] text-sm font-black text-white shadow-[0_12px_30px_rgba(124,108,246,0.25)]">
+              L
+            </span>
+            <span>
+              <span className="block text-sm font-bold tracking-[0.18em] text-white">LUMYN</span>
+              <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30">Operations</span>
+            </span>
+          </Link>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-6">
+          <p className="px-3 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">Workspace</p>
+          <nav className="space-y-1.5" aria-label="Admin navigation">
+            {links.map((item) => {
+              const active = isActiveRoute(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={clsx(
+                    "group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition",
+                    active
+                      ? "bg-[#7c6cf6]/15 text-white shadow-[inset_0_0_0_1px_rgba(124,108,246,0.18)]"
+                      : "text-white/45 hover:bg-white/[0.04] hover:text-white/80",
+                  )}
+                >
+                  <AdminIcon name={item.icon} active={active} />
+                  <span>{item.label}</span>
+                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#9b8cff]" />}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="border-t border-white/[0.07] p-4">
+          <div className="mb-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] text-xs font-bold text-white/70">A</span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">{user?.name || "Admin"}</p>
+                <p className="truncate text-xs text-white/30">{user?.email || "Lumyn operations"}</p>
+              </div>
             </div>
           </div>
-
-          {/* Desktop user actions */}
-          <div className="hidden sm:flex sm:items-center sm:gap-6">
-            <span className="text-sm font-semibold tracking-widest uppercase text-neutral-500">
-              {user?.name || "Admin"}
-            </span>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href="/"
+              target="_blank"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/[0.08] text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+            >
+              View site ↗
+            </Link>
             <button
+              type="button"
               onClick={() => signOut({ callbackUrl: "/admin/login" })}
-              className="text-xs uppercase tracking-widest text-red-500 hover:text-red-400 font-bold transition-colors"
+              className="h-10 rounded-xl border border-red-500/15 bg-red-500/[0.04] text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
             >
               Sign out
             </button>
-            <Link
-              href="https://lumynhq.studio"
-              target="_blank"
-              className="text-xs uppercase tracking-widest text-[#7c6cf6] hover:text-white font-bold px-4 py-2 border border-[#7c6cf6] hover:bg-[#7c6cf6] transition-all rounded-full"
-            >
-              View Site ↗
-            </Link>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="flex items-center sm:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 text-white hover:bg-[#111] focus:outline-none transition-all active:scale-95"
-              aria-expanded={isOpen}
-            >
-              {isOpen ? (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 8h16M4 16h16" />
-                </svg>
-              )}
-            </button>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* Mobile menu */}
-      <div className={clsx("sm:hidden transition-all duration-200 ease-in-out overflow-hidden bg-[#0a0a0a]", isOpen ? "max-h-96 border-b border-[#222]" : "max-h-0")}>
-        <div className="pt-2 pb-3 space-y-1 px-4 border-t border-[#222]">
-          {links.map(({ href, label }) => {
-            const isActive = pathname === href || (href !== "/admin" && pathname.startsWith(href));
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setIsOpen(false)}
-                className={clsx(
-                  "block pl-3 pr-4 py-3 border-l-2 text-sm font-semibold tracking-widest uppercase transition-colors",
-                  isActive
-                    ? "border-[#7c6cf6] text-white bg-[#111]"
-                    : "border-transparent text-neutral-500 hover:bg-[#111] hover:text-white"
-                )}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </div>
-        <div className="pt-4 pb-4 border-t border-[#222] px-4 space-y-3">
-          <div className="px-3 text-sm font-semibold tracking-widest text-neutral-500 uppercase">{user?.name || "Admin"}</div>
-          <Link
-            href="/"
-            target="_blank"
-            className="block px-3 py-2 text-sm font-semibold uppercase tracking-widest text-[#7c6cf6] hover:text-white"
-          >
-            View Live Site ↗
+      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#08080b]/90 px-4 backdrop-blur-xl lg:hidden">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7c6cf6] text-xs font-black">L</span>
+            <span className="text-xs font-bold tracking-[0.18em]">LUMYN / ADMIN</span>
           </Link>
           <button
-            onClick={() => signOut({ callbackUrl: "/admin/login" })}
-            className="block w-full text-left px-3 py-2 text-sm font-bold uppercase tracking-widest text-red-500 hover:text-red-400"
+            type="button"
+            onClick={() => setIsOpen((current) => !current)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? "Close admin menu" : "Open admin menu"}
           >
-            Sign out
+            <span className="text-lg">{isOpen ? "×" : "☰"}</span>
           </button>
         </div>
-      </div>
-    </nav>
+
+        {isOpen && (
+          <div className="border-t border-white/[0.07] py-3">
+            <nav className="space-y-1" aria-label="Mobile admin navigation">
+              {links.map((item) => {
+                const active = isActiveRoute(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={clsx(
+                      "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
+                      active ? "bg-[#7c6cf6]/15 text-white" : "text-white/50",
+                    )}
+                  >
+                    <AdminIcon name={item.icon} active={active} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/[0.07] pt-3">
+              <Link href="/" target="_blank" className="flex h-10 items-center justify-center rounded-xl border border-white/10 text-xs text-white/60">View site ↗</Link>
+              <button type="button" onClick={() => signOut({ callbackUrl: "/admin/login" })} className="h-10 rounded-xl border border-red-500/20 text-xs text-red-300">Sign out</button>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
+  );
+}
+
+function AdminIcon({ name, active }: { name: (typeof links)[number]["icon"]; active: boolean }) {
+  const paths = {
+    grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
+    file: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+    message: <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />,
+    spark: <path d="m12 3-1.6 4.4L6 9l4.4 1.6L12 15l1.6-4.4L18 9l-4.4-1.6L12 3ZM5 15l-.8 2.2L2 18l2.2.8L5 21l.8-2.2L8 18l-2.2-.8L5 15Z" />,
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>,
+  };
+
+  return (
+    <span className={clsx("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", active ? "bg-[#7c6cf6]/20 text-[#b9b1ff]" : "bg-white/[0.035] text-white/35 group-hover:text-white/60")}>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {paths[name]}
+      </svg>
+    </span>
   );
 }

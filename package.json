@@ -2,6 +2,9 @@
   "name": "lumyn",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev",
     "dev:turbo": "NEXT_DIST_DIR=.next-turbo next dev --turbopack",
