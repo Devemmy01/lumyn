@@ -2,9 +2,6 @@
   "name": "lumyn",
   "version": "1.0.0",
   "private": true,
-  "engines": {
-    "node": ">=22.12.0"
-  },
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev",
     "dev:turbo": "NEXT_DIST_DIR=.next-turbo next dev --turbopack",
@@ -32,9 +29,9 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "firebase": "^12.14.0",
-    "firebase-admin": "^14.0.0",
     "framer-motion": "^12.36.0",
     "gray-matter": "^4.0.3",
+    "jose": "^4.15.9",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.0",
     "next": "^15.1.0",
