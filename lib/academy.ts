@@ -1,4 +1,4 @@
-export type AcademyPlanId = "ai-learning-path" | "guided-mentorship";
+export type AcademyPlanId = "ai-learning-path";
 
 export type AcademyRole = "student" | "mentor" | "admin";
 
@@ -9,10 +9,55 @@ export type SubscriptionStatus =
   | "past_due"
   | "cancelled";
 
+export const STARTER_ACADEMY_POINTS = 10;
+export const POINTS_PER_GENERATION = 10;
+export const ACADEMY_POINT_PRICE_CENTS = 50;
+export const MIN_POINT_PURCHASE = 1;
+export const MAX_POINT_PURCHASE = 500;
+export const ACADEMY_TUTOR_NAME = "Astra";
+export const ACADEMY_TUTOR_ROLE = "Lumyn Academy learning agent";
+
+export type YouTubeLessonVideo = {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  thumbnailUrl: string;
+  watchUrl: string;
+  embedUrl: string;
+  duration?: string;
+  durationLabel?: string;
+  publishedAt?: string;
+  viewCount?: number;
+};
+
 export type GeneratedLesson = {
   title: string;
+  goal?: string;
+  videoTitle?: string;
+  videoSearchQuery?: string;
+  videoLearningGoal?: string;
+  recommendedChannels?: string[];
+  keyTakeaways?: string[];
+  youtubeVideo?: YouTubeLessonVideo;
+  explanation?: string;
+  example?: string;
   notes: string;
+  conceptExplanation?: string;
+  whyItMatters?: string;
+  prerequisites?: string[];
   practicalTask: string;
+  challenge?: string;
+  starterCode?: string;
+  expectedResult?: string;
+  tests?: string[];
+  hint?: string;
+  lessonAssessment?: GeneratedQuizQuestion[];
+  stepByStepLab?: string[];
+  commonMistakes?: string[];
+  deliverables?: string[];
+  assessmentCriteria?: string[];
+  safetyNotes?: string;
+  estimatedTime?: string;
   realWorldExample?: {
     title: string;
     scenario: string;
@@ -47,8 +92,309 @@ export type GeneratedModule = {
     questions: GeneratedQuizQuestion[];
   };
   assignment: string;
+  assignmentDeliverables?: string[];
+  assignmentAssessmentCriteria?: string[];
   miniProject: string;
+  miniProjectDeliverables?: string[];
+  miniProjectAssessmentCriteria?: string[];
+  labEnvironment?: string;
+  safetyNotes?: string;
   completionStatus: "locked" | "not_started" | "in_progress" | "completed";
+};
+
+export type ModulePracticePlan = {
+  assignment: string;
+  assignmentDeliverables: string[];
+  assignmentAssessmentCriteria: string[];
+  miniProject: string;
+  miniProjectDeliverables: string[];
+  miniProjectAssessmentCriteria: string[];
+  labEnvironment: string;
+  safetyNotes: string;
+};
+
+export const MIN_MODULE_QUIZ_QUESTIONS = 10;
+
+function isVaguePracticeText(value: unknown) {
+  if (typeof value !== "string") return true;
+  const text = value.trim().toLowerCase();
+  if (text.length < 70) return true;
+  return [
+    "submit evidence",
+    "completed the module practice work",
+    "compact project that applies",
+    "module's core ideas",
+    "create a compact project",
+    "practice evidence",
+    "short implementation notes",
+  ].some((phrase) => text.includes(phrase));
+}
+
+function isVaguePracticeItem(value: string) {
+  const text = value.trim().toLowerCase();
+  return [
+    "practice evidence",
+    "short implementation notes",
+    "matches the task",
+    "explains the work clearly",
+    "project artifact",
+    "brief walkthrough",
+    "applies module concepts",
+    "includes clear evidence",
+  ].some((phrase) => text === phrase || text.includes(phrase));
+}
+
+function practiceItems(value: unknown, fallback: string[]) {
+  const values = Array.isArray(value)
+    ? value
+        .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        .map((item) => item.trim())
+        .filter((item) => !isVaguePracticeItem(item))
+    : [];
+  return values.length ? values : fallback;
+}
+
+function topicPracticePlan(moduleTitle: string, lessonTitles: string[]): ModulePracticePlan {
+  const topicText = [moduleTitle, ...lessonTitles].join(" ").toLowerCase();
+
+  if (/\bhtml\b|semantic|doctype|element|attribute|heading|tag/.test(topicText)) {
+    return {
+      assignment:
+        "Create an index.html file for a simple personal profile page. It must include <!DOCTYPE html>, <html>, <head>, <title>, and <body>, then add a visible <h1>, at least one paragraph, one link, and one semantic section such as <main>, <section>, <nav>, or <footer>.",
+      assignmentDeliverables: [
+        "The full index.html code or a link to the file",
+        "A short note naming the required tags you used",
+        "A browser screenshot or preview description of the rendered page",
+      ],
+      assignmentAssessmentCriteria: [
+        "Uses valid HTML document structure",
+        "Includes visible body content, not only a <title>",
+        "Uses at least one semantic HTML element correctly",
+      ],
+      miniProject:
+        "Turn the same index.html file into a tiny landing page for yourself, a fictional product, or a local service. Add a header, main content area, two content sections, and a footer so the page has a clear structure.",
+      miniProjectDeliverables: [
+        "Completed index.html landing page",
+        "Brief walkthrough of the page structure",
+        "List of the semantic elements and attributes used",
+      ],
+      miniProjectAssessmentCriteria: [
+        "Page structure is clear and readable",
+        "Headings follow a sensible order",
+        "Links, text, and sections render correctly in the browser",
+      ],
+      labEnvironment:
+        "Use the practice playground, a local editor, or any browser-based HTML sandbox. Save the work as index.html if using your own editor.",
+      safetyNotes:
+        "Use your own text and safe placeholder links. Do not paste private personal information into the page.",
+    };
+  }
+
+  if (/\bcss\b|style|layout|selector|flex|grid/.test(topicText)) {
+    return {
+      assignment:
+        "Style a simple HTML card or profile section with CSS. Use selectors, color, spacing, border radius, and at least one layout technique such as flexbox or grid.",
+      assignmentDeliverables: [
+        "HTML and CSS code",
+        "Screenshot or preview description",
+        "Short note explaining three CSS rules you wrote",
+      ],
+      assignmentAssessmentCriteria: [
+        "CSS selectors target the intended elements",
+        "Spacing, color, and layout are visibly applied",
+        "The result remains readable on a narrow screen",
+      ],
+      miniProject:
+        "Build a small responsive landing section with a heading, text, button, and three feature items using your CSS file for all styling.",
+      miniProjectDeliverables: [
+        "index.html and style.css",
+        "Responsive preview or screenshot",
+        "Brief explanation of the layout choices",
+      ],
+      miniProjectAssessmentCriteria: [
+        "Styles are organized in CSS",
+        "Layout adapts at small widths",
+        "Visual hierarchy is clear",
+      ],
+      labEnvironment:
+        "Use the practice playground tabs or a local editor with index.html and style.css.",
+      safetyNotes:
+        "Use original or placeholder content and avoid external assets you do not have permission to use.",
+    };
+  }
+
+  if (/javascript|\bjs\b|dom|function|variable|event/.test(topicText)) {
+    return {
+      assignment:
+        "Add JavaScript behavior to a small page. Create one button, select it with JavaScript, listen for a click event, and update text on the page or print a useful value with console.log().",
+      assignmentDeliverables: [
+        "HTML and JavaScript code",
+        "Explanation of the event and DOM update",
+        "Screenshot or copied console output",
+      ],
+      assignmentAssessmentCriteria: [
+        "JavaScript runs without errors",
+        "A user action triggers a visible result",
+        "The code uses clear variable or function names",
+      ],
+      miniProject:
+        "Build a tiny interactive widget such as a counter, color changer, quote switcher, or show/hide panel using HTML, CSS, and JavaScript.",
+      miniProjectDeliverables: [
+        "index.html, style.css, and script.js",
+        "Brief walkthrough of how the interaction works",
+        "Evidence that the widget runs in the browser",
+      ],
+      miniProjectAssessmentCriteria: [
+        "The interaction changes the page when used",
+        "JavaScript is connected correctly",
+        "The code is readable and organized",
+      ],
+      labEnvironment:
+        "Use the practice playground tabs or a local editor with index.html, style.css, and script.js.",
+      safetyNotes:
+        "Run only your own learning code in the browser. Do not paste unknown scripts from untrusted sources.",
+    };
+  }
+
+  return {
+    assignment:
+      `Build a small working example that demonstrates ${moduleTitle}. The work should apply the main lesson ideas and include enough detail for someone else to understand what you made.`,
+    assignmentDeliverables: [
+      "Working artifact or code",
+      "Short explanation of the main decisions",
+      "Evidence that the result works",
+    ],
+    assignmentAssessmentCriteria: [
+      "Matches the module topic",
+      "Includes a clear explanation",
+      "Provides concrete evidence",
+    ],
+    miniProject:
+      `Create a compact mini project that combines the key ideas from ${moduleTitle} into one usable example.`,
+    miniProjectDeliverables: [
+      "Completed mini project",
+      "Brief walkthrough",
+      "Notes about what you would improve next",
+    ],
+    miniProjectAssessmentCriteria: [
+      "Applies module concepts",
+      "Shows a complete attempt",
+      "Includes clear evidence",
+    ],
+    labEnvironment:
+      "Use the practice playground, local editor, browser, notebook, or a relevant safe practice environment.",
+    safetyNotes:
+      "Stay within authorized, safe, and appropriate learning environments.",
+  };
+}
+
+export function ensureModulePractice(module: Partial<GeneratedModule>): ModulePracticePlan {
+  const moduleTitle = module.title?.trim() || "this module";
+  const lessonTitles =
+    module.lessons
+      ?.map((lesson) => lesson.title?.trim())
+      .filter((title): title is string => Boolean(title)) ?? [];
+  const fallback = topicPracticePlan(moduleTitle, lessonTitles);
+
+  return {
+    assignment: isVaguePracticeText(module.assignment)
+      ? fallback.assignment
+      : module.assignment!.trim(),
+    assignmentDeliverables: practiceItems(
+      module.assignmentDeliverables,
+      fallback.assignmentDeliverables,
+    ),
+    assignmentAssessmentCriteria: practiceItems(
+      module.assignmentAssessmentCriteria,
+      fallback.assignmentAssessmentCriteria,
+    ),
+    miniProject: isVaguePracticeText(module.miniProject)
+      ? fallback.miniProject
+      : module.miniProject!.trim(),
+    miniProjectDeliverables: practiceItems(
+      module.miniProjectDeliverables,
+      fallback.miniProjectDeliverables,
+    ),
+    miniProjectAssessmentCriteria: practiceItems(
+      module.miniProjectAssessmentCriteria,
+      fallback.miniProjectAssessmentCriteria,
+    ),
+    labEnvironment:
+      typeof module.labEnvironment === "string" && module.labEnvironment.trim()
+        ? module.labEnvironment.trim()
+        : fallback.labEnvironment,
+    safetyNotes:
+      typeof module.safetyNotes === "string" && module.safetyNotes.trim()
+        ? module.safetyNotes.trim()
+        : fallback.safetyNotes,
+  };
+}
+
+export function isGeneratedQuizQuestion(
+  value: unknown,
+): value is GeneratedQuizQuestion {
+  if (!value || typeof value !== "object") return false;
+  const question = value as Record<string, unknown>;
+  return (
+    typeof question.question === "string" &&
+    Array.isArray(question.options) &&
+    question.options.length === 4 &&
+    question.options.every((option) => typeof option === "string") &&
+    Number.isInteger(question.correctAnswerIndex) &&
+    Number(question.correctAnswerIndex) >= 0 &&
+    Number(question.correctAnswerIndex) < 4 &&
+    typeof question.explanation === "string"
+  );
+}
+
+function isLikelyNonTechnicalQuizQuestion(question: GeneratedQuizQuestion) {
+  const text = question.question.toLowerCase();
+  const options = question.options.join(" ").toLowerCase();
+  const combined = `${text} ${options}`;
+  const hasTechnicalSignal =
+    /[`<>{}()[\].:=]|\b(api|array|async|attribute|class|css|database|debug|dom|function|generic|html|http|interface|javascript|method|object|operator|property|query|runtime|selector|syntax|typescript|variable)\b/.test(
+      combined,
+    );
+  const isMetaLearningPrompt =
+    /\b(answer|assessment|evidence|feedback|learn|mistake|practice|reflection|submit|understand)\b/.test(
+      text,
+    );
+
+  return isMetaLearningPrompt && !hasTechnicalSignal;
+}
+
+export function ensureModuleQuizQuestions(
+  module: Partial<GeneratedModule>,
+): GeneratedQuizQuestion[] {
+  const existingQuestions = Array.isArray(module.quiz?.questions)
+    ? module.quiz.questions.filter(isGeneratedQuizQuestion)
+    : [];
+  const seenQuestions = new Set<string>();
+
+  return existingQuestions.filter((question) => {
+    if (isLikelyNonTechnicalQuizQuestion(question)) return false;
+    const normalizedQuestion = question.question.trim().toLowerCase();
+    if (!normalizedQuestion || seenQuestions.has(normalizedQuestion)) return false;
+    seenQuestions.add(normalizedQuestion);
+    return true;
+  });
+}
+
+export function hasMinimumModuleQuizQuestions(module: Partial<GeneratedModule>) {
+  return ensureModuleQuizQuestions(module).length >= MIN_MODULE_QUIZ_QUESTIONS;
+}
+
+export type FinalProjectPlan = {
+  overview: string;
+  labEnvironment: string;
+  phases: Array<{
+    title: string;
+    instructions: string;
+    evidence: string[];
+  }>;
+  deliverables: string[];
+  assessmentCriteria: string[];
+  safetyNotes: string;
 };
 
 export type GeneratedCourse = {
@@ -57,8 +403,17 @@ export type GeneratedCourse = {
   difficulty: string;
   modules: GeneratedModule[];
   finalProject: string;
+  finalProjectPlan?: FinalProjectPlan;
   progressStructure: string[];
   certificateEligible: boolean;
+};
+
+export type LearningCursor = {
+  moduleIndex?: number;
+  lessonIndex?: number;
+  step: "lessons" | "quiz" | "assignment" | "final_project";
+  section?: "overview" | "video" | "notes" | "practice" | "submission";
+  updatedAt: string;
 };
 
 export type QuizAttempt = {
@@ -94,13 +449,15 @@ export const academyPlans = [
   {
     id: "ai-learning-path" as const,
     name: "AI Learning Path",
-    price: "$5",
-    cadence: "monthly",
+    price: "$0.50",
+    cadence: "per point",
     description:
-      "Generate your first complete course free, then continue with unlimited personalized paths, quizzes, projects, progress, and certificates.",
-    cta: "Generate Your Free Course",
-    href: "/academy/sign-in?plan=ai-learning-path",
+      "New students receive 10 free points. Each AI-generated course costs 10 points, with video-supported lessons, assessments, projects, progress, and certificates.",
+    cta: "Generate Your First Course",
+    href: "/academy/dashboard?plan=ai-learning-path",
     includes: [
+      "10 free starter points",
+      "10 points per generation",
       "AI-generated courses",
       "Personalized learning paths",
       "Quizzes",
@@ -109,26 +466,6 @@ export const academyPlans = [
       "Certificates",
       "Saved courses",
       "Learning history",
-    ],
-  },
-  {
-    id: "guided-mentorship" as const,
-    name: "Guided Mentorship",
-    price: "$25",
-    cadence: "monthly",
-    description:
-      "A high-touch mentorship track for students who want direct guidance, accountability, and career support.",
-    cta: "Apply for Mentorship",
-    href: "/academy#mentorship-application",
-    includes: [
-      "Everything in AI Learning Path",
-      "Weekly mentorship session",
-      "Project reviews",
-      "Code reviews",
-      "Personal roadmap",
-      "Accountability check-ins",
-      "Portfolio guidance",
-      "Career support",
     ],
   },
 ];
@@ -172,7 +509,7 @@ export const dashboardSections = [
   "Quiz scores",
   "Certificates",
   "Saved courses",
-  "Mentorship status",
+  "Point balance",
   "Notifications",
   "Profile settings",
 ];
@@ -229,9 +566,9 @@ export const academyTestimonials = [
   },
   {
     name: "Kemi A.",
-    role: "Mentorship student",
+    role: "Academy student",
     quote:
-      "The mentorship gave me structure, feedback, and confidence. It felt practical from the first week.",
+      "The generated path gave me structure, feedback, and confidence. It felt practical from the first week.",
   },
 ];
 
@@ -247,9 +584,9 @@ export const academyFaqs = [
       "No. It generates a structured course around the student's goal, level, timeline, and desired outcome.",
   },
   {
-    question: "What makes mentorship different?",
+    question: "How do points work?",
     answer:
-      "Mentorship adds direct human guidance: live sessions, reviews, accountability, portfolio support, career advice, and interview preparation.",
+      "Every new student receives 10 free points. Each AI-generated learning path costs 10 points, and extra points can be purchased whenever needed.",
   },
   {
     question: "Do students receive certificates?",
@@ -262,9 +599,8 @@ export const academyFaqs = [
 export const adminAcademyTools = [
   "View students",
   "View generated courses",
-  "Manage mentorship applications",
-  "Approve mentorship students",
-  "View payments and subscriptions",
+  "Grant student points",
+  "View payments and point purchases",
   "Issue certificates",
   "Send emails",
   "View student progress",

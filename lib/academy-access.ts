@@ -1,9 +1,20 @@
 import { cookies } from "next/headers";
-import connectDB from "@/lib/mongodb";
-import { verifyAcademyToken } from "@/lib/firebase/admin";
-import AcademyStudent from "@/models/AcademyStudent";
+import { decodeProtectedHeader } from "jose";
+import connectDB, { MongoConnectionUnavailableError } from "@/lib/mongodb";
+import { verifyAcademySessionToken } from "@/lib/academy-session";
+import { FirebaseCertificatesUnavailableError, verifyAcademyToken } from "@/lib/firebase/admin";
+import { ensureStarterAcademyPoints } from "@/lib/academy-points";
+import { ensureAcademyReferralCode } from "@/lib/academy-referrals";
+import AcademyStudent, { type IAcademyStudentDocument } from "@/models/AcademyStudent";
 
 const paidStatuses = new Set(["active", "past_due"]);
+
+export class AcademyDatabaseUnavailableError extends Error {
+  constructor(message = "The academy dashboard is temporarily unavailable. Please try again in a moment.") {
+    super(message);
+    this.name = "AcademyDatabaseUnavailableError";
+  }
+}
 
 export async function getAcademyTokenFromRequest(request: Request) {
   const header = request.headers.get("authorization");
@@ -16,17 +27,71 @@ export async function getAcademyTokenFromRequest(request: Request) {
   return cookieStore.get("lumyn_academy_session")?.value;
 }
 
+async function getFirebaseTokenFromRequest(request: Request) {
+  const header = request.headers.get("authorization");
+
+  if (header?.toLowerCase().startsWith("bearer ")) {
+    return header.slice(7).trim();
+  }
+
+  return null;
+}
+
+async function getAcademySessionTokenFromRequest() {
+  const cookieStore = await cookies();
+  return cookieStore.get("lumyn_academy_session")?.value;
+}
+
+function isFirebaseIdToken(token?: string | null) {
+  if (!token) return false;
+  try {
+    return decodeProtectedHeader(token).alg === "RS256";
+  } catch {
+    return false;
+  }
+}
+
 export async function getVerifiedAcademyStudent(request: Request) {
-  const token = await getAcademyTokenFromRequest(request);
-  const decoded = await verifyAcademyToken(token);
+  let decoded;
 
-  await connectDB();
+  const sessionToken = await getAcademySessionTokenFromRequest();
+  if (sessionToken) {
+    try {
+      decoded = await verifyAcademySessionToken(sessionToken);
+    } catch {
+      decoded = null;
+    }
+  }
 
-  const student = await AcademyStudent.findOne({ firebaseUid: decoded.uid });
+  if (!decoded) {
+    const headerToken = await getFirebaseTokenFromRequest(request);
+    const token = headerToken ?? (isFirebaseIdToken(sessionToken) ? sessionToken : null);
+    try {
+      decoded = await verifyAcademyToken(token);
+    } catch (error) {
+      if (error instanceof FirebaseCertificatesUnavailableError) {
+        throw new AcademyDatabaseUnavailableError("Academy authentication is temporarily unavailable. Please try again in a moment.");
+      }
+      throw error;
+    }
+  }
+
+  try {
+    await connectDB();
+  } catch (error) {
+    if (error instanceof MongoConnectionUnavailableError) {
+      throw new AcademyDatabaseUnavailableError();
+    }
+    throw error;
+  }
+
+  let student = await AcademyStudent.findOne({ firebaseUid: decoded.uid }) as IAcademyStudentDocument | null;
 
   if (!student) {
     throw new Error("Academy student account was not found.");
   }
+  student = await ensureStarterAcademyPoints(student);
+  student = await ensureAcademyReferralCode(student);
 
   return { decoded, student };
 }

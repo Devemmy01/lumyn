@@ -35,6 +35,7 @@ export default function AcademyAuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedPlan = searchParams.get("plan") ?? "ai-learning-path";
+  const referralCode = searchParams.get("ref") ?? "";
   const [mode, setMode] = useState<AuthMode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -55,7 +56,7 @@ export default function AcademyAuthForm() {
     const response = await fetch("/api/academy/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken, planId: selectedPlan }),
+      body: JSON.stringify({ idToken, planId: selectedPlan, referralCode }),
     });
     const payload = (await response.json().catch(() => null)) as
       | { error?: string }
@@ -101,18 +102,12 @@ export default function AcademyAuthForm() {
   }
 
   return (
-    <div className="relative rounded-[2.35rem] bg-gradient-to-b from-white/20 via-white/[0.08] to-[#7464ff]/30 p-px shadow-[0_40px_140px_rgba(0,0,0,0.55)]">
-      <div className="academy-auth-card relative overflow-hidden rounded-[calc(2.35rem-1px)] bg-[#0d0d12]/95 p-6 backdrop-blur-2xl sm:p-8 lg:p-9">
-        <div className="pointer-events-none absolute right-0 top-0 h-44 w-44 -translate-y-1/2 translate-x-1/2 rounded-full bg-[#7868ff]/15 blur-3xl" />
-
+    <div className="relative rounded-[2.15rem] bg-gradient-to-br from-[#7464ff]/65 via-[#c7c0ff]/55 to-[#7464ff]/65 p-px shadow-[0_30px_95px_rgba(53,42,110,0.22)] dark:from-white/18 dark:via-[#7c6cf6]/20 dark:to-[#342874] dark:shadow-[0_38px_130px_rgba(0,0,0,0.52)]">
+      <div className="academy-auth-card dark-visual relative overflow-hidden rounded-[calc(2.15rem-1px)] bg-[#141222]/96 p-6 backdrop-blur-2xl sm:p-8">
         <div className="relative mb-7 flex items-start justify-between gap-5">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9589ff]">{mode === "signin" ? "Welcome back" : "Start learning"}</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-white sm:text-[1.75rem]">{mode === "signin" ? "Open your workspace" : "Create your account"}</h2>
-          </div>
-          <div className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-3.5 py-2 text-right sm:block">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/30">Selected plan</p>
-            <p className="mt-1 text-xs font-semibold text-white/75">{plan.name} · {plan.id === "ai-learning-path" ? "first course free" : plan.price}</p>
           </div>
         </div>
 
@@ -131,7 +126,7 @@ export default function AcademyAuthForm() {
 
         <div className="my-6 flex items-center gap-4"><span className="h-px flex-1 bg-white/[0.08]" /><span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">or use email</span><span className="h-px flex-1 bg-white/[0.08]" /></div>
 
-        <form onSubmit={handleEmailAuth} className="space-y-4">
+        <form onSubmit={handleEmailAuth} className="space-y-3.5">
           {mode === "signup" && (
             <label className="block">
               <span className="mb-2 block text-[11px] font-semibold tracking-wide text-white/45">Full name</span>
@@ -158,7 +153,7 @@ export default function AcademyAuthForm() {
             {status !== "loading" && <svg width="17" height="17" viewBox="0 0 24 24" fill="none" className="relative z-10 ml-2 transition-transform group-hover:translate-x-1" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
           </button>
         </form>
-        <p className="relative mt-5 text-center text-[10px] leading-5 text-white/30">By continuing, you agree to Lumyn’s <a href="/terms" className="font-semibold text-white/55 underline underline-offset-2 hover:text-white">Terms</a> and acknowledge the <a href="/privacy" className="font-semibold text-white/55 underline underline-offset-2 hover:text-white">Privacy Policy</a>. Paid plans are also covered by our <a href="/refund-policy" className="font-semibold text-white/55 underline underline-offset-2 hover:text-white">Refund Policy</a>.</p>
+        <p className="relative mt-5 text-center text-[10px] leading-5 text-white/30">By continuing, you agree to Lumyn’s <a href="/terms" className="font-semibold text-white/55 underline underline-offset-2 hover:text-white">Terms</a> and acknowledge the <a href="/privacy" className="font-semibold text-white/55 underline underline-offset-2 hover:text-white">Privacy Policy</a>. Point purchases are also covered by our <a href="/refund-policy" className="font-semibold text-white/55 underline underline-offset-2 hover:text-white">Refund Policy</a>.</p>
       </div>
     </div>
   );

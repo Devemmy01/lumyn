@@ -9,13 +9,13 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <section className="relative overflow-hidden bg-ivory min-h-[70vh] flex items-center">
-      <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
+    <section className="relative flex min-h-[76vh] items-center overflow-hidden bg-[color:var(--bg-secondary)]">
+      <div className="pointer-events-none absolute -left-40 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-[#7c6cf6]/15 blur-[130px]" />
       <div className="container-mid relative text-center">
-        <p className="text-8xl md:text-9xl font-semibold text-stone tracking-tight mb-6" aria-hidden="true">
+        <p className="mb-6 font-[Georgia] text-8xl font-normal italic tracking-[-0.06em] text-[#897af8] md:text-9xl" aria-hidden="true">
           404
         </p>
-        <h1 className="heading-lg text-charcoal mb-4">Page not found</h1>
+        <h1 className="mb-5 text-4xl font-medium tracking-[-0.045em] text-[color:var(--text-primary)] md:text-7xl">This path ends here.</h1>
         <p className="body-md max-w-md mx-auto mb-10">
           This page doesn&apos;t exist or may have been moved. Let&apos;s get you back on track.
         </p>

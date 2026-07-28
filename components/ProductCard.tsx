@@ -41,6 +41,14 @@ function MindfuelIcon() {
   );
 }
 
+function AcademyIcon() {
+  return (
+    <div className="flex h-full w-full items-center justify-center rounded-[inherit] bg-white/10 text-[11px] font-bold tracking-[0.18em] text-white">
+      LA
+    </div>
+  );
+}
+
 function SummaiIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -67,6 +75,8 @@ function EdTurboIcon() {
 const productIcons: Record<string, () => React.JSX.Element> = {
   MindFuel: MindfuelIcon,
   Mindfuel: MindfuelIcon,
+  "Lumyn Academy": AcademyIcon,
+  LumynAcademy: AcademyIcon,
   Summai:   SummaiIcon,
   EdTurbo:  EdTurboIcon,
 };

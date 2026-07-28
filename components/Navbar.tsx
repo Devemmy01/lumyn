@@ -8,13 +8,10 @@ import LumynLogo from "./LumynLogo";
 import { useTheme } from "./ThemeProvider";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/services", label: "Services" },
+  { href: "/about", label: "Studio" },
   { href: "/products", label: "Products" },
   { href: "/academy", label: "Academy" },
   { href: "/journal", label: "Journal" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
@@ -35,21 +32,27 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-2 md:top-4 left-0 right-0 z-50 flex justify-center w-full pointer-events-none transition-all duration-700 px-4 md:px-8">
+      <header className="pointer-events-none fixed left-0 right-0 top-3 z-50 flex w-full justify-center px-3 transition-all duration-500 md:top-4 md:px-6">
         <nav
           className={clsx(
-            "pointer-events-auto flex w-full max-w-7xl items-center justify-between rounded-full px-3 py-3 transition-all duration-700 md:mx-auto md:px-8 md:py-4",
+            "pointer-events-auto flex min-h-[62px] w-full max-w-[1280px] items-center justify-between rounded-full border px-3.5 py-2 transition-all duration-500 md:mx-auto md:min-h-[66px] md:px-5",
             scrolled
-              ? "border border-black/10 bg-white/80 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-black/80"
-              : "bg-transparent border border-transparent",
+              ? "border-black/10 bg-white/88 shadow-[0_18px_60px_rgba(25,20,35,0.13)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#08080a]/88"
+              : "border-black/10 bg-[color:var(--bg-primary)]/72 shadow-[0_8px_35px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/[0.09]",
           )}
         >
-          <Link href="/" className="shrink-0" aria-label="Lumyn home">
-            <LumynLogo />
-          </Link>
+          <div className="flex min-w-0 items-center gap-3 md:gap-5">
+            <Link href="/" className="shrink-0 px-1" aria-label="Lumyn home">
+              <LumynLogo />
+            </Link>
+            <span className="hidden h-5 w-px bg-black/10 dark:bg-white/10 sm:block" />
+            <span className="hidden truncate text-[9px] font-semibold uppercase tracking-[0.19em] text-[color:var(--text-tertiary)] sm:block">
+              Product studio
+            </span>
+          </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden items-center gap-4 md:flex lg:gap-5">
+          <div className="hidden items-center gap-4 lg:flex xl:gap-6">
             {navLinks.map(({ href, label }) => {
               const active =
                 pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
@@ -58,7 +61,7 @@ export default function Navbar() {
                   key={href}
                   href={href}
                   className={clsx(
-                    "text-[11px] uppercase font-medium tracking-[0.08em] transition-all duration-300",
+                    "relative py-2 text-[10px] font-semibold uppercase tracking-[0.1em] transition-all duration-300",
                     active
                       ? "text-black dark:text-white"
                       : "text-neutral-500 hover:text-black dark:hover:text-white",
@@ -70,18 +73,27 @@ export default function Navbar() {
             })}
             <div className="mx-1 h-4 w-px bg-black/15 dark:bg-white/20" />
             <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} />
+            <Link
+              href="/contact"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#17131f] px-5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#fff] transition hover:bg-[#7c6cf6] dark:bg-white dark:text-[#111] dark:hover:bg-[#7c6cf6] dark:hover:text-[#fff]"
+            >
+              Start a project
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2.5 7h8M7.5 4l3 3-3 3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="pointer-events-auto z-50 p-2 text-black focus:outline-none dark:text-white md:hidden"
+            className="pointer-events-auto z-50 flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-black focus:outline-none dark:border-white/10 dark:text-white lg:hidden"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
           >
             {menuOpen ? (
               <svg
-                className="w-8 h-8"
+                className="h-6 w-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -95,7 +107,7 @@ export default function Navbar() {
               </svg>
             ) : (
               <svg
-                className="w-8 h-8"
+                className="h-6 w-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -131,10 +143,16 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+          <Link
+            href="/contact"
+            className="mt-4 inline-flex items-center justify-center rounded-full bg-[color:var(--text-primary)] px-8 py-4 text-sm font-semibold text-[color:var(--bg-primary)]"
+          >
+            Start a project
+          </Link>
           <ThemeToggleButton
             isDark={isDark}
             onToggle={toggleTheme}
-            className="mt-10 mx-auto"
+            className="mx-auto mt-4"
           />
         </nav>
       </div>

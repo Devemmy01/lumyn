@@ -1,54 +1,51 @@
+import { creditPurchasedPoints } from "@/lib/academy-points";
 import connectDB from "@/lib/mongodb";
 import AcademyPayment from "@/models/AcademyPayment";
-import AcademyStudent from "@/models/AcademyStudent";
 
-type PaystackCharge = {
-  id?: number;
-  reference: string;
+export type FlutterwaveCharge = {
+  id?: number | string;
+  tx_ref?: string;
+  reference?: string;
   amount: number;
   currency: string;
   status: string;
-  paid_at?: string;
-  metadata?: { studentUid?: string; planId?: string } | string;
-  customer?: { email?: string; customer_code?: string };
-  subscription?: { subscription_code?: string; email_token?: string; next_payment_date?: string };
+  created_at?: string;
+  customer?: { email?: string };
 };
 
-export async function activateAcademyPayment(data: PaystackCharge) {
+export async function activateAcademyPayment(data: FlutterwaveCharge) {
   await connectDB();
-  const payment = await AcademyPayment.findOne({ reference: data.reference });
+
+  const reference = data.tx_ref ?? data.reference;
+  if (!reference) throw new Error("Payment reference was missing.");
+
+  const payment = await AcademyPayment.findOne({ reference });
   if (!payment) throw new Error("Payment reference was not issued by Lumyn Academy.");
-  if (data.status !== "success" || data.amount !== payment.amount ||
-      data.currency.toUpperCase() !== payment.currency.toUpperCase()) {
+  if (payment.status === "success") {
+    return { payment, student: null, alreadyProcessed: true };
+  }
+
+  const verifiedAmountCents = Math.round(Number(data.amount) * 100);
+  if (
+    data.status !== "successful" ||
+    verifiedAmountCents !== payment.amount ||
+    data.currency.toUpperCase() !== payment.currency.toUpperCase()
+  ) {
+    payment.status = "failed";
+    await payment.save();
     throw new Error("Payment verification did not match the checkout.");
   }
 
-  const paidAt = data.paid_at ? new Date(data.paid_at) : new Date();
-  const nextDate = data.subscription?.next_payment_date
-    ? new Date(data.subscription.next_payment_date)
-    : new Date(paidAt.getTime() + 31 * 24 * 60 * 60 * 1000);
-
   payment.status = "success";
   payment.providerTransactionId = data.id?.toString();
-  payment.paidAt = paidAt;
+  payment.paidAt = data.created_at ? new Date(data.created_at) : new Date();
   await payment.save();
 
-  const student = await AcademyStudent.findOneAndUpdate(
-    { firebaseUid: payment.studentUid },
-    {
-      $set: {
-        "subscription.planId": payment.planId,
-        "subscription.status": "active",
-        "subscription.provider": "paystack",
-        "subscription.currentPeriodEnd": nextDate,
-        "subscription.customerCode": data.customer?.customer_code,
-        "subscription.subscriptionCode": data.subscription?.subscription_code,
-        "subscription.emailToken": data.subscription?.email_token,
-        "subscription.cancelAtPeriodEnd": false,
-      },
-    },
-    { new: true }
-  );
-  if (!student) throw new Error("Student account was not found.");
-  return { payment, student };
+  const student = await creditPurchasedPoints({
+    studentUid: payment.studentUid,
+    points: payment.points,
+    reference: payment.reference,
+  });
+
+  return { payment, student, alreadyProcessed: false };
 }

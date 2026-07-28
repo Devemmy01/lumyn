@@ -3,6 +3,7 @@ import type {
   AssignmentSubmission,
   GeneratedCourse,
   LearningActivity,
+  LearningCursor,
   QuizAttempt,
   SubmissionEvaluation,
 } from "@/lib/academy";
@@ -25,9 +26,11 @@ export interface IAcademyCourseDocument extends Document {
     evaluation?: SubmissionEvaluation;
   };
   activityLog: LearningActivity[];
+  learningCursor?: LearningCursor;
   certificate?: {
     certificateId: string;
     issuedAt: string;
+    certificateName?: string;
   };
   tutorMessages: Array<{
     role: "user" | "assistant";
@@ -113,6 +116,7 @@ const AcademyCourseSchema = new Schema<IAcademyCourseDocument>(
       type: [ActivitySchema],
       default: [],
     },
+    learningCursor: Schema.Types.Mixed,
     certificate: Schema.Types.Mixed,
     tutorMessages: {
       type: [TutorMessageSchema],

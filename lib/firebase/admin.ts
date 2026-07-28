@@ -21,6 +21,13 @@ export type VerifiedFirebaseToken = JWTPayload & {
   email_verified?: boolean;
 };
 
+export class FirebaseCertificatesUnavailableError extends Error {
+  constructor(message = "Firebase signing certificates are temporarily unavailable. Please try again in a moment.") {
+    super(message);
+    this.name = "FirebaseCertificatesUnavailableError";
+  }
+}
+
 let certificateCache: CertificateCache | null = null;
 
 function cacheLifetime(response: Response) {
@@ -34,10 +41,24 @@ async function getFirebaseCertificates(forceRefresh = false) {
     return certificateCache.certificates;
   }
 
-  const response = await fetch(FIREBASE_CERTIFICATES_URL, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  let response: Response;
+  try {
+    response = await fetch(FIREBASE_CERTIFICATES_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new FirebaseCertificatesUnavailableError();
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     throw new Error(`Firebase signing certificates returned ${response.status}.`);

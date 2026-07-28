@@ -4,7 +4,7 @@ import StudentDashboard from "@/components/academy/StudentDashboard";
 export const metadata: Metadata = {
   title: "Student Dashboard",
   description:
-    "Lumyn Academy student dashboard for generated courses, assignments, quizzes, progress, certificates, and mentorship status.",
+    "Lumyn Academy student dashboard for generated courses, assignments, quizzes, progress, certificates, and point balance.",
 };
 
 export const dynamic = "force-dynamic";

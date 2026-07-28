@@ -44,9 +44,9 @@ export default function JournalTagsFilter({
             <Link 
               key={t} 
               href={`/journal?${tagParams.toString()}`}
-              className="tag p-1 px-3 rounded-xl transition-colors hover:bg-sage hover:text-white"
+              className="rounded-full border border-[color:var(--border-primary)] px-3 py-2 text-xs transition-colors hover:border-[#7c6cf6] hover:bg-[#7c6cf6] hover:text-white"
               style={{
-                backgroundColor: isActive ? "var(--accent)" : "var(--bg-secondary)",
+                backgroundColor: isActive ? "#7c6cf6" : "var(--bg-secondary)",
                 color: isActive ? "white" : "var(--text-secondary)"
               }}
             >
@@ -58,7 +58,7 @@ export default function JournalTagsFilter({
           <button
             type="button"
             onClick={() => setShowAllTags((current) => !current)}
-            className="tag text-xs p-1 px-3 cursor-pointer transition-colors hover:bg-sage hover:text-white"
+            className="cursor-pointer rounded-full border border-dashed border-[color:var(--border-primary)] px-3 py-2 text-xs transition-colors hover:border-[#7c6cf6] hover:text-[#7c6cf6]"
             style={{
               backgroundColor: "var(--bg-secondary)",
               color: "var(--text-secondary)",

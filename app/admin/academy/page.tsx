@@ -7,10 +7,8 @@ import {
 } from "@/lib/academy";
 import AcademyCourse from "@/models/AcademyCourse";
 import AcademyStudent from "@/models/AcademyStudent";
-import MentorshipApplication from "@/models/MentorshipApplication";
 import AcademyAccessManager from "@/components/admin/AcademyAccessManager";
 import { hasCourseGenerationExemption } from "@/lib/academy-access";
-import MentorshipApplications, { type AdminMentorshipApplication } from "@/components/admin/MentorshipApplications";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +21,7 @@ type AdminStudentRecord = {
   name?: string;
   email?: string;
   subscription?: { status?: string };
+  pointsBalance?: number;
   courseGenerationExempt?: boolean;
 };
 
@@ -33,25 +32,13 @@ type AdminCourseRecord = {
   progressPercent?: number;
 };
 
-type AdminApplicationRecord = {
-  _id: { toString(): string };
-  name?: string;
-  email?: string;
-  goal?: string;
-  level?: string;
-  availability?: string;
-  status?: string;
-};
-
 async function loadAcademyAdminData() {
   const empty = {
     students: [] as AdminStudentRecord[],
     courses: [] as AdminCourseRecord[],
-    applications: [] as AdminApplicationRecord[],
     studentCount: 0,
     courseCount: 0,
-    applicationCount: 0,
-    subscriptionCount: 0,
+    pointBalanceTotal: 0,
     exemptionCount: 0,
     courseCountsByStudent: [] as Array<{ _id?: string; count: number }>,
     healthy: false,
@@ -71,10 +58,10 @@ async function loadAcademyAdminData() {
             students: [
               { $sort: { createdAt: -1 } },
               { $limit: 100 },
-              { $project: { name: 1, email: 1, subscription: 1, courseGenerationExempt: 1 } },
+              { $project: { name: 1, email: 1, subscription: 1, pointsBalance: 1, courseGenerationExempt: 1 } },
             ],
             total: [{ $count: "value" }],
-            active: [{ $match: { "subscription.status": "active" } }, { $count: "value" }],
+            points: [{ $group: { _id: null, value: { $sum: { $ifNull: ["$pointsBalance", 0] } } } }],
             exempt: [{ $match: { courseGenerationExempt: true } }, { $count: "value" }],
           },
         },
@@ -99,21 +86,6 @@ async function loadAcademyAdminData() {
           },
         },
       ]),
-      MentorshipApplication.aggregate<{
-        applications: AdminApplicationRecord[];
-        total: Array<{ value: number }>;
-      }>([
-        {
-          $facet: {
-            applications: [
-              { $sort: { createdAt: -1 } },
-              { $limit: 50 },
-              { $project: { name: 1, email: 1, goal: 1, level: 1, availability: 1, status: 1 } },
-            ],
-            total: [{ $count: "value" }],
-          },
-        },
-      ]),
     ]);
 
     const value = <T,>(index: number, fallback: T): T =>
@@ -130,7 +102,7 @@ async function loadAcademyAdminData() {
     const studentData = value<Array<{
       students: AdminStudentRecord[];
       total: Array<{ value: number }>;
-      active: Array<{ value: number }>;
+      points: Array<{ value: number }>;
       exempt: Array<{ value: number }>;
     }>>(0, [])[0];
     const courseData = value<Array<{
@@ -138,19 +110,12 @@ async function loadAcademyAdminData() {
       total: Array<{ value: number }>;
       byStudent: Array<{ _id?: string; count: number }>;
     }>>(1, [])[0];
-    const applicationData = value<Array<{
-      applications: AdminApplicationRecord[];
-      total: Array<{ value: number }>;
-    }>>(2, [])[0];
-
     return {
       students: studentData?.students ?? [],
       courses: courseData?.courses ?? [],
-      applications: applicationData?.applications ?? [],
       studentCount: studentData?.total[0]?.value ?? 0,
       courseCount: courseData?.total[0]?.value ?? 0,
-      applicationCount: applicationData?.total[0]?.value ?? 0,
-      subscriptionCount: studentData?.active[0]?.value ?? 0,
+      pointBalanceTotal: studentData?.points[0]?.value ?? 0,
       exemptionCount: studentData?.exempt[0]?.value ?? 0,
       courseCountsByStudent: courseData?.byStudent ?? [],
       healthy: results.every((result) => result.status === "fulfilled"),
@@ -165,11 +130,9 @@ export default async function AcademyAdminPage() {
   const {
     students,
     courses,
-    applications,
     studentCount,
     courseCount,
-    applicationCount,
-    subscriptionCount,
+    pointBalanceTotal,
     exemptionCount,
     courseCountsByStudent,
     healthy,
@@ -185,32 +148,19 @@ export default async function AcademyAdminPage() {
     name: student.name,
     email: student.email!,
     subscriptionStatus: student.subscription?.status ?? "inactive",
+    pointsBalance: student.pointsBalance ?? 0,
     courseGenerationExempt: hasCourseGenerationExemption(student),
     courseCount: studentCourseCounts.get(student.email!.toLowerCase()) ?? 0,
   }));
   const configuredOnlyExemptions = students.filter((student) =>
     student.courseGenerationExempt === undefined && hasCourseGenerationExemption(student)
   ).length;
-  const mentorshipApplications = applications
-    .filter((application) => application.email)
-    .map((application) => ({
-      id: application._id.toString(),
-      name: application.name || "Unnamed applicant",
-      email: application.email!,
-      goal: application.goal || "No goal provided",
-      level: application.level || "Level not provided",
-      availability: application.availability || "Availability not provided",
-      status: (["received", "reviewing", "approved", "declined"].includes(application.status || "")
-        ? application.status
-        : "received") as AdminMentorshipApplication["status"],
-    }));
-
   const stats = [
     { label: "Students", value: studentCount },
     { label: "Generated courses", value: courseCount },
-    { label: "Active subscriptions", value: subscriptionCount },
+    { label: "Student points", value: pointBalanceTotal },
     { label: "Access exemptions", value: exemptionCount + configuredOnlyExemptions },
-    { label: "Mentorship applications", value: applicationCount },
+    { label: "Point cost", value: "$0.50" },
   ];
 
   return (
@@ -220,8 +170,7 @@ export default async function AcademyAdminPage() {
         <p className="relative text-[10px] font-bold uppercase tracking-[0.22em] text-[#998dff]">Lumyn operations</p>
         <h1 className="relative mt-3 text-3xl font-bold tracking-tighter text-white sm:text-4xl">Academy command center</h1>
         <p className="relative mt-3 max-w-3xl text-sm leading-6 text-neutral-500">
-          Manage students, AI learning paths, mentorship applications, subscriptions,
-          certificates, pricing, testimonials, FAQs, and emails.
+          Manage students, AI learning paths, point balances, certificates, pricing, testimonials, FAQs, and emails.
         </p>
       </div>
 
@@ -248,7 +197,7 @@ export default async function AcademyAdminPage() {
               <div key={plan.id} className="rounded-xl border border-[#222] bg-[#050505] p-4">
                 <div className="flex items-center justify-between gap-4">
                   <p className="font-semibold text-white">{plan.name}</p>
-                  <p className="text-sm font-bold text-[#7c6cf6]">{plan.price}/month</p>
+                  <p className="text-sm font-bold text-[#7c6cf6]">{plan.price}/{plan.cadence}</p>
                 </div>
                 <p className="mt-2 text-sm text-neutral-500">{plan.description}</p>
               </div>
@@ -281,8 +230,6 @@ export default async function AcademyAdminPage() {
         </section>
 
       </div>
-
-      <MentorshipApplications initialApplications={mentorshipApplications} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-[#222] bg-[#0a0a0a] p-6">

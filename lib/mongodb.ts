@@ -15,6 +15,24 @@ if (!global.mongooseCache) {
   global.mongooseCache = cached;
 }
 
+export class MongoConnectionUnavailableError extends Error {
+  constructor(message = "The academy database is temporarily unavailable. Please try again in a moment.") {
+    super(message);
+    this.name = "MongoConnectionUnavailableError";
+  }
+}
+
+export function isMongoConnectionError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+
+  return (
+    error.name === "MongooseServerSelectionError" ||
+    /Could not connect to any servers in your MongoDB Atlas cluster/i.test(error.message) ||
+    /IP that isn't whitelisted/i.test(error.message) ||
+    /topology/i.test(error.message)
+  );
+}
+
 async function connectDB(): Promise<typeof mongoose> {
   const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -32,7 +50,8 @@ async function connectDB(): Promise<typeof mongoose> {
     const opts = {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     };
 
@@ -43,6 +62,9 @@ async function connectDB(): Promise<typeof mongoose> {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
+    if (isMongoConnectionError(e)) {
+      throw new MongoConnectionUnavailableError();
+    }
     throw e;
   }
 

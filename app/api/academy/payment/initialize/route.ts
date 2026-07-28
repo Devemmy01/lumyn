@@ -1,65 +1,98 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { getVerifiedAcademyStudent, hasPaidAcademyAccess } from "@/lib/academy-access";
-import { getPaystackPlan, isPaystackConfigured, paystackRequest } from "@/lib/paystack";
-import type { AcademyPlanId } from "@/lib/academy";
+import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent } from "@/lib/academy-access";
+import { calculatePointPurchase, flutterwaveRequest, isFlutterwaveConfigured } from "@/lib/flutterwave";
 import AcademyPayment from "@/models/AcademyPayment";
+
+function getValidOrigin(value?: string | null) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function getCheckoutBaseUrl(request: NextRequest) {
+  const requestOrigin =
+    getValidOrigin(request.headers.get("origin")) ??
+    getValidOrigin(request.headers.get("referer")) ??
+    getValidOrigin(request.nextUrl.origin);
+
+  const configuredOrigin = getValidOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+
+  if (process.env.NODE_ENV !== "production") {
+    return requestOrigin ?? configuredOrigin ?? request.nextUrl.origin;
+  }
+
+  return configuredOrigin ?? requestOrigin ?? request.nextUrl.origin;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { planId } = await request.json() as { planId?: AcademyPlanId };
-    if (planId !== "ai-learning-path" && planId !== "guided-mentorship") {
-      return NextResponse.json({ error: "Choose a valid Academy plan." }, { status: 400 });
-    }
-    if (!isPaystackConfigured()) {
+    const { points } = await request.json() as { points?: number };
+    if (!isFlutterwaveConfigured()) {
       return NextResponse.json(
         { error: "Payments are temporarily unavailable. Please contact Lumyn support." },
         { status: 503 }
       );
     }
-    const { decoded, student } = await getVerifiedAcademyStudent(request);
-    if (hasPaidAcademyAccess(student) && student.subscription.planId === planId) {
-      return NextResponse.json({ success: true, alreadyActive: true, authorizationUrl: "/academy/dashboard" });
-    }
 
-    const plan = getPaystackPlan(planId);
-    if (!Number.isInteger(plan.amount) || plan.amount < 100) throw new Error("The plan amount is invalid.");
-    const reference = `academy-${Date.now()}-${randomUUID().slice(0, 8)}`;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin;
-    const data = await paystackRequest<{ authorization_url: string; access_code: string; reference: string }>(
-      "/transaction/initialize",
-      {
-        method: "POST",
-        body: JSON.stringify({
+    const purchase = calculatePointPurchase(Number(points));
+    const { decoded, student } = await getVerifiedAcademyStudent(request);
+    const reference = `academy-points-${Date.now()}-${randomUUID().slice(0, 8)}`;
+    const siteUrl = getCheckoutBaseUrl(request);
+    const redirectUrl = new URL("/academy/payment/callback", siteUrl).toString();
+
+    const data = await flutterwaveRequest<{ link: string }>("/payments", {
+      method: "POST",
+      body: JSON.stringify({
+        tx_ref: reference,
+        amount: purchase.amount,
+        currency: purchase.currency,
+        redirect_url: redirectUrl,
+        customer: {
           email: student.email,
-          amount: plan.amount,
-          currency: plan.currency,
-          reference,
-          callback_url: `${siteUrl}/academy/payment/callback`,
-          plan: plan.planCode,
-          metadata: { studentUid: decoded.uid, planId },
-        }),
-      }
-    );
+          name: student.name ?? student.email,
+        },
+        meta: {
+          studentUid: decoded.uid,
+          points: purchase.points,
+        },
+        customizations: {
+          title: "Lumyn Academy Points",
+          description: `${purchase.points} Academy points`,
+        },
+      }),
+    });
 
     await AcademyPayment.create({
       reference,
       studentUid: decoded.uid,
       studentEmail: student.email,
-      planId,
-      amount: plan.amount,
-      currency: plan.currency,
+      kind: "point_purchase",
+      points: purchase.points,
+      amount: purchase.amountCents,
+      currency: purchase.currency,
       status: "pending",
-      provider: "paystack",
+      provider: "flutterwave",
     });
-    student.subscription.planId = planId;
-    student.subscription.status = "pending";
-    student.subscription.provider = "paystack";
-    await student.save();
 
-    return NextResponse.json({ success: true, authorizationUrl: data.authorization_url, reference });
+    return NextResponse.json({
+      success: true,
+      authorizationUrl: data.link,
+      reference,
+      points: purchase.points,
+      amount: purchase.amount,
+    });
   } catch (error) {
     console.error("[academy payment initialize]", error);
+    if (error instanceof AcademyDatabaseUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not start checkout." }, { status: 500 });
   }
 }

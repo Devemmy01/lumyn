@@ -23,7 +23,7 @@ export default function LayoutWrapper({
   return (
     <>
       <Navbar />
-      <main className="flex-1 pt-16 md:pt-20" id="main-content">
+      <main className="flex-1 pt-24 md:pt-28" id="main-content">
         {children}
       </main>
       <Footer />

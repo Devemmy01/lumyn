@@ -9,7 +9,8 @@ import JournalSearch from "@/components/JournalSearch";
 import JournalPagination from "@/components/JournalPagination";
 import SubscribeForm from "@/components/SubscribeForm";
 import JournalTagsFilter from "@/components/JournalTagsFilter";
-import { buildMetadata, serializeJsonLd, SITE_URL } from "@/lib/seo";
+import InteriorHero from "@/components/InteriorHero";
+import { buildMetadata, buildWebPageJsonLd, serializeJsonLd, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -50,15 +51,31 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Blog",
-  name: "Lumyn Journal",
-  description: "Essays on software engineering, product strategy, and digital excellence.",
-  url: `${SITE_URL}/journal`,
-  publisher: {
-    "@type": "Organization",
-    name: "Lumyn",
-    url: SITE_URL,
-  },
+  "@graph": [
+    buildWebPageJsonLd({
+      path: "/journal",
+      name: "Lumyn Journal",
+      description:
+        "Essays on software engineering, product strategy, AI learning, and building useful digital products.",
+      pageType: "Blog",
+      keywords: [
+        "software engineering blog",
+        "product strategy",
+        "AI learning",
+        "digital product thinking",
+      ],
+    }),
+    {
+      "@type": "Blog",
+      "@id": `${SITE_URL}/journal#blog`,
+      name: "Lumyn Journal",
+      description:
+        "Essays on software engineering, product strategy, AI learning, and building useful digital products.",
+      url: `${SITE_URL}/journal`,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: "en",
+    },
+  ],
 };
 
 export default async function JournalPage({ searchParams }: PageProps) {
@@ -111,28 +128,17 @@ export default async function JournalPage({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
-      {/* Header */}
-      <section className="relative overflow-hidden mt-5 py-28 md:py-36" style={{ backgroundColor: "var(--bg-secondary)" }}>
-        <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
-        <div className="container-mid relative">
-          <p className="label-sm mb-5 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Journal</p>
-          <h1
-            className="heading-display mb-6 text-balance animate-fade-up opacity-0 max-w-3xl"
-            style={{ animationDelay: "100ms", animationFillMode: "forwards", color: "var(--text-primary)" }}
-          >
-            Thinking Out Loud
-          </h1>
-          <p
-            className="body-lg max-w-xl animate-fade-up opacity-0"
-            style={{ animationDelay: "200ms", animationFillMode: "forwards", color: "var(--text-secondary)" }}
-          >
-            Essays on software engineering, product strategy, and the method behind the tools we build.
-          </p>
-        </div>
-      </section>
+      <InteriorHero
+        eyebrow="Journal"
+        title="Ideas in"
+        accent="working form."
+        description="Essays on software engineering, product judgment, learning, and the thinking behind the tools we build."
+        signals={["Product thinking", "Engineering", "Learning"]}
+        note="Lumyn journal"
+      />
 
       <SectionWrapper background="default">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_300px] lg:gap-16">
           
           {/* Posts Column */}
           <div>
@@ -193,7 +199,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-8" aria-label="Journal sidebar">
+          <aside className="h-fit space-y-5 lg:sticky lg:top-32" aria-label="Journal sidebar">
             {/* Search */}
             <div className="card-flat rounded-2xl p-6" style={{
               backgroundColor: "var(--bg-primary)",

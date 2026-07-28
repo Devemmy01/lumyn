@@ -7,6 +7,7 @@ export type AcademyAccessStudent = {
   name?: string;
   email: string;
   subscriptionStatus: string;
+  pointsBalance: number;
   courseGenerationExempt: boolean;
   courseCount: number;
 };
@@ -17,7 +18,10 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
   const [students, setStudents] = useState(initialStudents);
   const [query, setQuery] = useState("");
   const [email, setEmail] = useState("");
+  const [grantEmail, setGrantEmail] = useState("");
+  const [grantPoints, setGrantPoints] = useState(10);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [pendingGrant, setPendingGrant] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
 
   const visibleStudents = useMemo(() => {
@@ -47,7 +51,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
         const existing = current.find((student) => student.email === normalizedEmail);
         if (existing) {
           return current.map((student) => student.email === normalizedEmail
-            ? { ...student, courseGenerationExempt: exempt }
+          ? { ...student, courseGenerationExempt: exempt }
             : student
           );
         }
@@ -56,6 +60,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
           name: payload.student.name,
           email: payload.student.email,
           subscriptionStatus: "inactive",
+          pointsBalance: payload.student.pointsBalance ?? 0,
           courseGenerationExempt: exempt,
           courseCount: 0,
         }, ...current];
@@ -83,6 +88,53 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
     if (await updateAccess(email, true)) setEmail("");
   }
 
+  async function grantPointsByEmail(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedEmail = grantEmail.trim().toLowerCase();
+    if (!normalizedEmail) return;
+    setPendingGrant(true);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/admin/academy/access", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail, pointsToGrant: grantPoints }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Points could not be granted.");
+
+      setStudents((current) => {
+        const existing = current.find((student) => student.email === normalizedEmail);
+        if (existing) {
+          return current.map((student) => student.email === normalizedEmail
+            ? { ...student, pointsBalance: payload.student.pointsBalance }
+            : student
+          );
+        }
+        return [{
+          id: payload.student.id,
+          name: payload.student.name,
+          email: payload.student.email,
+          subscriptionStatus: "inactive",
+          pointsBalance: payload.student.pointsBalance,
+          courseGenerationExempt: payload.student.courseGenerationExempt,
+          courseCount: 0,
+        }, ...current];
+      });
+      setNotice({ type: "success", message: `${grantPoints} points were added to ${normalizedEmail}.` });
+      setGrantEmail("");
+      setGrantPoints(10);
+    } catch (error) {
+      setNotice({
+        type: "error",
+        message: error instanceof Error ? error.message : "Points could not be granted.",
+      });
+    } finally {
+      setPendingGrant(false);
+    }
+  }
+
   return (
     <section className="overflow-hidden rounded-3xl border border-[#242424] bg-[#0a0a0a] shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
       <div className="border-b border-[#222] p-5 sm:p-6">
@@ -91,7 +143,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8f82ff]">Access control</p>
             <h2 className="mt-2 text-xl font-semibold text-white">Student course exemptions</h2>
             <p className="mt-1 max-w-xl text-sm leading-6 text-neutral-500">
-              Grant selected accounts unlimited course generation and tutor access without changing their subscription.
+              Grant selected accounts extra points or unlimited course generation for special cases.
             </p>
           </div>
           <form onSubmit={grantByEmail} className="flex w-full max-w-xl flex-col gap-2 sm:flex-row">
@@ -113,6 +165,33 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
             </button>
           </form>
         </div>
+        <form onSubmit={grantPointsByEmail} className="mt-4 grid gap-2 lg:grid-cols-[minmax(0,1fr)_140px_auto]">
+          <input
+            type="email"
+            value={grantEmail}
+            onChange={(event) => setGrantEmail(event.target.value)}
+            placeholder="student@example.com"
+            required
+            className="h-11 min-w-0 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition placeholder:text-neutral-700 focus:border-[#7c6cf6]"
+          />
+          <input
+            type="number"
+            min={1}
+            max={500}
+            value={grantPoints}
+            onChange={(event) => setGrantPoints(Number(event.target.value))}
+            required
+            className="h-11 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition focus:border-[#7c6cf6]"
+          />
+          <button
+            type="submit"
+            disabled={pendingGrant}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-5 text-sm font-bold text-emerald-200 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            {pendingGrant && <Spinner />}
+            Grant points
+          </button>
+        </form>
         {notice && (
           <div role={notice.type === "error" ? "alert" : "status"} className={`mt-4 rounded-xl border px-4 py-3 text-sm ${notice.type === "success" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-red-500/20 bg-red-500/10 text-red-300"}`}>
             {notice.message}
@@ -139,7 +218,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
                 {student.courseGenerationExempt && <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-300">Unlimited</span>}
               </div>
               <p className="mt-1 truncate text-sm text-neutral-500">{student.email}</p>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">{student.courseCount} courses · {student.subscriptionStatus}</p>
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">{student.courseCount} courses · {student.pointsBalance} points</p>
             </div>
             <button
               type="button"

@@ -88,6 +88,10 @@ export default async function JournalPostPage({ params }: PageProps) {
     modifiedAt: post.updatedAt?.toISOString(),
     tags: post.tags || [],
     image: post.coverImage,
+    wordCount: post.content
+      ? post.content.trim().split(/\s+/).filter(Boolean).length
+      : undefined,
+    readingTime: post.readingTime,
   });
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
@@ -108,13 +112,13 @@ export default async function JournalPostPage({ params }: PageProps) {
       />
 
       {/* Hero */}
-      <section className="relative overflow-hidden py-2 mt-5 md:py-12" style={{ backgroundColor: "var(--bg-secondary)" }}>
-        <div className="absolute inset-0 bg-dots opacity-25 pointer-events-none" aria-hidden="true" />
+      <section className="relative overflow-hidden border-b border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)] py-16 md:py-24">
+        <div className="pointer-events-none absolute -right-40 -top-56 h-[32rem] w-[32rem] rounded-full bg-[#7c6cf6]/15 blur-[130px]" />
         <div className="container-narrow relative">
           {/* Back */}
           <Link
             href="/journal"
-            className="inline-flex items-center gap-2 text-sm mb-10 transition-colors duration-200 group hover:text-sage"
+            className="group mb-10 inline-flex items-center gap-2 text-sm transition-colors duration-200 hover:text-[#7c6cf6]"
             style={{ color: "var(--text-secondary)" }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
@@ -130,12 +134,12 @@ export default async function JournalPostPage({ params }: PageProps) {
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6" aria-label="Article topics">
               {post.tags.map((tag: string) => (
-                <span key={tag} className="tag p-2">{tag.replace(/-/g, " ")}</span>
+                <span key={tag} className="rounded-full border border-[color:var(--border-primary)] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">{tag.replace(/-/g, " ")}</span>
               ))}
             </div>
           )}
 
-          <h1 className="heading-md mb-6 text-balance animate-fade-up opacity-0" style={{
+          <h1 className="mb-7 max-w-4xl text-balance text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.92] tracking-[-0.055em] opacity-0 animate-fade-up" style={{
             color: "var(--text-primary)",
             animationDelay: "100ms",
             animationFillMode: "forwards"
@@ -143,7 +147,7 @@ export default async function JournalPostPage({ params }: PageProps) {
             {post.title}
           </h1>
 
-          <div className="flex items-center gap-2 md:gap-4 text-sm" style={{ color: "var(--text-tertiary)" }}>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] md:gap-4" style={{ color: "var(--text-tertiary)" }}>
             <span>Lumyn</span>
             <span aria-hidden="true">·</span>
             <time dateTime={post.createdAt?.toISOString()}>
@@ -164,8 +168,8 @@ export default async function JournalPostPage({ params }: PageProps) {
       {/* Content */}
       <SectionWrapper background="default" container="narrow" size="sm">
         {post.coverImage && (
-          <div className="mb-12  overflow-hidden bg-stone/20">
-            <Image src={post.coverImage} alt={post.title} width={1200} height={630} className="w-full h-auto object-cover" />
+          <div className="mb-12 overflow-hidden rounded-[2rem] border border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)]">
+            <Image src={post.coverImage} alt={post.title} width={1200} height={630} className="h-auto w-full object-cover" />
           </div>
         )}
         <article

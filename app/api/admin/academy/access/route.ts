@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { grantAcademyPoints } from "@/lib/academy-points";
 import connectDB from "@/lib/mongodb";
 import AcademyStudent from "@/models/AcademyStudent";
 
@@ -14,12 +15,46 @@ export async function PATCH(request: Request) {
     const body = await request.json() as {
       email?: string;
       courseGenerationExempt?: boolean;
+      pointsToGrant?: number;
+      note?: string;
     };
     const email = body.email?.trim().toLowerCase();
 
-    if (!email || typeof body.courseGenerationExempt !== "boolean") {
+    if (!email) {
       return NextResponse.json(
-        { error: "A valid student email and exemption state are required." },
+        { error: "A valid student email is required." },
+        { status: 400 }
+      );
+    }
+
+    if (body.pointsToGrant !== undefined) {
+      const points = Number(body.pointsToGrant);
+      if (!Number.isInteger(points) || points < 1 || points > 500) {
+        return NextResponse.json({ error: "Grant between 1 and 500 points." }, { status: 400 });
+      }
+
+      const student = await grantAcademyPoints({
+        email,
+        points,
+        note: body.note,
+        createdBy: session.user?.email ?? "admin",
+      });
+
+      return NextResponse.json({
+        success: true,
+        student: {
+          id: student._id.toString(),
+          name: student.name,
+          email: student.email,
+          pointsBalance: student.pointsBalance,
+          courseGenerationExempt: student.courseGenerationExempt === true,
+        },
+      });
+    }
+
+    if (typeof body.courseGenerationExempt !== "boolean") {
+      return NextResponse.json(
+        { error: "An exemption state or point grant is required." },
         { status: 400 }
       );
     }
@@ -44,6 +79,7 @@ export async function PATCH(request: Request) {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
+        pointsBalance: student.pointsBalance ?? 0,
         courseGenerationExempt: student.courseGenerationExempt === true,
       },
     });

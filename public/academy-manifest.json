@@ -1,0 +1,48 @@
+{
+  "name": "Lumyn Academy",
+  "short_name": "Academy",
+  "description": "An installable Lumyn Academy workspace for AI learning paths, projects, progress, and certificates.",
+  "start_url": "/academy/dashboard",
+  "scope": "/academy/dashboard",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7f2",
+  "theme_color": "#23352a",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Build a Path",
+      "url": "/academy/dashboard/generate",
+      "description": "Generate a new learning path"
+    },
+    {
+      "name": "My Learning",
+      "url": "/academy/dashboard/learning",
+      "description": "Continue your active learning path"
+    },
+    {
+      "name": "Certificates",
+      "url": "/academy/dashboard/certificates",
+      "description": "View earned certificates"
+    }
+  ]
+}

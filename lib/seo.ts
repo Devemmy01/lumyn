@@ -5,9 +5,26 @@ export const SITE_URL = (
 ).replace(/\/+$/, "");
 
 export const SITE_NAME = "Lumyn";
+export const SITE_LEGAL_NAME = "Lumyn Product Studio";
 export const DEFAULT_OG_IMAGE = "/og-image.png";
 export const SITE_DESCRIPTION =
-  "Lumyn is an independent product and software development studio building thoughtful digital products, custom web applications, and practical learning experiences.";
+  "Lumyn is an independent product studio building thoughtful digital products, applied AI experiences, modern web software, Lumyn Academy, and MindFuel.";
+export const SITE_TAGLINE =
+  "Independent product studio for thoughtful software, applied AI, learning, and reflection products.";
+export const SITE_KEYWORDS = [
+  "Lumyn",
+  "Lumyn product studio",
+  "independent product studio",
+  "digital product studio",
+  "software product studio",
+  "applied AI product studio",
+  "Lumyn Academy",
+  "MindFuel",
+  "AI software engineering courses",
+  "personalized coding course",
+  "reflection app",
+];
+export const SOCIAL_PROFILES = ["https://x.com/lumynstudio"];
 
 export function absoluteUrl(path = ""): string {
   if (/^https?:\/\//i.test(path)) return path;
@@ -45,12 +62,13 @@ export function buildMetadata({
   const usableImage = ogImage.startsWith("data:") ? DEFAULT_OG_IMAGE : ogImage;
   const fullOgImage = absoluteUrl(usableImage);
   const socialTitle = `${title} — ${SITE_NAME}`;
+  const combinedKeywords = Array.from(new Set([...keywords, ...SITE_KEYWORDS]));
 
   return {
     metadataBase: new URL(SITE_URL),
     title,
     description,
-    ...(keywords.length ? { keywords } : {}),
+    keywords: combinedKeywords,
     authors: [{ name: SITE_NAME, url: SITE_URL }],
     creator: SITE_NAME,
     publisher: SITE_NAME,
@@ -101,6 +119,94 @@ export function buildMetadata({
   };
 }
 
+export function buildWebPageJsonLd({
+  path,
+  name,
+  description,
+  pageType = "WebPage",
+  dateModified,
+  keywords = [],
+}: {
+  path: string;
+  name: string;
+  description: string;
+  pageType?: "WebPage" | "AboutPage" | "ContactPage" | "CollectionPage" | "Blog";
+  dateModified?: string;
+  keywords?: string[];
+}) {
+  const url = absoluteUrl(path);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": pageType,
+    "@id": `${url}#webpage`,
+    name,
+    headline: name,
+    description,
+    url,
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    inLanguage: "en",
+    ...(dateModified ? { dateModified } : {}),
+    ...(keywords.length ? { keywords: keywords.join(", ") } : {}),
+  };
+}
+
+export function buildProductJsonLd({
+  name,
+  path,
+  description,
+  image = DEFAULT_OG_IMAGE,
+  applicationCategory,
+  operatingSystem = "Web",
+  sameAs,
+  offers,
+}: {
+  name: string;
+  path: string;
+  description: string;
+  image?: string;
+  applicationCategory?: string;
+  operatingSystem?: string;
+  sameAs?: string;
+  offers?: Array<{
+    name: string;
+    price?: string;
+    priceCurrency?: string;
+    url?: string;
+  }>;
+}) {
+  const url = absoluteUrl(path);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": `${url}#softwareapplication`,
+    name,
+    applicationCategory,
+    operatingSystem,
+    description,
+    url,
+    image: absoluteUrl(image),
+    creator: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    ...(sameAs ? { sameAs } : {}),
+    ...(offers?.length
+      ? {
+          offers: offers.map((offer) => ({
+            "@type": "Offer",
+            name: offer.name,
+            price: offer.price ?? "0",
+            priceCurrency: offer.priceCurrency ?? "USD",
+            availability: "https://schema.org/InStock",
+            url: offer.url ? absoluteUrl(offer.url) : url,
+          })),
+        }
+      : {}),
+  };
+}
+
 export function buildBreadcrumbJsonLd(
   items: Array<{ name: string; path: string }>,
 ) {
@@ -124,6 +230,8 @@ export function buildArticleJsonLd({
   modifiedAt,
   tags,
   image,
+  wordCount,
+  readingTime,
 }: {
   title: string;
   description: string;
@@ -132,12 +240,15 @@ export function buildArticleJsonLd({
   modifiedAt?: string;
   tags: string[];
   image?: string;
+  wordCount?: number;
+  readingTime?: number;
 }) {
   const articleUrl = absoluteUrl(`/journal/${slug}`);
 
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
+    "@id": `${articleUrl}#article`,
     headline: title,
     description,
     image: [absoluteUrl(image?.startsWith("data:") ? DEFAULT_OG_IMAGE : image ?? DEFAULT_OG_IMAGE)],
@@ -158,8 +269,14 @@ export function buildArticleJsonLd({
     datePublished: publishedAt,
     dateModified: modifiedAt ?? publishedAt,
     keywords: tags.join(", "),
+    articleSection: tags[0] ?? "Journal",
+    isPartOf: { "@id": `${SITE_URL}/journal#webpage` },
     inLanguage: "en",
     url: articleUrl,
+    ...(wordCount ? { wordCount } : {}),
+    ...(readingTime
+      ? { timeRequired: `PT${Math.max(1, Math.round(readingTime))}M` }
+      : {}),
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": articleUrl,

@@ -6,8 +6,7 @@ type AcademyEmailEvent =
   | "assignment_reminder"
   | "quiz_completion"
   | "certificate_issued"
-  | "mentorship_application_received"
-  | "mentorship_payment_confirmation"
+  | "points_purchased"
   | "admin_notification";
 
 const copy: Record<AcademyEmailEvent, { subject: string; title: string; intro: string }> = {
@@ -36,15 +35,10 @@ const copy: Record<AcademyEmailEvent, { subject: string; title: string; intro: s
     title: "Certificate issued",
     intro: "Your course completion has been approved and your certificate is ready.",
   },
-  mentorship_application_received: {
-    subject: "Mentorship application received",
-    title: "Your mentorship application is in",
-    intro: "Lumyn has received your mentorship application and will review it for the next available cohort.",
-  },
-  mentorship_payment_confirmation: {
-    subject: "Mentorship payment confirmed",
-    title: "Mentorship access confirmed",
-    intro: "Your guided mentorship plan is active. Your roadmap and session details will follow.",
+  points_purchased: {
+    subject: "Lumyn Academy points added",
+    title: "Your points are ready",
+    intro: "Your Lumyn Academy point purchase has been confirmed.",
   },
   admin_notification: {
     subject: "New Lumyn Academy activity",

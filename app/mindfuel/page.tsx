@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import Hero from "@/components/Hero";
 import SectionWrapper from "@/components/SectionWrapper";
 import Reveal from "@/components/Reveal";
+import InteriorHero from "@/components/InteriorHero";
 import { mindFuelPositioning } from "@/lib/ecosystem";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, buildProductJsonLd, buildWebPageJsonLd, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "MindFuel",
@@ -14,6 +14,26 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["MindFuel", "reflection app", "personal growth community", "thought sharing app"],
   imageAlt: "MindFuel reflection and personal growth app",
 });
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    buildWebPageJsonLd({
+      path: "/mindfuel",
+      name: "MindFuel",
+      description: `${mindFuelPositioning} Explore its reflection feed, thought cards, profiles, and calm reading experience.`,
+      keywords: ["MindFuel", "reflection app", "personal growth network"],
+    }),
+    buildProductJsonLd({
+      name: "MindFuel",
+      path: "/mindfuel",
+      description: mindFuelPositioning,
+      image: "/mindfuel2.png",
+      applicationCategory: "LifestyleApplication",
+      sameAs: "https://www.mind-fuel.app",
+    }),
+  ],
+};
 
 const features = [
   {
@@ -51,13 +71,20 @@ const features = [
 export default function MindFuelPage() {
   return (
     <>
-      <Hero
-        badge="Live Product"
-        headline="MindFuel"
-        subheadline="Document what life is teaching you, share reflections, and grow together with people who are choosing intention over noise."
-        primaryCTA={{ label: "Visit Product", href: "https://www.mind-fuel.app" }}
-        secondaryCTA={{ label: "Explore Academy", href: "/academy" }}
-        size="compact"
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      />
+
+      <InteriorHero
+        eyebrow="Live product"
+        title="Life teaches."
+        accent="MindFuel remembers."
+        description="Document what life is teaching you, share useful reflections, and grow alongside people choosing intention over noise."
+        primaryAction={{ label: "Visit MindFuel", href: "https://www.mind-fuel.app" }}
+        secondaryAction={{ label: "Explore Academy", href: "/academy" }}
+        signals={["Reflect", "Share perspective", "Grow together"]}
+        note="MindFuel"
       />
 
       <SectionWrapper id="mindfuel" background="default" size="lg" separator>
@@ -67,7 +94,7 @@ export default function MindFuelPage() {
               Now live
             </div>
             <h2 className="heading-lg mb-6">Built for reflection, not noise.</h2>
-            <p className="mb-8 max-w-xl text-lg leading-8 text-white/60">
+            <p className="mb-8 max-w-xl text-lg leading-8 text-[color:var(--text-secondary)]">
               {mindFuelPositioning}
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
@@ -81,24 +108,22 @@ export default function MindFuelPage() {
           </Reveal>
 
           <Reveal delay={120} variant="scale">
-            <div className="dark-visual relative min-h-[560px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#070707] p-5 shadow-[0_40px_120px_rgba(0,0,0,0.55)]">
+            <div className="dark-visual relative min-h-[560px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#070707] p-3 shadow-[0_40px_120px_rgba(0,0,0,0.55)] sm:p-5">
               <div className="lumyn-soft-glow lumyn-grid absolute inset-0" />
-              <div className="relative mx-auto mt-8 w-full max-w-[780px] rounded-[2rem] border border-white/15 bg-black/40 p-3 shadow-2xl">
+              <div className="relative mx-auto h-[500px] w-full max-w-[780px] rounded-[1.6rem] border border-white/15 bg-[radial-gradient(circle_at_50%_35%,rgba(52,211,153,0.13),transparent_45%),#07100d] p-3 shadow-2xl">
                 <Image
-                  src="/mindfuel3.png"
-                  alt="MindFuel interface"
-                  width={1599}
-                  height={918}
+                  src="/mindfuel2.png"
+                  alt="MindFuel mobile interface"
+                  fill
+                  priority
                   sizes="(max-width: 1024px) 90vw, 780px"
-                  className="aspect-[1599/918] w-full rounded-[1.45rem] object-contain object-center"
+                  className="object-contain object-center p-4 drop-shadow-[0_30px_45px_rgba(0,0,0,0.6)]"
                 />
               </div>
-              <div className="absolute bottom-8 left-6 right-6 rounded-3xl border border-white/10 bg-black/70 p-5 backdrop-blur-xl">
-                <p className="mb-2 text-xs uppercase tracking-[0.2em] text-white/35">
-                  Product principle
-                </p>
-                <p className="text-2xl font-medium leading-tight text-white">
-                  Less performative posting. More useful reflection.
+              <div className="absolute right-5 top-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-4 py-2 backdrop-blur-xl">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                  Live product
                 </p>
               </div>
             </div>
@@ -108,9 +133,9 @@ export default function MindFuelPage() {
 
       <SectionWrapper background="secondary" size="lg" separator>
         <Reveal className="mb-10 max-w-3xl">
-          <p className="label-sm mb-4 text-white/45">Experience</p>
+          <p className="label-sm mb-4">Experience</p>
           <h2 className="heading-md mb-5">What MindFuel is built around.</h2>
-          <p className="text-lg leading-8 text-white/60">
+          <p className="text-lg leading-8 text-[color:var(--text-secondary)]">
             The product is designed as a small but complete social surface:
             readable, expressive, and calmer by default.
           </p>
@@ -119,14 +144,14 @@ export default function MindFuelPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
             <Reveal key={feature.title} delay={index * 70} variant="scale">
-              <div className="h-full rounded-3xl border border-white/10 bg-white/[0.035] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/25">
-                <p className="mb-5 text-xs uppercase tracking-[0.18em] text-white/35">
+              <div className="h-full rounded-3xl border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-6 transition duration-300 hover:-translate-y-1 hover:border-[#7c6cf6]/45">
+                <p className="mb-5 text-xs uppercase tracking-[0.18em] text-[color:var(--text-tertiary)]">
                   0{index + 1}
                 </p>
-                <h3 className="mb-3 text-2xl font-medium tracking-tight text-white">
+                <h3 className="mb-3 text-2xl font-medium tracking-tight text-[color:var(--text-primary)]">
                   {feature.title}
                 </h3>
-                <p className="leading-7 text-white/60">{feature.description}</p>
+                <p className="leading-7 text-[color:var(--text-secondary)]">{feature.description}</p>
               </div>
             </Reveal>
           ))}

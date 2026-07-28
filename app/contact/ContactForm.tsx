@@ -37,10 +37,11 @@ export default function ContactForm() {
   return (
     <>
       <SectionWrapper background="default">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-16 lg:gap-20">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px] lg:gap-16">
           {/* Form */}
-          <div>
-            <h2 className="heading-sm mb-8">Send a Message</h2>
+          <div className="rounded-[2rem] border border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)] p-5 sm:p-8 lg:p-10">
+            <p className="label-sm mb-5">Project note</p>
+            <h2 className="mb-8 text-3xl font-medium tracking-[-0.04em] text-[color:var(--text-primary)] md:text-5xl">Tell us what needs to move.</h2>
 
             {status === "success" ? (
               <div className=" bg-sage/10 border border-sage/20 p-8 text-center rounded-2xl">
@@ -60,7 +61,7 @@ export default function ContactForm() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label htmlFor="contact-name" className="block text-sm font-medium text-charcoal mb-2">
@@ -111,7 +112,7 @@ export default function ContactForm() {
                 </div>
 
                 {status === "error" && (
-                  <p className="text-red-600 text-sm bg-red-50 border border-red-200  px-4 py-3">
+                  <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-500">
                     {responseMessage}
                   </p>
                 )}
@@ -119,7 +120,7 @@ export default function ContactForm() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="btn-primary w-full gap-3 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
                   {status === "loading" ? (
                     <>
@@ -145,7 +146,7 @@ export default function ContactForm() {
 
           {/* Info sidebar */}
           <aside className="space-y-6" aria-label="Contact information">
-            <div className="card-flat">
+            <div className="rounded-[1.75rem] border border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)] p-6">
               <h3 className="font-semibold text-charcoal mb-3 tracking-tight">What We Work On</h3>
               <ul className="space-y-2 text-sm text-charcoal-muted">
                 {[
@@ -156,17 +157,18 @@ export default function ContactForm() {
                   "Modern engineering solutions",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <span className="w-1 h-1  bg-sage shrink-0" aria-hidden="true" />
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#7c6cf6]" aria-hidden="true" />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="card-flat">
-              <h3 className="font-semibold text-charcoal mb-3 tracking-tight">What to Expect</h3>
-              <p className="text-sm text-charcoal-muted leading-relaxed">
-                We read every message and respond thoughtfully and swiftly.
+            <div className="dark-visual rounded-[1.75rem] border border-white/10 bg-[#09090b] p-6 text-white">
+              <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">What to expect</p>
+              <h3 className="text-2xl font-medium tracking-[-0.035em] text-white">A thoughtful response, not a sales sequence.</h3>
+              <p className="mt-4 text-sm leading-7 text-white/55">
+                We read every message and respond with a useful next step.
               </p>
             </div>
           </aside>

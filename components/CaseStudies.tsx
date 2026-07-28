@@ -23,14 +23,14 @@ interface CaseStudiesProps {
 
 const defaultCaseStudies: CaseStudy[] = [
   {
-    title: "MindFuel Growth Strategy",
-    description: "Scaled a platform to 50K+ active users with optimized engagement.",
-    client: "MindFuel",
-    challenge: "Build a social platform that prioritizes meaningful interactions.",
-    result: "Achieved sustainable growth with 40% MoM retention.",
-    metrics: [{ label: "Users", value: "50K+" }, { label: "Retention", value: "+40%" }, { label: "Time", value: "4mo" }],
-    tags: ["Product Design", "Engineering"],
-    href: "/mindfuel",
+    title: "Lumyn Academy Flagship System",
+    description: "Designed the studio's lead learning experience around generated paths, practical work, and visible progress.",
+    client: "Lumyn Academy",
+    challenge: "Create a flagship product that feels focused, calm, and genuinely useful for learners.",
+    result: "A cohesive learning flow that turns goals into structured progress.",
+    metrics: [{ label: "Path", value: "AI-led" }, { label: "Support", value: "Astra" }, { label: "Proof", value: "Certificates" }],
+    tags: ["Product Design", "Learning UX"],
+    href: "/academy",
     accentColor: "#7C6CF6",
   },
   {
@@ -47,6 +47,7 @@ const defaultCaseStudies: CaseStudy[] = [
 ];
 
 export default function CaseStudies({ caseStudies = defaultCaseStudies, variant = "grid" }: CaseStudiesProps) {
+  void variant;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {caseStudies.map((study, index) => (

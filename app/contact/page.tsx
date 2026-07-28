@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
-import { buildMetadata } from "@/lib/seo";
+import InteriorHero from "@/components/InteriorHero";
+import { buildMetadata, buildWebPageJsonLd, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact Our Software Studio",
@@ -10,29 +11,31 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["contact software development studio", "hire software development team", "Lumyn contact"],
 });
 
+const jsonLd = buildWebPageJsonLd({
+  path: "/contact",
+  name: "Contact Lumyn",
+  description:
+    "Contact Lumyn about product work, partnerships, Lumyn Academy, MindFuel, or general support.",
+  pageType: "ContactPage",
+  keywords: ["contact Lumyn", "Lumyn product studio", "Lumyn support"],
+});
+
 export default function ContactPage() {
   return (
     <>
-      {/* Header */}
-      <section className="relative overflow-hidden mt-5 py-28 md:py-40" style={{ backgroundColor: "var(--bg-secondary)" }}>
-        <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
-        <div className="container-mid relative">
-          <p className="label-sm mb-5 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Contact</p>
-          <h1
-            className="heading-display mb-6 text-balance animate-fade-up opacity-0 max-w-5xl"
-            style={{ animationDelay: "100ms", animationFillMode: "forwards", color: "var(--text-primary)" }}
-          >
-            Start a Conversation
-          </h1>
-          <p
-            className="body-lg max-w-lg animate-fade-up opacity-0"
-            style={{ animationDelay: "200ms", animationFillMode: "forwards", color: "var(--text-secondary)" }}
-          >
-            Have a project in mind? Want to collaborate? Or just want to say hello?
-            We&apos;d love to hear from you.
-          </p>
-        </div>
-      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      />
+
+      <InteriorHero
+        eyebrow="Contact"
+        title="Bring us the"
+        accent="complicated part."
+        description="Tell us what you’re building, where it feels stuck, or what needs to become clearer. We’ll respond thoughtfully."
+        signals={["Product projects", "Partnerships", "General inquiries"]}
+        note="Open for conversation"
+      />
 
       <ContactForm />
     </>

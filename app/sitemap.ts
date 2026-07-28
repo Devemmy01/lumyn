@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
 import { SITE_URL } from "@/lib/seo";
-import { services } from "@/lib/services";
 import Post from "@/models/Post";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +18,6 @@ const publicPages: Array<{
   { path: "/products", changeFrequency: "monthly", priority: 0.85 },
   { path: "/mindfuel", changeFrequency: "monthly", priority: 0.85 },
   { path: "/academy", changeFrequency: "weekly", priority: 0.9 },
-  { path: "/services", changeFrequency: "monthly", priority: 0.9 },
   { path: "/journal", changeFrequency: "weekly", priority: 0.85 },
   { path: "/about", changeFrequency: "monthly", priority: 0.7 },
   { path: "/philosophy", changeFrequency: "monthly", priority: 0.65 },
@@ -36,12 +34,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: page.lastModified ?? CONTENT_UPDATED_AT,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
-    })),
-    ...services.map((service) => ({
-      url: `${SITE_URL}/services/${service.slug}`,
-      lastModified: CONTENT_UPDATED_AT,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
     })),
   ];
 

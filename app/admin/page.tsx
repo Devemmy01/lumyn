@@ -182,7 +182,7 @@ export default async function AdminDashboard() {
         <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">Quick actions</p>
         <div className="grid gap-3 md:grid-cols-3">
           {[
-            { title: "Manage Academy", description: "Students, access, and mentorship", href: "/admin/academy" },
+            { title: "Manage Academy", description: "Students, points, and courses", href: "/admin/academy" },
             { title: "Review subscribers", description: "Search and clean the audience list", href: "/admin/subscribers" },
             { title: "Open email inbox", description: "Review incoming agent mail", href: "/admin/inbox" },
           ].map((action) => (

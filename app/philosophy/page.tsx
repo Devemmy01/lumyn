@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SectionWrapper from "@/components/SectionWrapper";
 import CTA from "@/components/CTA";
-import { buildMetadata } from "@/lib/seo";
+import InteriorHero from "@/components/InteriorHero";
+import { buildMetadata, buildWebPageJsonLd, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Our Product Development Method",
@@ -16,6 +17,14 @@ export const metadata: Metadata = buildMetadata({
     "user-centric design",
     "impactful products",
   ],
+});
+
+const jsonLd = buildWebPageJsonLd({
+  path: "/philosophy",
+  name: "Lumyn Product Development Method",
+  description:
+    "The Lumyn method for building focused products that solve real problems, respect people's time, and remain useful after launch.",
+  keywords: ["product development method", "product strategy", "software excellence"],
 });
 
 const principles = [
@@ -49,26 +58,21 @@ const principles = [
 export default function PhilosophyPage() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-ivory py-32 md:py-44">
-        <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
-        <div className="container-mid relative">
-          <p className="label-sm mb-6 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>Our Method</p>
-          <h1 className="heading-display text-charcoal mb-8 text-balance animate-fade-up opacity-0 max-w-4xl"
-              style={{ animationDelay: "100ms", animationFillMode: "forwards" }}>
-            Engineered for Results.
-          </h1>
-          <div className="max-w-2xl space-y-5 animate-fade-up opacity-0"
-               style={{ animationDelay: "200ms", animationFillMode: "forwards" }}>
-            <p className="body-lg text-charcoal-muted">
-              We build products that solve problems.
-            </p>
-            <p className="body-lg text-charcoal-muted">
-              Impact-driven, user-centric, and built to last.
-            </p>
-          </div>
-        </div>
-      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      />
+
+      <InteriorHero
+        eyebrow="Our method"
+        title="Less noise."
+        accent="Better outcomes."
+        description="We build focused products that solve real problems, respect people’s time, and remain useful long after launch."
+        primaryAction={{ label: "See what we build", href: "/products" }}
+        secondaryAction={{ label: "Read our thinking", href: "/journal" }}
+        signals={["Focus", "Validation", "Ownership"]}
+        note="Product principles"
+      />
 
       {/* Full philosophy statement */}
       <SectionWrapper background="secondary" container="narrow">
@@ -88,7 +92,7 @@ export default function PhilosophyPage() {
           <p>
             That is what Lumyn is trying to deliver.
           </p>
-          <blockquote className="border-l-2 border-sage pl-6 my-8 text-charcoal italic text-xl">
+          <blockquote className="my-10 border-l-2 border-[#7c6cf6] pl-6 font-[Georgia] text-2xl italic leading-9 text-[color:var(--text-primary)]">
             We validate before we scale.<br />
             We optimize for impact.
           </blockquote>
@@ -108,25 +112,23 @@ export default function PhilosophyPage() {
 
       {/* Principles */}
       <SectionWrapper background="default">
-        <div className="text-center mb-14">
+        <div className="mb-14 max-w-3xl">
           <p className="label-sm mb-4">How We Work</p>
           <h2 className="heading-lg text-charcoal">Five Principles</h2>
         </div>
 
-        <div className="space-y-px">
+        <div className="border-b border-[color:var(--border-primary)]">
           {principles.map((principle) => (
             <article
               key={principle.number}
-              className="group grid grid-cols-1 md:grid-cols-[80px_1fr] gap-4 md:gap-10
-                         py-10 border-t border-stone/60 hover:bg-ivory-200/50
-                         transition-colors duration-300 px-0 md:px-4 "
+              className="group grid grid-cols-1 gap-4 border-t border-[color:var(--border-primary)] py-9 transition-colors duration-300 md:grid-cols-[100px_1fr] md:gap-10 md:px-5"
             >
-              <div className="text-4xl font-semibold text-stone group-hover:text-sage
+              <div className="text-4xl font-medium text-[color:var(--text-tertiary)] group-hover:text-[#7c6cf6]
                               transition-colors duration-300 tabular-nums tracking-tight">
                 {principle.number}
               </div>
               <div>
-                <h3 className="heading-sm text-charcoal mb-3 group-hover:text-sage-dark
+                <h3 className="heading-sm mb-3 group-hover:text-[#7c6cf6]
                                transition-colors duration-200">
                   {principle.title}
                 </h3>

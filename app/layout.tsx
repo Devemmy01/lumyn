@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "@/app/globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import LayoutWrapper from "@/components/LayoutWrapper";
@@ -9,10 +8,14 @@ import { Analytics } from "@vercel/analytics/react";
 import {
   DEFAULT_OG_IMAGE,
   SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_LEGAL_NAME,
   SITE_NAME,
+  SITE_TAGLINE,
   SITE_URL,
   absoluteUrl,
   serializeJsonLd,
+  SOCIAL_PROFILES,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
     template: "%s — Lumyn",
   },
   description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
   applicationName: SITE_NAME,
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
@@ -71,7 +75,6 @@ export const metadata: Metadata = {
     ],
     apple: "/lumyn-mark.svg",
   },
-  manifest: "/manifest.json",
   verification: {
     google:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
@@ -92,6 +95,9 @@ const jsonLd = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
+      legalName: SITE_LEGAL_NAME,
+      alternateName: ["Lumyn Studio", "Lumyn Product Studio", "Lumyn Academy"],
+      slogan: SITE_TAGLINE,
       url: SITE_URL,
       logo: {
         "@type": "ImageObject",
@@ -100,18 +106,63 @@ const jsonLd = {
         height: 512,
       },
       description: SITE_DESCRIPTION,
-      sameAs: ["https://x.com/lumynstudio"],
+      foundingDate: "2026",
+      sameAs: SOCIAL_PROFILES,
+      areaServed: "Worldwide",
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "sales and customer support",
         url: absoluteUrl("/contact"),
         availableLanguage: "English",
       },
+      knowsAbout: [
+        "Product strategy",
+        "Product design",
+        "Software engineering",
+        "Web application development",
+        "Applied AI",
+        "AI education",
+        "Learning products",
+        "Digital reflection products",
+      ],
+      brand: [
+        {
+          "@type": "Brand",
+          name: "Lumyn Academy",
+          url: absoluteUrl("/academy"),
+        },
+        {
+          "@type": "Brand",
+          name: "MindFuel",
+          url: absoluteUrl("/mindfuel"),
+        },
+      ],
+      makesOffer: [
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "SoftwareApplication",
+            name: "Lumyn Academy",
+            applicationCategory: "EducationalApplication",
+            url: absoluteUrl("/academy"),
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "SoftwareApplication",
+            name: "MindFuel",
+            applicationCategory: "LifestyleApplication",
+            url: absoluteUrl("/mindfuel"),
+          },
+        },
+      ],
     },
     {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       name: SITE_NAME,
+      alternateName: ["Lumyn Product Studio", "Lumyn Academy", "MindFuel"],
       url: SITE_URL,
       description: SITE_DESCRIPTION,
       inLanguage: "en",
@@ -142,21 +193,19 @@ export default function RootLayout({
               "(function(){try{var s=localStorage.getItem('theme');var t=s==='light'||s==='dark'?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(t);document.documentElement.style.colorScheme=t;}catch(e){document.documentElement.classList.add('dark');}})();",
           }}
         />
-        <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Lumyn" />
-        <meta name="mobile-web-app-capable" content="yes" />
+        <link
+          rel="alternate"
+          type="text/plain"
+          href="/llms.txt"
+          title="Lumyn AI-readable site summary"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       </head>
       <body className="min-h-screen flex flex-col antialiased">
-        <Script id="sw-register" strategy="afterInteractive">
-          {`if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }`}
-        </Script>
           <FirebaseAnalytics />
           <AuthProvider>
             <ThemeProvider>

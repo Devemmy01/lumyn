@@ -24,10 +24,10 @@ export default function JournalSearch() {
   }, [searchTerm, searchParams, router]);
 
   return (
-    <div className="relative mb-6">
+    <div className="relative">
       <input
         type="text"
-        className="w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-sage/50 text-sm shadow-sm transition-all"
+        className="w-full rounded-xl border px-4 py-3 text-sm transition-all focus:border-[#7c6cf6] focus:outline-none focus:ring-4 focus:ring-[#7c6cf6]/10"
         placeholder="Search articles..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

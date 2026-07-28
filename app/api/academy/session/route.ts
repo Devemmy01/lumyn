@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import { verifyAcademyToken } from "@/lib/firebase/admin";
+import connectDB, { MongoConnectionUnavailableError } from "@/lib/mongodb";
+import { ACADEMY_SESSION_MAX_AGE_SECONDS, createAcademySessionToken } from "@/lib/academy-session";
+import { FirebaseCertificatesUnavailableError, verifyAcademyToken } from "@/lib/firebase/admin";
 import { sendAcademyEmail } from "@/lib/academy-emails";
-import AcademyStudent from "@/models/AcademyStudent";
+import { STARTER_ACADEMY_POINTS } from "@/lib/academy";
+import { creditAcademyReferral, ensureAcademyReferralCode } from "@/lib/academy-referrals";
+import AcademyPointTransaction from "@/models/AcademyPointTransaction";
+import AcademyStudent, { type IAcademyStudentDocument } from "@/models/AcademyStudent";
 
 export const runtime = "nodejs";
 
-const SESSION_MAX_AGE_SECONDS = 60 * 60;
-
 export async function POST(request: NextRequest) {
-  let body: { idToken?: string; planId?: string };
+  let body: { idToken?: string; planId?: string; referralCode?: string };
 
   try {
-    body = (await request.json()) as { idToken?: string; planId?: string };
+    body = (await request.json()) as { idToken?: string; planId?: string; referralCode?: string };
   } catch {
     return NextResponse.json(
       { success: false, error: "The sign-in request was invalid." },
@@ -32,6 +34,16 @@ export async function POST(request: NextRequest) {
   try {
     decoded = await verifyAcademyToken(body.idToken);
   } catch (error) {
+    if (error instanceof FirebaseCertificatesUnavailableError) {
+      console.warn("[academy/session] Firebase token verification temporarily unavailable", error.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Academy authentication is temporarily unavailable. Please try again in a moment.",
+        },
+        { status: 503 },
+      );
+    }
     console.error("[academy/session] Firebase token verification failed", error);
     return NextResponse.json(
       {
@@ -56,7 +68,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const existing = await AcademyStudent.exists({ firebaseUid: decoded.uid });
-    const student = await AcademyStudent.findOneAndUpdate(
+    let student = await AcademyStudent.findOneAndUpdate<IAcademyStudentDocument>(
       { firebaseUid: decoded.uid },
       {
         $set: {
@@ -66,42 +78,68 @@ export async function POST(request: NextRequest) {
         $setOnInsert: {
           role: "student",
           subscription: {
-            planId: body.planId === "guided-mentorship"
-              ? "guided-mentorship"
-              : "ai-learning-path",
-            status: "pending",
+            planId: "ai-learning-path",
+            status: "inactive",
             provider: "manual",
           },
           mentorshipStatus: "none",
+          pointsBalance: STARTER_ACADEMY_POINTS,
+          starterPointsGrantedAt: new Date(),
         },
       },
       { new: true, upsert: true, runValidators: true },
-    ).lean();
+    );
 
     if (!student) {
       throw new Error("Student upsert returned no record.");
     }
+
+    student = await ensureAcademyReferralCode(student);
 
     const response = NextResponse.json({
       success: true,
       student: {
         email: student.email,
         name: student.name,
+        avatarUrl: student.avatarUrl,
+        certificateName: student.certificateName,
         role: student.role,
+        pointsBalance: student.pointsBalance,
+        referralCode: student.referralCode,
+        referralsCount: student.referralsCount ?? 0,
         subscription: student.subscription,
         mentorshipStatus: student.mentorshipStatus,
       },
     });
 
-    response.cookies.set("lumyn_academy_session", body.idToken, {
+    const academySessionToken = await createAcademySessionToken({
+      uid: decoded.uid,
+      email: decoded.email,
+      name: decoded.name,
+    });
+
+    response.cookies.set("lumyn_academy_session", academySessionToken, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: SESSION_MAX_AGE_SECONDS,
+      maxAge: ACADEMY_SESSION_MAX_AGE_SECONDS,
     });
 
     if (!existing) {
+      await AcademyPointTransaction.create({
+        studentUid: decoded.uid,
+        studentEmail: decoded.email,
+        type: "starter_grant",
+        points: STARTER_ACADEMY_POINTS,
+        balanceAfter: STARTER_ACADEMY_POINTS,
+        note: "Starter Academy points",
+      });
+      await creditAcademyReferral({
+        newStudentUid: decoded.uid,
+        newStudentEmail: decoded.email,
+        referralCode: body.referralCode,
+      });
       sendAcademyEmail({
         event: "welcome",
         to: decoded.email,
@@ -110,6 +148,16 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
+    if (error instanceof MongoConnectionUnavailableError) {
+      console.warn("[academy/session] Student session persistence temporarily unavailable", error.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Your account was verified, but your workspace could not be opened. Please try again shortly.",
+        },
+        { status: 503 },
+      );
+    }
     console.error("[academy/session] Student session persistence failed", error);
     return NextResponse.json(
       {

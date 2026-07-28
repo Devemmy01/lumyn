@@ -34,21 +34,16 @@ export default function BlogCard({
     <Link
       href={`/journal/${slug}`}
       className={clsx(
-        "group flex flex-col gap-4 p-3 md:p-7 rounded-2xl h-full",
-        "card transition-all duration-400 ease-out-expo hover:shadow-lg",
-        variant === "featured" && "md:p-10"
+        "group flex h-full flex-col gap-5 overflow-hidden rounded-[1.6rem] border border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)] p-5 transition duration-500 hover:-translate-y-1 hover:border-[#7c6cf6]/50 sm:p-6",
+        variant === "featured" && "min-h-[340px] justify-end md:p-10"
       )}
-      style={{
-        backgroundColor: "var(--bg-primary)",
-        borderColor: "var(--border-primary)"
-      }}
       aria-label={`Read: ${title}`}
     >
       {/* Tags */}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="tag text-xs p-2">
+            <span key={tag} className="rounded-full border border-[color:var(--border-primary)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">
               {tag}
             </span>
           ))}
@@ -58,22 +53,21 @@ export default function BlogCard({
       {/* Title */}
       <h3
         className={clsx(
-          "font-semibold tracking-tight group-hover:text-sage",
-          "transition-colors duration-200 leading-snug",
-          variant === "featured" ? "text-xl md:text-2xl" : "text-lg"
+          "font-medium tracking-[-0.035em] text-[color:var(--text-primary)] transition-colors duration-200 group-hover:text-[#7c6cf6]",
+          "leading-[1.05]",
+          variant === "featured" ? "text-3xl md:text-5xl" : "text-2xl md:text-3xl"
         )}
-        style={{ color: "var(--text-primary)" }}
       >
         {title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-sm leading-relaxed line-clamp-3 flex-1" style={{ color: "var(--text-secondary)" }}>
+      <p className="line-clamp-3 flex-1 text-sm leading-7 text-[color:var(--text-secondary)]">
         {excerpt}
       </p>
 
       {/* Meta */}
-      <div className="flex items-center gap-3 text-xs pt-2 border-t" style={{ color: "var(--text-tertiary)", borderColor: "var(--border-secondary)" }}>
+      <div className="flex items-center gap-3 border-t border-[color:var(--border-primary)] pt-4 text-[10px] font-semibold uppercase tracking-[0.1em] text-[color:var(--text-tertiary)]">
         <time dateTime={new Date(createdAt).toISOString()}>
           {formatDate(createdAt)}
         </time>
@@ -84,8 +78,7 @@ export default function BlogCard({
           </>
         )}
         <span
-          className="ml-auto flex items-center gap-1 text-sage opacity-0 group-hover:opacity-100
-                     transition-all duration-200 -translate-x-2 group-hover:translate-x-0 font-medium"
+          className="ml-auto flex items-center gap-1 text-[#7c6cf6] transition-all duration-200 group-hover:translate-x-1"
         >
           Read
           <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">

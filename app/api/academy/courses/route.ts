@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getVerifiedAcademyStudent, hasCourseGenerationExemption } from "@/lib/academy-access";
+import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent, hasCourseGenerationExemption } from "@/lib/academy-access";
+import { ensureModulePractice, ensureModuleQuizQuestions, type GeneratedCourse } from "@/lib/academy";
 import AcademyCourse from "@/models/AcademyCourse";
+
+function courseWithQuizGuard(course: GeneratedCourse): GeneratedCourse {
+  return {
+    ...course,
+    modules: course.modules.map((module) => ({
+      ...module,
+      ...ensureModulePractice(module),
+      quiz: {
+        ...module.quiz,
+        questions: ensureModuleQuizQuestions(module),
+      },
+    })),
+  };
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +42,12 @@ export async function GET(request: NextRequest) {
       student: {
         name: student.name,
         email: student.email,
+        avatarUrl: student.avatarUrl,
+        certificateName: student.certificateName,
         role: student.role,
+        pointsBalance: student.pointsBalance ?? 0,
+        referralCode: student.referralCode,
+        referralsCount: student.referralsCount ?? 0,
         courseGenerationExempt: hasCourseGenerationExemption(student),
         subscription: student.subscription,
         mentorshipStatus: student.mentorshipStatus,
@@ -39,14 +59,24 @@ export async function GET(request: NextRequest) {
       },
       courses: courses.map((item) => ({
         id: item._id.toString(),
-        course: item.course,
+        course: courseWithQuizGuard(item.course),
         status: item.status,
         progressPercent: item.progressPercent,
         quizAttempts: item.quizAttempts ?? [],
         assignmentSubmissions: item.assignmentSubmissions ?? [],
         finalProjectSubmission: item.finalProjectSubmission,
         activityLog: item.activityLog ?? [],
-        certificate: item.certificate,
+        learningCursor: item.learningCursor,
+        certificate: item.certificate
+          ? {
+              ...item.certificate,
+              certificateName:
+                item.certificate.certificateName?.trim() ||
+                student.certificateName?.trim() ||
+                student.name?.trim() ||
+                undefined,
+            }
+          : item.certificate,
         tutorMessages: item.tutorMessages ?? [],
         createdAt: item.createdAt,
       })),
@@ -60,10 +90,17 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AcademyDatabaseUnavailableError) {
+      console.warn("[GET /api/academy/courses]", error.message);
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 503 }
+      );
+    }
     console.error("[GET /api/academy/courses]", error);
     return NextResponse.json(
       { success: false, error: "Could not load academy courses." },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }

@@ -1,10 +1,12 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import type { AcademyPlanId, AcademyRole, SubscriptionStatus } from "@/lib/academy";
+import { STARTER_ACADEMY_POINTS, type AcademyPlanId, type AcademyRole, type SubscriptionStatus } from "@/lib/academy";
 
 export interface IAcademyStudentDocument extends Document {
   firebaseUid: string;
   name?: string;
   email: string;
+  avatarUrl?: string;
+  certificateName?: string;
   role: AcademyRole;
   subscription: {
     planId?: AcademyPlanId;
@@ -17,6 +19,13 @@ export interface IAcademyStudentDocument extends Document {
     cancelAtPeriodEnd?: boolean;
   };
   mentorshipStatus: "none" | "applied" | "approved" | "active" | "completed";
+  pointsBalance: number;
+  starterPointsGrantedAt?: Date;
+  referralCode?: string;
+  referredByCode?: string;
+  referredByUid?: string;
+  referredAt?: Date;
+  referralsCount?: number;
   courseGenerationExempt?: boolean;
   freeCourseUsedAt?: Date;
   freeCourseId?: string;
@@ -45,6 +54,16 @@ const AcademyStudentSchema = new Schema<IAcademyStudentDocument>(
       lowercase: true,
       index: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
+    },
+    avatarUrl: {
+      type: String,
+      trim: true,
+      maxlength: 240,
+    },
+    certificateName: {
+      type: String,
+      trim: true,
+      maxlength: 120,
     },
     role: {
       type: String,
@@ -78,6 +97,39 @@ const AcademyStudentSchema = new Schema<IAcademyStudentDocument>(
       type: String,
       enum: ["none", "applied", "approved", "active", "completed"],
       default: "none",
+    },
+    pointsBalance: {
+      type: Number,
+      default: STARTER_ACADEMY_POINTS,
+      min: 0,
+    },
+    starterPointsGrantedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    referralCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    referredByCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+    },
+    referredByUid: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    referredAt: Date,
+    referralsCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     courseGenerationExempt: {
       type: Boolean,

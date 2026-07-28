@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import SectionWrapper from "@/components/SectionWrapper";
 import CTA from "@/components/CTA";
-import { buildMetadata } from "@/lib/seo";
+import InteriorHero from "@/components/InteriorHero";
+import { buildMetadata, buildWebPageJsonLd, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "About Our Product Studio",
@@ -9,6 +10,15 @@ export const metadata: Metadata = buildMetadata({
     "Meet Lumyn, an independent product and software development studio building calm, intelligent digital products, custom software, and learning experiences.",
   path: "/about",
   keywords: ["about Lumyn", "independent product studio", "software development studio"],
+});
+
+const jsonLd = buildWebPageJsonLd({
+  path: "/about",
+  name: "About Lumyn",
+  description:
+    "Lumyn is an independent product studio building thoughtful software, learning products, and reflection tools with a small craft-led team.",
+  pageType: "AboutPage",
+  keywords: ["about Lumyn", "independent product studio", "software product studio"],
 });
 
 const teamValues = [
@@ -37,26 +47,21 @@ const teamValues = [
 export default function AboutPage() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-ivory py-36 md:py-48">
-        <div className="absolute inset-0 bg-dots opacity-30 pointer-events-none" aria-hidden="true" />
-        <div className="container-wide relative">
-          <p className="label-sm mb-6 animate-fade-in opacity-0" style={{ animationFillMode: "forwards" }}>About Lumyn</p>
-          <h1
-            className="heading-display text-charcoal mb-8 text-balance animate-fade-up opacity-0 max-w-5xl"
-            style={{ animationDelay: "100ms", animationFillMode: "forwards" }}
-          >
-            We Build Tools That Help People Think.
-          </h1>
-          <p
-            className="body-lg text-charcoal-muted max-w-2xl animate-fade-up opacity-0"
-            style={{ animationDelay: "200ms", animationFillMode: "forwards" }}
-          >
-            Lumyn is an independent digital studio focused on thoughtful software —
-            tools that help people navigate a noisy world with clarity.
-          </p>
-        </div>
-      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      />
+
+      <InteriorHero
+        eyebrow="About Lumyn"
+        title="Small studio."
+        accent="Serious intent."
+        description="Lumyn is an independent product studio building thoughtful software that helps people navigate a noisy world with more clarity."
+        primaryAction={{ label: "Work with Lumyn", href: "/contact" }}
+        secondaryAction={{ label: "See our products", href: "/products" }}
+        signals={["Independent", "Long-term", "Craft-led"]}
+        note="Studio profile"
+      />
 
       {/* Mission */}
       <SectionWrapper background="secondary" container="narrow">
@@ -83,7 +88,7 @@ export default function AboutPage() {
       {/* Who we are */}
       <SectionWrapper background="default">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 md:p-8">
+          <div className="rounded-[2rem] border border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)] p-6 md:p-8">
             <p className="label-sm mb-5">Who We Are</p>
             <h2 className="heading-md text-charcoal mb-6 max-w-xl">
               Independent by design.
@@ -108,17 +113,17 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div className="mt-10 grid grid-cols-3 gap-3 border-t border-white/10 pt-6">
+            <div className="mt-10 grid grid-cols-3 gap-3 border-t border-[color:var(--border-primary)] pt-6">
               {[
                 ["Small", "team"],
                 ["Long", "view"],
                 ["High", "craft"],
               ].map(([value, label]) => (
                 <div key={label}>
-                  <p className="text-2xl font-medium tracking-tight text-white md:text-3xl">
+                  <p className="text-2xl font-medium tracking-tight text-[color:var(--text-primary)] md:text-3xl">
                     {value}
                   </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/35">
+                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[color:var(--text-tertiary)]">
                     {label}
                   </p>
                 </div>
@@ -130,16 +135,16 @@ export default function AboutPage() {
             {teamValues.map((value, index) => (
               <article
                 key={value.title}
-                className="group grid gap-5 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 transition duration-300 hover:border-[#7c6cf6]/45 hover:bg-white/[0.05] sm:grid-cols-[72px_1fr]"
+                className="group grid gap-5 rounded-[1.5rem] border border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)] p-5 transition duration-300 hover:border-[#7c6cf6]/45 sm:grid-cols-[72px_1fr]"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-white/40 transition group-hover:text-[#7c6cf6]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] text-sm font-semibold text-[color:var(--text-tertiary)] transition group-hover:text-[#7c6cf6]">
                   0{index + 1}
                 </div>
                 <div>
-                  <h3 className="mb-2 text-xl font-medium tracking-tight text-white">
+                  <h3 className="mb-2 text-xl font-medium tracking-tight text-[color:var(--text-primary)]">
                     {value.title}
                   </h3>
-                  <p className="max-w-xl text-sm leading-7 text-white/55">
+                  <p className="max-w-xl text-sm leading-7 text-[color:var(--text-secondary)]">
                     {value.description}
                   </p>
                 </div>
@@ -178,10 +183,9 @@ export default function AboutPage() {
                 "We ship when something is good enough to be genuinely useful. Then we listen. Then we refine. Slowly, carefully, permanently.",
             },
           ].map(({ step, detail }, i) => (
-            <div key={step} className="flex gap-6">
-              <div className="w-8 h-8 rounded-2xl bg-sage/15 text-sage-dark flex items-center
-                              justify-center text-sm font-semibold shrink-0 mt-0.5">
-                {i + 1}
+            <div key={step} className="grid gap-4 border-t border-[color:var(--border-primary)] py-7 sm:grid-cols-[64px_1fr]">
+              <div className="text-xs font-semibold text-[#7c6cf6]">
+                0{i + 1}
               </div>
               <div>
                 <h3 className="font-semibold text-charcoal mb-2">{step}</h3>

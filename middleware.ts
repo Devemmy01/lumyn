@@ -2,19 +2,6 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/academy/dashboard")) {
-    const hasAcademySession = request.cookies.has("lumyn_academy_session");
-
-    if (!hasAcademySession) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/academy/sign-in";
-      url.searchParams.set("next", request.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.next();
-  }
-
   if (request.nextUrl.pathname.startsWith("/admin")) {
     const token = await getToken({
       req: request,
@@ -32,5 +19,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/academy/dashboard/:path*"],
+  matcher: ["/admin/:path*"],
 };
