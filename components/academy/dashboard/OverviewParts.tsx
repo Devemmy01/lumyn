@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import LumynLogo from "@/components/LumynLogo";
+import AcademyHomeLink from "@/components/academy/AcademyHomeLink";
+import AcademyLogo from "@/components/academy/AcademyLogo";
 import AcademyAuthForm from "@/components/academy/AcademyAuthForm";
+import AcademyThemeToggle from "@/components/academy/AcademyThemeToggle";
 import AstraMascot from "@/components/academy/AstraMascot";
 import { ACADEMY_TUTOR_NAME } from "@/lib/academy";
 import { ArrowIcon } from "@/components/academy/dashboard/icons";
@@ -58,77 +60,54 @@ export function OverviewHero({
 
 export function DashboardAuthScreen() {
   return (
-    <main className="academy-app-font academy-auth-shell relative min-h-screen overflow-hidden bg-[#f6f3ff] text-[#15131f] dark:bg-[#06060d] dark:text-white">
+    <main className="academy-app-font academy-auth-shell relative min-h-[100dvh] overflow-hidden bg-[#f6f3ff] text-[#15131f] dark:bg-[#06060d] dark:text-white">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#fbfaff_0%,#ede9ff_52%,#f5f1ff_100%)] dark:bg-[linear-gradient(135deg,#080711_0%,#10101a_48%,#090713_100%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:linear-gradient(rgba(124,108,246,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(124,108,246,0.18)_1px,transparent_1px)] [background-size:88px_88px] dark:opacity-[0.1]" />
 
-      <header className="relative z-10 mx-auto flex h-20 max-w-[1120px] items-center justify-between px-5 sm:px-8">
-        <Link href="/academy" aria-label="Academy home" className="inline-flex items-center gap-3">
-          <LumynLogo compact />
-        </Link>
-        <Link href="/academy" className="rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-bold text-[#5d5670] shadow-sm backdrop-blur transition hover:border-[#7c6cf6]/35 hover:text-[#6757df] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/50 dark:hover:text-white">
-          Web home
-        </Link>
+      <header className="relative z-10 mx-auto flex h-16 max-w-[1120px] items-center justify-between px-4 sm:h-20 sm:px-8">
+        <AcademyHomeLink label="Open Lumyn Academy in browser" className="inline-flex items-center gap-3">
+          <AcademyLogo compact />
+        </AcademyHomeLink>
+        <AcademyThemeToggle />
       </header>
 
-      <section className="relative z-10 mx-auto flex min-h-[calc(100vh-5rem)] max-w-[1120px] items-center px-5 pb-10 pt-2 sm:px-8">
-        <div className="grid w-full overflow-hidden rounded-[2.25rem] border border-black/[0.08] bg-white/76 shadow-[0_34px_120px_rgba(55,44,112,0.15)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#10101a]/90 dark:shadow-[0_42px_150px_rgba(0,0,0,0.48)] lg:grid-cols-[0.92fr_0.82fr]">
-          <section className="relative overflow-hidden p-6 sm:p-8 lg:p-10">
-
-            <div className="relative flex items-start justify-between gap-6">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#6757df] dark:text-[#b9b1ff]">Lumyn Academy</p>
-                <h1 className="mt-4 max-w-xl text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.045em] text-[#15131f] dark:text-white sm:text-5xl">
-                  Sign in and continue your path.
-                </h1>
-                <p className="mt-4 max-w-lg text-base leading-7 text-[#625b72] dark:text-white/58">
-                  Build a course around your goal, ask {ACADEMY_TUTOR_NAME} for help,
-                  and keep your progress in one installable dashboard.
-                </p>
-              </div>
-              <div className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-[1.6rem] bg-gradient-to-br from-white to-[#ded9ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_20px_60px_rgba(76,61,158,0.2)] dark:from-white/[0.08] dark:to-[#7c6cf6]/[0.16] sm:flex">
-                <AstraMascot expression="happy" className="h-32 w-32 translate-y-1" />
-              </div>
+      <section className="relative z-10 mx-auto flex min-h-[calc(100dvh-4rem)] max-w-[1120px] items-start px-4 pb-8 pt-2 sm:min-h-[calc(100vh-5rem)] sm:items-center sm:px-8 sm:pb-10">
+        <div className="grid w-full gap-4 sm:overflow-hidden sm:rounded-[2.25rem] sm:border sm:border-black/[0.08] sm:bg-white/76  sm:backdrop-blur-2xl sm:dark:border-white/10 sm:dark:bg-[#10101a]/90  lg:grid-cols-[0.92fr_0.82fr] lg:gap-0">
+          <section className="relative order-2 hidden min-h-[520px] overflow-hidden rounded-[1.7rem] border border-black/[0.08] bg-white/60 p-8 shadow-[0_24px_80px_rgba(55,44,112,0.12)] dark:border-white/10 dark:bg-white/[0.035] md:flex md:flex-col md:justify-between sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none lg:order-1 lg:p-10">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#6757df] dark:text-[#b9b1ff]">
+                Lumyn Academy
+              </p>
+              <h1 className="mt-4 max-w-sm text-balance text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-[#15131f] dark:text-white">
+                Meet {ACADEMY_TUTOR_NAME}.
+              </h1>
+              <p className="mt-4 max-w-sm text-sm leading-7 text-[#625b72] dark:text-white/58">
+                Your AI learning assistant for lessons, projects, feedback, and
+                steady progress.
+              </p>
             </div>
 
-            <div className="relative mt-8 overflow-hidden rounded-[1.75rem] border border-[#7c6cf6]/15 bg-[#7c6cf6]/[0.07] p-4 dark:border-white/10 dark:bg-white/[0.045] sm:p-5">
-              <div className="relative flex gap-4">
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.55rem] bg-gradient-to-br from-white to-[#dcd7ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_16px_42px_rgba(76,61,158,0.2)] dark:from-white/[0.14] dark:to-[#7c6cf6]/[0.22] sm:hidden">
-                  <AstraMascot expression="happy" className="h-28 w-28 translate-y-1" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6757df] dark:text-[#b9b1ff]">Astra is ready</p>
-                  <p className="mt-2 text-sm leading-6 text-[#625b72] dark:text-white/58">
-                    Use your 10 starter points to generate the first path. A complete path costs 10 points.
-                  </p>
-                </div>
-              </div>
+            <div className="relative mx-auto my-6 flex h-72 w-72 items-center justify-center">
+              <div className="absolute inset-8 rounded-full bg-[#7c6cf6]/15 blur-3xl" />
+              <AstraMascot
+                expression="happy"
+                className="relative h-72 w-72 translate-y-2"
+                priority
+              />
             </div>
 
-            <div className="relative mt-5 grid gap-3 sm:grid-cols-3">
-              {[
-                ["10", "starter points"],
-                ["10", "points per path"],
-                ["PWA", "installable"],
-              ].map(([value, label]) => (
-                <div key={label} className="rounded-2xl border border-black/[0.08] bg-white/64 p-4 dark:border-white/10 dark:bg-black/20">
-                  <p className="text-2xl font-semibold tracking-[-0.04em] text-[#6757df] dark:text-[#b9b1ff]">{value}</p>
-                  <p className="mt-1 text-xs font-semibold text-[#6f687f] dark:text-white/45">{label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="relative mt-5 grid gap-2 text-sm text-[#625b72] dark:text-white/58 sm:grid-cols-2">
-              {["Interactive lessons", "Astra support", "XP progress", "Certificates"].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/52 px-3 py-2.5 dark:bg-white/[0.045]">
-                  <span className="h-2 w-2 rounded-full bg-[#7c6cf6]" />
-                  {item}
-                </div>
-              ))}
+            <div className="relative rounded-[1.6rem] border border-[#7c6cf6]/15 bg-[#7c6cf6]/[0.07] p-5 dark:border-white/10 dark:bg-white/[0.045]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6757df] dark:text-[#b9b1ff]">
+                Starter access included
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[#625b72] dark:text-white/58">
+                New students get 10 starter points, enough to generate the first
+                complete learning path.
+              </p>
             </div>
           </section>
 
-          <section className="border-t border-black/[0.08] bg-[#131220]/[0.04] p-4 dark:border-white/10 dark:bg-black/20 sm:p-6 lg:border-l lg:border-t-0">
+          <section className="order-1 rounded-[1.7rem] lg:border border-black/[0.08] bg-white/76 md:p-3 md:shadow-[0_24px_90px_rgba(55,44,112,0.14)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#10101a]/92 dark:shadow-[0_30px_110px_rgba(0,0,0,0.45)] sm:rounded-none sm:border-0 sm:border-t sm:bg-[#131220]/[0.04] sm:p-6 sm:shadow-none sm:dark:bg-black/20 lg:order-2 lg:border-l lg:border-t-0 mt-12 sm:mt-0 flex items-center justify-center">
             <div className="mx-auto w-full max-w-[460px]">
               <AcademyAuthForm />
             </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import AstraMascot from "@/components/academy/AstraMascot";
 import {
   ArrowIcon,
   CheckIcon,
@@ -104,7 +105,24 @@ function describeGeneratedPathCapacity(points: number) {
     : pathLabel;
 }
 
-export default function AcademyPage() {
+interface AcademyPageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+function buildAcademyStartHref(referralCode?: string) {
+  const params = new URLSearchParams({ plan: "ai-learning-path" });
+  if (referralCode) params.set("ref", referralCode);
+  return `/academy/dashboard?${params.toString()}`;
+}
+
+export default async function AcademyPage({ searchParams }: AcademyPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const referralCode =
+    typeof resolvedSearchParams.ref === "string"
+      ? resolvedSearchParams.ref.trim()
+      : "";
+  const academyStartHref = buildAcademyStartHref(referralCode);
+
   return (
     <div className="academy-app-font overflow-hidden mt-5 bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <script
@@ -140,7 +158,7 @@ export default function AcademyPage() {
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/academy/dashboard?plan=ai-learning-path"
+                  href={academyStartHref}
                   className="btn-primary gap-2"
                 >
                   Start with 10 free points
@@ -166,7 +184,24 @@ export default function AcademyPage() {
           </div>
 
           <Reveal delay={120} variant="scale">
-            <CourseStudioPreview />
+            <div className="relative">
+              <CourseStudioPreview />
+              <div className="pointer-events-none absolute -bottom-8 -left-5 hidden w-44 rounded-[1.7rem] border border-[#7c6cf6]/20 bg-white/85 p-3 shadow-[0_24px_70px_rgba(53,42,110,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111018]/88 sm:block lg:-bottom-10 lg:-left-8 lg:w-52">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#7c6cf6]/10">
+                    <AstraMascot expression="happy" className="h-20 w-20 translate-y-1" priority />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#6c5ce7] dark:text-[#b9b1ff]">
+                      Astra
+                    </p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-[var(--text-secondary)]">
+                      Your AI learning assistant
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -370,7 +405,7 @@ export default function AcademyPage() {
                     total updates instantly before Flutterwave opens.
                   </p>
                   <Link
-                    href="/academy/dashboard?plan=ai-learning-path"
+                    href={academyStartHref}
                     className="btn-primary mt-7 w-full justify-center md:w-auto"
                   >
                     Open Academy app <ArrowIcon />
@@ -512,7 +547,7 @@ export default function AcademyPage() {
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
-                href="/academy/dashboard?plan=ai-learning-path"
+                href={academyStartHref}
                 className="btn-primary"
               >
                 Start learning <ArrowIcon />

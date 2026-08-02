@@ -11,7 +11,8 @@ import {
   type FormEvent,
 } from "react";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import LumynLogo from "@/components/LumynLogo";
+import AcademyHomeLink from "@/components/academy/AcademyHomeLink";
+import AcademyLogo from "@/components/academy/AcademyLogo";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   ACADEMY_POINT_PRICE_CENTS,
@@ -1208,7 +1209,7 @@ export default function StudentDashboard() {
     const origin = window.location.origin.includes("localhost")
       ? "https://lumynhq.studio"
       : window.location.origin;
-    const link = `${origin}/academy/dashboard?ref=${encodeURIComponent(code)}`;
+    const link = `${origin}/academy?ref=${encodeURIComponent(code)}`;
     try {
       await window.navigator.clipboard.writeText(link);
       notify(
@@ -1274,7 +1275,7 @@ export default function StudentDashboard() {
     : appOrigin;
   const referralLink =
     dashboard?.student.referralCode && appOrigin
-      ? `${referralOrigin}/academy/dashboard?ref=${dashboard.student.referralCode}`
+      ? `${referralOrigin}/academy?ref=${dashboard.student.referralCode}`
       : "";
   const lessonsComplete =
     activeModuleData?.lessons.every(
@@ -1334,9 +1335,9 @@ export default function StudentDashboard() {
       <header className="z-40 border-b border-transparent bg-[#f2f1ed] dark:bg-[#08090c] lg:sticky lg:top-0 lg:border-black/[0.08] lg:bg-[#f8f7f4]/90 lg:backdrop-blur-2xl lg:dark:border-white/[0.08] lg:dark:bg-[#0b0c10]/90">
         <div className="mx-auto hidden h-[72px] max-w-[1720px] items-center justify-between gap-4 px-4 sm:px-6 lg:flex lg:px-8">
           <div className="flex items-center gap-4">
-            <Link href="/academy" aria-label="Academy home">
-              <LumynLogo compact />
-            </Link>
+            <AcademyHomeLink label="Open Lumyn Academy in browser">
+              <AcademyLogo compact />
+            </AcademyHomeLink>
             <span className="hidden h-5 w-px bg-black/10 dark:bg-white/10 sm:block" />
             <span className="hidden text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400 sm:block">
               Academy workspace
@@ -1448,9 +1449,9 @@ export default function StudentDashboard() {
         </div>
         <div className="mx-auto px-5 pb-6 pt-6 sm:px-6 lg:hidden">
           <div className="flex items-start justify-between gap-4">
-            <Link href="/academy" aria-label="Academy home">
-              <LumynLogo className="pt-1" />
-            </Link>
+            <AcademyHomeLink label="Open Lumyn Academy in browser">
+              <AcademyLogo className="pt-1" />
+            </AcademyHomeLink>
             <div className="flex items-center gap-3">
               <NotificationBell
                 notifications={notifications}

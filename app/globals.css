@@ -555,6 +555,9 @@ html.light .academy-auth-card {
 }
 
 html.light .academy-auth-segment { background: rgba(23, 19, 31, 0.055); }
+html.light .academy-auth-tab-active {
+  color: #ffffff !important;
+}
 html.light .academy-auth-submit { color: #ffffff; }
 html.light .academy-auth-shell .text-white\/75,
 html.light .academy-auth-shell .text-white\/52,

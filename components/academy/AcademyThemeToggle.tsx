@@ -8,7 +8,7 @@ export default function AcademyThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/50 transition hover:border-[#7c6cf6]/50 hover:text-white"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/70 text-[#5d5670] shadow-sm backdrop-blur transition hover:border-[#7c6cf6]/40 hover:text-[#6757df] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/55 dark:hover:border-[#7c6cf6]/50 dark:hover:text-white"
       aria-label={isDark ? "Use light theme" : "Use dark theme"}
       title={isDark ? "Use light theme" : "Use dark theme"}
     >

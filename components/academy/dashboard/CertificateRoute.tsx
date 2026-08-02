@@ -47,9 +47,7 @@ export function CertificateRoute({
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-400">
               Credential library
             </p>
-            <h2 className="mt-1 text-2xl font-semibold">
-              Earned certificates
-            </h2>
+            <h2 className="mt-1 text-2xl font-semibold">Earned certificates</h2>
           </div>
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
             <AwardIcon />
@@ -71,14 +69,13 @@ export function CertificateRoute({
                     <p className="mt-1 text-xs text-neutral-500 dark:text-white/42">
                       Issued{" "}
                       {course.certificate
-                        ? new Date(course.certificate.issuedAt).toLocaleDateString(
-                            undefined,
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )
+                        ? new Date(
+                            course.certificate.issuedAt,
+                          ).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
                         : ""}
                     </p>
                     <p className="mt-2 break-all font-mono text-[10px] text-neutral-400">
@@ -95,14 +92,6 @@ export function CertificateRoute({
                     >
                       View / save PDF
                     </button>
-                    {course.certificate && (
-                      <Link
-                        href={`/academy/dashboard/certificates?id=${encodeURIComponent(course.certificate.certificateId)}`}
-                        className="rounded-xl border border-black/[0.08] px-4 py-2.5 text-center text-xs font-bold text-neutral-600 transition hover:border-[#7c6cf6]/35 hover:text-[#6c5ce7] dark:border-white/10 dark:text-white/55 dark:hover:text-[#b9b1ff]"
-                      >
-                        Verify link
-                      </Link>
-                    )}
                   </div>
                 </div>
               </article>
