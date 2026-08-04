@@ -27,16 +27,42 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 
-export const metadata: Metadata = buildMetadata({
-  title: "AI-Powered Software Engineering Courses",
-  description: `Create a personalized software engineering course, build real projects, take assessments, track progress, and learn with ${ACADEMY_TUTOR_NAME}.`,
-  path: "/academy",
-  keywords: [
-    "AI software engineering courses",
-    "personalized coding course",
-    "learn programming with AI",
-  ],
-});
+const academyMetadataDescription = `Turn your goals into guided courses across technology, business, design, creative skills, and more—with lessons, practice, assessments, projects, and support from ${ACADEMY_TUTOR_NAME}.`;
+
+const academyMetadataKeywords = [
+  "AI learning platform",
+  "personalized learning paths",
+  "learn new skills with AI",
+  "guided online courses",
+  "project-based learning",
+];
+
+interface AcademyPageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: AcademyPageProps): Promise<Metadata> {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const hasReferral =
+    typeof resolvedSearchParams.ref === "string" &&
+    resolvedSearchParams.ref.trim().length > 0;
+
+  return buildMetadata({
+    title: hasReferral
+      ? "You’re Invited to Lumyn Academy"
+      : "Personalized AI Learning Paths",
+    description: hasReferral
+      ? `You’ve been invited to Lumyn Academy. Build a personalized path for the skills you want to learn—from technology and business to design, creative work, and more—with ${ACADEMY_TUTOR_NAME} by your side.`
+      : academyMetadataDescription,
+    path: "/academy",
+    keywords: academyMetadataKeywords,
+    ogImage: "/academy/opengraph-image",
+    imageAlt:
+      "Lumyn Academy personalized learning paths across technology, business, design, and creative skills",
+  });
+}
 export const dynamic = "force-dynamic";
 
 const jsonLd = {
@@ -44,20 +70,17 @@ const jsonLd = {
   "@graph": [
     buildWebPageJsonLd({
       path: "/academy",
-      name: "Lumyn Academy - AI-Powered Software Engineering Courses",
-      description: `Create a personalized software engineering course, build real projects, take assessments, track progress, and learn with ${ACADEMY_TUTOR_NAME}.`,
-      keywords: [
-        "AI software engineering courses",
-        "personalized coding course",
-        "learn programming with AI",
-      ],
+      name: "Lumyn Academy - Personalized AI Learning Paths",
+      description: academyMetadataDescription,
+      keywords: academyMetadataKeywords,
     }),
     {
       "@type": "EducationalOrganization",
       "@id": `${SITE_URL}/academy#educationalorganization`,
       name: "Lumyn Academy",
       url: `${SITE_URL}/academy`,
-      description: "A software engineering academy with AI-powered learning paths.",
+      description:
+        "An AI-powered academy for personalized learning paths across technology, business, design, creative skills, and more.",
       parentOrganization: { "@id": `${SITE_URL}/#organization` },
       offers: academyPlans.map((plan) => ({
         "@type": "Offer",
@@ -71,9 +94,8 @@ const jsonLd = {
     buildProductJsonLd({
       name: "Lumyn Academy",
       path: "/academy",
-      description:
-        "Lumyn Academy creates personalized software engineering learning paths with AI-guided lessons, projects, quizzes, progress tracking, and certificates.",
-      image: "/og-image.png",
+      description: academyMetadataDescription,
+      image: "/academy/opengraph-image",
       applicationCategory: "EducationalApplication",
       offers: academyPlans.map((plan) => ({
         name: plan.name,
@@ -103,10 +125,6 @@ function describeGeneratedPathCapacity(points: number) {
   return remainingPoints > 0
     ? `${pathLabel} + ${remainingPoints} points remaining`
     : pathLabel;
-}
-
-interface AcademyPageProps {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 function buildAcademyStartHref(referralCode?: string) {

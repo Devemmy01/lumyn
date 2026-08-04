@@ -152,22 +152,25 @@ export function LessonCard({
         </span>
       </summary>
       <div className="border-t border-black/[0.06] px-4 pb-5 pt-1 dark:border-white/[0.06] sm:px-5 sm:pb-6">
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 divide-y divide-black/[0.06] dark:divide-white/[0.06] sm:mt-5 sm:grid sm:grid-cols-3 sm:gap-2 sm:divide-y-0">
           {missionSteps.map((step, stepIndex) => (
             <div
               key={step}
-              className="rounded-2xl border border-black/[0.07] bg-black/[0.025] p-3 dark:border-white/[0.07] dark:bg-white/[0.035]"
+              className="flex gap-3 py-3 first:pt-0 last:pb-0 sm:block sm:rounded-2xl sm:border sm:border-black/[0.07] sm:bg-black/[0.025] sm:p-3 sm:dark:border-white/[0.07] sm:dark:bg-white/[0.035]"
             >
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[#7c6cf6]/10 text-[9px] font-black text-[#6c5ce7] dark:text-[#b9b1ff] sm:hidden">
+                {stepIndex + 1}
+              </span>
+              <p className="hidden text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400 sm:block">
                 Step {stepIndex + 1}
               </p>
-              <p className="mt-1 text-xs font-semibold text-neutral-600 dark:text-white/52">
+              <p className="text-xs font-semibold leading-5 text-neutral-600 dark:text-white/52 sm:mt-1">
                 {step}
               </p>
             </div>
           ))}
         </div>
-        <div className="mt-5 overflow-hidden rounded-2xl border border-red-500/15 bg-red-500/[0.045] dark:border-red-400/20 dark:bg-red-400/[0.06]">
+        <div className="-mx-4 mt-4 overflow-hidden border-y border-red-500/15 bg-red-500/[0.035] dark:border-red-400/20 dark:bg-red-400/[0.045] sm:mx-0 sm:mt-5 sm:rounded-2xl sm:border-x">
           <div
             className={`relative overflow-hidden bg-[#08090d] ${
               enrichedVideo ? "aspect-video" : "min-h-48"
@@ -249,7 +252,7 @@ export function LessonCard({
                 type="button"
                 onClick={() => onRefreshVideo(false)}
                 disabled={videoPending}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-500/20 px-4 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-500/[0.07] disabled:cursor-not-allowed disabled:opacity-55 dark:text-red-300"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-55 dark:text-red-300 sm:h-10 sm:rounded-xl sm:border sm:border-red-500/20 sm:px-4 sm:hover:bg-red-500/[0.07] md:w-full"
               >
                 {videoPending && <LoadingSpinner />}
                 {videoPending ? "Finding tutorial…" : "Find better tutorial"}
@@ -258,23 +261,25 @@ export function LessonCard({
           </div>
           {(lesson.recommendedChannels?.length ||
             lesson.keyTakeaways?.length) && (
-            <div className="grid gap-3 border-t border-red-500/10 p-4 md:grid-cols-2">
+            <div className="grid divide-y divide-red-500/10 border-t border-red-500/10 px-4 md:grid-cols-2 md:gap-3 md:divide-y-0 md:p-4">
               {lesson.recommendedChannels?.length ? (
                 <ListPanel
                   title="Suggested channels"
                   items={lesson.recommendedChannels}
+                  flatOnMobile
                 />
               ) : null}
               {lesson.keyTakeaways?.length ? (
                 <ListPanel
                   title="Watch for these ideas"
                   items={lesson.keyTakeaways}
+                  flatOnMobile
                 />
               ) : null}
             </div>
           )}
         </div>
-        <div className="mt-5 rounded-2xl border border-black/[0.07] bg-black/[0.025] p-4 text-sm leading-6 dark:border-white/[0.07] dark:bg-white/[0.035]">
+        <div className="mt-4 border-l-2 border-[#7c6cf6]/55 py-1 pl-3 text-sm leading-6 sm:mt-5 sm:rounded-2xl sm:border sm:border-black/[0.07] sm:bg-black/[0.025] sm:p-4 sm:dark:border-white/[0.07] sm:dark:bg-white/[0.035]">
           <span className="font-bold text-neutral-800 dark:text-white">
             Practice:
           </span>{" "}
@@ -584,14 +589,22 @@ function ListPanel({
   title,
   items,
   ordered = false,
+  flatOnMobile = false,
 }: {
   title: string;
   items: string[];
   ordered?: boolean;
+  flatOnMobile?: boolean;
 }) {
   const List = ordered ? "ol" : "ul";
   return (
-    <div className="mt-3 rounded-2xl border border-black/[0.07] bg-black/[0.025] p-4 dark:border-white/[0.07] dark:bg-white/[0.035]">
+    <div
+      className={
+        flatOnMobile
+          ? "py-4 md:mt-0 md:rounded-2xl md:border md:border-black/[0.07] md:bg-black/[0.025] md:p-4 md:dark:border-white/[0.07] md:dark:bg-white/[0.035]"
+          : "mt-3 rounded-2xl border border-black/[0.07] bg-black/[0.025] p-4 dark:border-white/[0.07] dark:bg-white/[0.035]"
+      }
+    >
       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">
         {title}
       </p>
