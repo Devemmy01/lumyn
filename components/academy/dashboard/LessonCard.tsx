@@ -9,6 +9,7 @@ import {
   buildLessonWorkspaceFiles,
   type PracticeCodeFileSnapshot,
 } from "@/components/academy/dashboard/workspace";
+import { isRelevantLessonVideo } from "@/lib/youtube-relevance";
 
 export function LessonCard({
   courseTitle,
@@ -16,25 +17,32 @@ export function LessonCard({
   index,
   moduleTitle,
   pending,
+  videoPending,
   active,
   onOpen,
   onToggle,
+  onRefreshVideo,
 }: {
   courseTitle: string;
   lesson: GeneratedLesson;
   index: number;
   moduleTitle: string;
   pending: boolean;
+  videoPending: boolean;
   active?: boolean;
   onOpen?: () => void;
   onToggle: () => void;
+  onRefreshVideo: (silent?: boolean) => void;
 }) {
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
+  const videoRefreshRequested = useRef(false);
   const codingTask =
     /code|html|css|javascript|typescript|tsx|jsx|react|component|function|api|page|website|app|program|python|sql|java|c\+\+|cpp|c#|csharp|golang|\bgo\b|rust|php|ruby|swift|kotlin|bash|shell|terminal|script/i.test(
       `${lesson.title} ${lesson.practicalTask} ${lesson.challenge ?? ""} ${lesson.starterCode ?? ""}`,
     );
   const completed = lesson.completionStatus === "completed";
+  const [quickCheckPassed, setQuickCheckPassed] = useState(completed);
+  const hasQuickCheck = Boolean(lesson.lessonAssessment?.length);
   const lessonText = [
     lesson.notes,
     lesson.conceptExplanation,
@@ -55,7 +63,11 @@ export function LessonCard({
     moduleTitle,
     lesson.title,
   );
-  const enrichedVideo = lesson.youtubeVideo;
+  const savedVideo = lesson.youtubeVideo;
+  const enrichedVideo =
+    savedVideo && isRelevantLessonVideo(savedVideo, lesson)
+      ? savedVideo
+      : undefined;
   const primaryVideoUrl = enrichedVideo?.watchUrl ?? videoUrl;
   const videoTitle = enrichedVideo?.title ?? lesson.videoTitle ?? lesson.title;
   const missionSteps = [
@@ -74,6 +86,19 @@ export function LessonCard({
       detailsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
   }, [active]);
+
+  useEffect(() => {
+    if (
+      !active ||
+      enrichedVideo ||
+      videoPending ||
+      videoRefreshRequested.current
+    ) {
+      return;
+    }
+    videoRefreshRequested.current = true;
+    onRefreshVideo(true);
+  }, [active, enrichedVideo, onRefreshVideo, savedVideo, videoPending]);
 
   return (
     <details
@@ -143,7 +168,11 @@ export function LessonCard({
           ))}
         </div>
         <div className="mt-5 overflow-hidden rounded-2xl border border-red-500/15 bg-red-500/[0.045] dark:border-red-400/20 dark:bg-red-400/[0.06]">
-          <div className="relative aspect-video overflow-hidden bg-[#08090d]">
+          <div
+            className={`relative overflow-hidden bg-[#08090d] ${
+              enrichedVideo ? "aspect-video" : "min-h-48"
+            }`}
+          >
             {enrichedVideo ? (
               <iframe
                 title={enrichedVideo.title}
@@ -161,9 +190,20 @@ export function LessonCard({
                   {videoTitle}
                 </p>
                 <p className="mt-2 max-w-sm text-xs leading-5 text-white/45">
-                  Open the curated YouTube search while this lesson waits for an
-                  enriched video match.
+                  {videoPending
+                    ? "Finding a more relevant course-style tutorial for this lesson…"
+                    : "Open the focused YouTube search while this lesson waits for a strong tutorial match."}
                 </p>
+                {!videoPending && (
+                  <a
+                    href={videoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-[10px] font-black uppercase tracking-[0.1em] text-white transition hover:bg-red-500"
+                  >
+                    Search focused tutorials
+                  </a>
+                )}
               </div>
             )}
             {enrichedVideo?.thumbnailUrl && (
@@ -196,14 +236,25 @@ export function LessonCard({
                   "Watch a strong visual explanation first, then use Lumyn for practice and assessment."}
               </p>
             </div>
-            <a
-              href={primaryVideoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-5 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:bg-red-500"
-            >
-              {enrichedVideo ? "Watch on YouTube" : "Search YouTube"}
-            </a>
+            <div className="flex flex-col gap-2 sm:flex-row md:flex-col">
+              <a
+                href={primaryVideoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-5 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:bg-red-500"
+              >
+                {enrichedVideo ? "Watch on YouTube" : "Search YouTube"}
+              </a>
+              <button
+                type="button"
+                onClick={() => onRefreshVideo(false)}
+                disabled={videoPending}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-500/20 px-4 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-500/[0.07] disabled:cursor-not-allowed disabled:opacity-55 dark:text-red-300"
+              >
+                {videoPending && <LoadingSpinner />}
+                {videoPending ? "Finding tutorial…" : "Find better tutorial"}
+              </button>
+            </div>
           </div>
           {(lesson.recommendedChannels?.length ||
             lesson.keyTakeaways?.length) && (
@@ -317,8 +368,8 @@ export function LessonCard({
               ) : null}
               <InfoPanel title="Where to do it">
                 {codingTask
-                  ? "Use the practice playground below for quick experiments, then move larger work into your local editor, terminal, or repo."
-                  : "Use your notes, local lab, browser, or any relevant tool for the task. Keep evidence for the module assignment."}
+                  ? "Use the Academy practice playground below and keep all project files, output, and evidence inside the system."
+                  : "Use the Academy notes and module workspace for the task, and keep all evidence inside the system."}
               </InfoPanel>
               <InfoPanel title="How it is checked">
                 Lesson challenges are self-checks. Click mark complete when you
@@ -376,6 +427,13 @@ export function LessonCard({
             )}
           </div>
         </details>
+        {hasQuickCheck && (
+          <LessonQuickCheck
+            questions={lesson.lessonAssessment!}
+            completed={completed}
+            onPassed={() => setQuickCheckPassed(true)}
+          />
+        )}
         {codingTask && (
           <CodePlayground
             lesson={lesson}
@@ -386,16 +444,126 @@ export function LessonCard({
         <div className="mt-5 flex justify-end border-t border-black/[0.06] pt-4 dark:border-white/[0.06]">
           <button
             type="button"
-            disabled={pending}
+            disabled={pending || (!completed && hasQuickCheck && !quickCheckPassed)}
             onClick={onToggle}
             className={`inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold transition disabled:opacity-60 sm:w-auto ${completed ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/15" : "bg-[#7c6cf6] text-white hover:bg-[#6b5bdd]"}`}
           >
             {pending && <LoadingSpinner />}
-            {pending ? "Saving…" : completed ? "Completed ✓" : `Mark complete`}
+            {pending
+              ? "Saving…"
+              : completed
+                ? "Completed ✓"
+                : hasQuickCheck && !quickCheckPassed
+                  ? "Pass quick check to finish"
+                  : "Complete lesson · earn XP"}
           </button>
         </div>
       </div>
     </details>
+  );
+}
+
+function LessonQuickCheck({
+  questions,
+  completed,
+  onPassed,
+}: {
+  questions: NonNullable<GeneratedLesson["lessonAssessment"]>;
+  completed: boolean;
+  onPassed: () => void;
+}) {
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [checked, setChecked] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [passed, setPassed] = useState(false);
+  const question = questions[questionIndex];
+  const correct = checked && selectedOption === question.correctAnswerIndex;
+  const finished = correct && questionIndex === questions.length - 1;
+
+  if (completed || passed) {
+    return (
+      <div className="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-4 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-500 text-white">✓</span>
+        Knowledge check passed
+      </div>
+    );
+  }
+
+  const advance = () => {
+    if (finished) {
+      setPassed(true);
+      onPassed();
+      return;
+    }
+    setQuestionIndex((index) => Math.min(index + 1, questions.length - 1));
+    setSelectedOption(null);
+    setChecked(false);
+  };
+
+  return (
+    <section className="mt-5 overflow-hidden rounded-2xl border border-[#7c6cf6]/20 bg-[#7c6cf6]/[0.045]" aria-label="Lesson knowledge check">
+      <div className="flex items-center justify-between gap-4 border-b border-[#7c6cf6]/12 px-4 py-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6c5ce7] dark:text-[#b9b1ff]">Quick check</p>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-white/45">One question at a time · instant feedback</p>
+        </div>
+        <span className="rounded-full bg-white/70 px-3 py-1.5 text-[10px] font-black text-[#6c5ce7] shadow-sm dark:bg-white/[0.06] dark:text-[#b9b1ff]">{questionIndex + 1}/{questions.length}</span>
+      </div>
+      <div className="p-4 sm:p-5">
+        <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.08]">
+          <span className="block h-full rounded-full bg-[#7c6cf6] transition-all" style={{ width: `${((questionIndex + (correct ? 1 : 0)) / questions.length) * 100}%` }} />
+        </div>
+        <h3 className="text-sm font-semibold leading-6 sm:text-base">{question.question}</h3>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {question.options.map((option, optionIndex) => {
+            const selected = selectedOption === optionIndex;
+            const isCorrect = checked && optionIndex === question.correctAnswerIndex;
+            const isWrong = checked && selected && !isCorrect;
+            return (
+              <button
+                key={`${option}-${optionIndex}`}
+                type="button"
+                disabled={correct}
+                onClick={() => {
+                  setSelectedOption(optionIndex);
+                  setChecked(false);
+                }}
+                className={`rounded-xl border p-3 text-left text-xs font-semibold leading-5 transition ${isCorrect ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : isWrong ? "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-300" : selected ? "border-[#7c6cf6]/50 bg-[#7c6cf6]/10" : "border-black/[0.08] bg-white/60 hover:border-[#7c6cf6]/30 dark:border-white/10 dark:bg-white/[0.035]"}`}
+              >
+                <span className="mr-2 text-[#7c6cf6]">{String.fromCharCode(65 + optionIndex)}.</span>{option}
+              </button>
+            );
+          })}
+        </div>
+        {checked && (
+          <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${correct ? "border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-300" : "border-amber-500/20 bg-amber-500/[0.08] text-amber-700 dark:text-amber-200"}`} role="status">
+            <strong>{correct ? "You got it." : "Not quite—try once more."}</strong> {question.explanation}
+          </div>
+        )}
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">{correctCount}/{questions.length} correct</span>
+          {!correct ? (
+            <button
+              type="button"
+              disabled={selectedOption === null}
+              onClick={() => {
+                const answerIsCorrect = selectedOption === question.correctAnswerIndex;
+                setChecked(true);
+                if (answerIsCorrect) setCorrectCount((count) => Math.max(count, questionIndex + 1));
+              }}
+              className="rounded-xl bg-[#7c6cf6] px-5 py-2.5 text-xs font-black text-white transition hover:bg-[#6b5bdd] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Check answer
+            </button>
+          ) : (
+            <button type="button" onClick={advance} className="rounded-xl bg-emerald-500 px-5 py-2.5 text-xs font-black text-white transition hover:bg-emerald-600">
+              {finished ? "Finish check" : "Next question"}
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -758,16 +926,16 @@ function TerminalOutputPanel({
             <span>{command}</span>
           </p>
           <p className="mt-1 text-[11px] leading-5 text-white/35">
-            Run this in your local terminal or lab environment, then paste the
-            output, errors, or test results below. This is included with your
-            submission.
+            Use this Academy terminal panel to record expected output, test
+            cases, errors, or results from the built-in runner. This evidence is
+            included with your submission; do not paste an external link.
           </p>
         </div>
         <textarea
           value={output}
           onChange={(event) => onOutputChange(event.target.value)}
           spellCheck={false}
-          placeholder={`Paste terminal output for ${primaryFile?.name ?? "your code"} here...`}
+          placeholder={`Record in-system output or test evidence for ${primaryFile?.name ?? "your code"} here...`}
           className="min-h-[208px] w-full resize-y border-0 bg-[#05070b] p-4 font-mono text-xs leading-6 text-emerald-100 outline-none placeholder:text-white/25"
           aria-label="Terminal output"
         />

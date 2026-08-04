@@ -17,6 +17,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import {
   ACADEMY_POINT_PRICE_CENTS,
   ACADEMY_TUTOR_NAME,
+  containsExternalProjectLink,
   MIN_MODULE_QUIZ_QUESTIONS,
   POINTS_PER_GENERATION,
   type AssignmentSubmission,
@@ -25,12 +26,14 @@ import {
 } from "@/lib/academy";
 import {
   AccountPanel,
+  AcademyInstallPrompt,
   CelebrationModal,
   CertificateRoute,
   DashboardAuthScreen,
   DashboardIcon,
   DashboardLoading,
   DashboardRightRail,
+  DailyQuest,
   FloatingAstraChat,
   LearningRoute,
   LoadingSpinner,
@@ -50,17 +53,21 @@ import {
   buildAcademyNotifications,
   formatWorkspaceFilesForSubmission,
   getBrowserNotificationPermission,
+  hasLearningActivityToday,
+  learningStreak,
   showBrowserNotification,
   type BrowserNotificationPermission,
   type LearningStepId,
   type LearningStepItem,
   type PracticeCodeFileSnapshot,
+  useAcademyInstall,
 } from "@/components/academy/dashboard/DashboardParts";
 import type {
   DashboardCourse,
   DashboardPayload,
   QuizResultState,
   ToastState,
+  TutorMessage,
 } from "@/components/academy/dashboard/types";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
@@ -69,6 +76,51 @@ type ModuleCelebrationState = {
   message: string;
   xp: number;
 };
+
+type TutorStreamEvent =
+  | { type: "status"; status: "thinking" }
+  | { type: "delta"; text: string }
+  | { type: "done"; messages: TutorMessage[] }
+  | { type: "error"; error: string };
+
+type GenerateCourseResponse = {
+  success?: boolean;
+  error?: string;
+  retryable?: boolean;
+  retryAfterMs?: number;
+  courseId?: string;
+  course?: DashboardCourse["course"];
+  accessType?: "exemption" | "points";
+  pointsSpent?: number;
+  pointsBalance?: number;
+};
+
+const COURSE_STARTERS = [
+  {
+    label: "Frontend",
+    prompt: "Learn modern frontend development from the foundations through React and build accessible, responsive interfaces.",
+    goal: "Build a polished portfolio-ready web application",
+    level: "Beginner",
+  },
+  {
+    label: "Data analysis",
+    prompt: "Learn practical data analysis with spreadsheets, SQL, and Python using realistic business questions.",
+    goal: "Complete an end-to-end data analysis project",
+    level: "Beginner",
+  },
+  {
+    label: "Cybersecurity",
+    prompt: "Learn defensive cybersecurity fundamentals through safe, authorized, and simulated lab exercises.",
+    goal: "Investigate and document a simulated security incident",
+    level: "Beginner",
+  },
+  {
+    label: "Product design",
+    prompt: "Learn product design from user research and information architecture through accessible interface design.",
+    goal: "Design and explain a complete mobile product flow",
+    level: "Beginner",
+  },
+] as const;
 
 type ModuleLearningStepId = Extract<
   LearningStepId,
@@ -242,10 +294,14 @@ export default function StudentDashboard() {
   const [loadingDelayed, setLoadingDelayed] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [generationRecoveryAttempt, setGenerationRecoveryAttempt] =
+    useState(0);
   const [quizResult, setQuizResult] = useState<QuizResultState | null>(null);
   const [quizModalOpen, setQuizModalOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [courseDescriptionExpanded, setCourseDescriptionExpanded] =
+    useState(false);
   const [moduleCelebration, setModuleCelebration] =
     useState<ModuleCelebrationState | null>(null);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
@@ -273,6 +329,10 @@ export default function StudentDashboard() {
     PracticeCodeFileSnapshot[]
   >([]);
   const [tutorQuestion, setTutorQuestion] = useState("");
+  const [tutorStream, setTutorStream] = useState<{
+    question: string;
+    answer: string;
+  } | null>(null);
   const [activeLearningStep, setActiveLearningStep] =
     useState<LearningStepId>("lessons");
   const [preferredAstraName, setPreferredAstraName] = useState("");
@@ -280,10 +340,15 @@ export default function StudentDashboard() {
   const [profileAvatarUrl, setProfileAvatarUrl] = useState("");
   const [certificateName, setCertificateName] = useState("");
   const [appOrigin, setAppOrigin] = useState("");
+  const academyInstall = useAcademyInstall();
 
   const selected =
     dashboard?.courses.find((course) => course.id === selectedId) ??
     dashboard?.courses[0];
+  const activeCourseDescription =
+    selected?.course.courseDescription ??
+    "Create your first personalized course from the Build a path page.";
+  const courseDescriptionNeedsToggle = activeCourseDescription.length > 150;
 
   const handleAssignmentFilesChange = useCallback(
     (files: PracticeCodeFileSnapshot[]) => {
@@ -382,6 +447,10 @@ export default function StudentDashboard() {
     setAssignmentDraft("");
     setFinalDraft("");
   }, [activeModule, selectedId]);
+
+  useEffect(() => {
+    setCourseDescriptionExpanded(false);
+  }, [selectedId]);
 
   useEffect(() => {
     setMobileMoreOpen(false);
@@ -592,16 +661,25 @@ export default function StudentDashboard() {
 
   function mergeCourse(update: Partial<DashboardCourse>) {
     if (!selected) return;
-    setDashboard((current) =>
-      current
-        ? {
-            ...current,
-            courses: current.courses.map((course) =>
-              course.id === selected.id ? { ...course, ...update } : course,
-            ),
-          }
-        : current,
-    );
+    setDashboard((current) => {
+      if (!current) return current;
+      const courses = current.courses.map((course) =>
+        course.id === selected.id ? { ...course, ...update } : course,
+      );
+      const activityDates = [
+        ...new Set(
+          courses.flatMap((course) =>
+            course.activityLog.map((activity) => activity.createdAt.slice(0, 10)),
+          ),
+        ),
+      ];
+
+      return {
+        ...current,
+        courses,
+        metrics: { ...current.metrics, activityDates },
+      };
+    });
   }
 
   async function patchCourse(
@@ -700,18 +778,56 @@ export default function StudentDashboard() {
     event.preventDefault();
     if (!token) return;
     setPendingAction("generate");
+    setGenerationRecoveryAttempt(0);
     try {
-      const response = await fetch("/api/academy/generate", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt, level, goal }),
-      });
-      const payload = await response.json();
-      if (!response.ok)
-        throw new Error(payload.error ?? "Course generation failed.");
+      const generationId =
+        typeof window.crypto?.randomUUID === "function"
+          ? window.crypto.randomUUID()
+          : `course_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const requestAttempts = 3;
+      let payload: GenerateCourseResponse | null = null;
+
+      for (let attempt = 0; attempt < requestAttempts; attempt += 1) {
+        let response: Response | null = null;
+        try {
+          response = await fetch("/api/academy/generate", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prompt, level, goal, generationId }),
+          });
+        } catch (requestError) {
+          if (attempt === requestAttempts - 1) throw requestError;
+        }
+
+        if (response) {
+          payload = (await response.json().catch(() => null)) as
+            | GenerateCourseResponse
+            | null;
+          if (response.ok) break;
+
+          const retryable =
+            payload?.retryable === true ||
+            response.status === 429 ||
+            response.status === 503;
+          if (!retryable || attempt === requestAttempts - 1) {
+            throw new Error(payload?.error ?? "Course generation failed.");
+          }
+        }
+
+        setGenerationRecoveryAttempt(attempt + 1);
+        const retryAfterMs =
+          typeof payload?.retryAfterMs === "number"
+            ? payload.retryAfterMs
+            : Math.min(3_000 * 2 ** attempt, 10_000);
+        await new Promise((resolve) => window.setTimeout(resolve, retryAfterMs));
+      }
+
+      if (!payload?.success || !payload.courseId || !payload.course) {
+        throw new Error("Course generation could not be completed.");
+      }
       const newCourse: DashboardCourse = {
         id: payload.courseId,
         course: payload.course,
@@ -760,6 +876,7 @@ export default function StudentDashboard() {
       );
     } finally {
       setPendingAction(null);
+      setGenerationRecoveryAttempt(0);
     }
   }
 
@@ -829,7 +946,7 @@ export default function StudentDashboard() {
   }
 
   async function repairModuleQuiz() {
-    if (!selected) return;
+    if (!selected || pendingAction === `repair-quiz-${activeModule}`) return;
     const payload = await patchCourse(
       { action: "repair_quiz", moduleIndex: activeModule },
       `repair-quiz-${activeModule}`,
@@ -837,8 +954,26 @@ export default function StudentDashboard() {
     if (payload?.course) {
       setQuizAnswers({});
       setQuizResult(null);
-      notify("Assessment repaired for free with AI-generated questions.", "success");
+      notify("Your assessment is ready.", "success");
     }
+  }
+
+  async function refreshLessonVideo(lessonIndex: number, silent = false) {
+    const payload = await patchCourse(
+      {
+        action: "refresh_video",
+        moduleIndex: activeModule,
+        lessonIndex,
+      },
+      `refresh-video-${activeModule}-${lessonIndex}`,
+    );
+    if (!payload || silent) return;
+    notify(
+      payload.videoRefreshFound
+        ? "A better-matched tutorial is ready."
+        : "No strong tutorial match was found yet. Use the focused YouTube search for now.",
+      payload.videoRefreshFound ? "success" : "warning",
+    );
   }
 
   async function toggleLessonCompletion(lessonIndex: number, completed: boolean) {
@@ -858,6 +993,13 @@ export default function StudentDashboard() {
 
   async function submitAssignment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (containsExternalProjectLink(assignmentDraft)) {
+      notify(
+        "External links are not accepted. Build and document the project entirely inside the Academy workspace.",
+        "warning",
+      );
+      return;
+    }
     const moduleForSubmission = selected?.course.modules[activeModule];
     const workspaceEvidence = formatWorkspaceFilesForSubmission(
       assignmentWorkspaceFiles,
@@ -908,6 +1050,13 @@ export default function StudentDashboard() {
   async function submitFinalProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
+    if (containsExternalProjectLink(finalDraft)) {
+      notify(
+        "External links are not accepted. Build and document the capstone entirely inside the Academy workspace.",
+        "warning",
+      );
+      return;
+    }
 
     const workspaceEvidence = formatWorkspaceFilesForSubmission(
       finalProjectWorkspaceFiles,
@@ -957,7 +1106,10 @@ export default function StudentDashboard() {
   async function askTutor(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected || !tutorQuestion.trim()) return;
+    const submittedQuestion = tutorQuestion.trim();
     setPendingAction("tutor");
+    setTutorStream({ question: submittedQuestion, answer: "" });
+    setTutorQuestion("");
     try {
       const response = await fetch("/api/academy/tutor", {
         method: "POST",
@@ -968,20 +1120,62 @@ export default function StudentDashboard() {
         body: JSON.stringify({
           courseId: selected.id,
           moduleIndex: activeModule,
-          message: tutorQuestion,
+          message: submittedQuestion,
           studentName: preferredAstraName.trim() || name.split(" ")[0] || name,
         }),
       });
-      const payload = await response.json();
-      if (!response.ok)
+      if (!response.ok) {
+        const payload = await response.json();
         throw new Error(
           payload.error ?? `${ACADEMY_TUTOR_NAME} could not answer.`,
         );
-      mergeCourse({ tutorMessages: payload.messages });
-      setTutorQuestion("");
+      }
+      if (!response.body) {
+        throw new Error(`${ACADEMY_TUTOR_NAME} could not start streaming.`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let completed = false;
+
+      const processLine = (line: string) => {
+        if (!line.trim()) return;
+        const streamEvent = JSON.parse(line) as TutorStreamEvent;
+        if (streamEvent.type === "status") return;
+        if (streamEvent.type === "delta") {
+          setTutorStream((current) => ({
+            question: current?.question ?? submittedQuestion,
+            answer: `${current?.answer ?? ""}${streamEvent.text}`,
+          }));
+          return;
+        }
+        if (streamEvent.type === "error") {
+          throw new Error(streamEvent.error);
+        }
+        if (streamEvent.type === "done") {
+          mergeCourse({ tutorMessages: streamEvent.messages });
+          completed = true;
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        buffer += decoder.decode(value, { stream: !done });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        lines.forEach(processLine);
+        if (done) break;
+      }
+      processLine(buffer);
+
+      if (!completed) {
+        throw new Error(`${ACADEMY_TUTOR_NAME} could not finish that answer.`);
+      }
       setPhase("ready");
     } catch (error) {
       setPhase("error");
+      setTutorQuestion((current) => current || submittedQuestion);
       notify(
         error instanceof Error
           ? error.message
@@ -989,6 +1183,7 @@ export default function StudentDashboard() {
         "error",
       );
     } finally {
+      setTutorStream(null);
       setPendingAction(null);
     }
   }
@@ -1282,6 +1477,9 @@ export default function StudentDashboard() {
       (lesson) => lesson.completionStatus === "completed",
     ) ?? false;
   const resumeCursor = selected ? getResumeCursor(selected) : undefined;
+  const activityDates = dashboard?.metrics.activityDates ?? [];
+  const currentStreak = learningStreak(activityDates);
+  const dailyGoalComplete = hasLearningActivityToday(activityDates);
   const assignmentComplete =
     submitted?.evaluation?.passed === true || submitted?.status === "reviewed";
   const visibleLearningStep = showAssignments
@@ -1574,10 +1772,12 @@ export default function StudentDashboard() {
           referralLink={referralLink}
           referralsCount={dashboard?.student.referralsCount ?? 0}
           isDark={isDark}
+          installStatus={academyInstall.status}
           pendingAction={pendingAction}
           onClose={() => setAccountPanel(null)}
           onSaveProfile={saveProfile}
           onToggleTheme={toggleTheme}
+          onInstallApp={academyInstall.openInstall}
           onProfileNameChange={setProfileName}
           onAvatarChange={setProfileAvatarUrl}
           onCertificateNameChange={setCertificateName}
@@ -1700,7 +1900,17 @@ export default function StudentDashboard() {
               completedModules={completedModules}
               moduleCount={selected?.course.modules.length ?? 0}
               quizAverage={dashboard?.metrics.quizAverage ?? null}
-              pendingAssignments={dashboard?.metrics.pendingAssignments ?? 0}
+              xp={gamification.xp}
+              streak={currentStreak}
+            />
+          )}
+
+          {showOverview && (
+            <DailyQuest
+              course={selected}
+              cursor={resumeCursor}
+              complete={dailyGoalComplete}
+              streak={currentStreak}
             />
           )}
 
@@ -1743,130 +1953,250 @@ export default function StudentDashboard() {
                 {showGenerate && (
                   <section
                     id="generate"
-                    className="relative overflow-hidden rounded-[1.75rem] border border-black/[0.08] bg-white/75 p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#111219] sm:p-7"
+                    className="relative overflow-hidden rounded-[1.6rem] border border-black/[0.08] bg-white/85 shadow-[0_24px_70px_rgba(27,22,61,0.08)] dark:border-white/[0.08] dark:bg-[#111219] sm:rounded-[2rem]"
+                    aria-busy={pendingAction === "generate"}
                   >
-                    <div className="relative flex items-start gap-4">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#7c6cf6]/10 text-[#6c5ce7] dark:text-[#b9b1ff]">
-                        <SparkIcon />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#6c5ce7] dark:text-[#b9b1ff]">
-                          AI course builder · {POINTS_PER_GENERATION} points
-                        </p>
-                        <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em]">
-                          What do you want to master next?
-                        </h2>
-                        <p className="mt-1 text-sm text-neutral-500 dark:text-white/45">
-                          Describe the skill and outcome. The AI will build the
-                          full path and deduct points when generation starts.
-                        </p>
+                    <div className="relative overflow-hidden bg-[#10111a] px-5 py-6 text-white sm:px-7 sm:py-8">
+                      <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#7c6cf6]/30 blur-3xl" />
+                      <div className="pointer-events-none absolute -bottom-28 left-1/3 h-52 w-52 rounded-full bg-cyan-400/10 blur-3xl" />
+                      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 items-start gap-3.5 sm:gap-4">
+                        
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-[0.19em] text-[#b9b1ff]">
+                              AI course studio
+                            </p>
+                            <h2 className="mt-1.5 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
+                              Build a path around your goal
+                            </h2>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/52">
+                              Tell Lumyn what you want to learn. You’ll get a structured path with videos, practice, assessments, and an in-system final project.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.055] px-3.5 py-2 text-xs font-bold text-white/72 sm:self-center">
+                          <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.7)]" />
+                          {hasGenerationExemption
+                            ? "Included with your access"
+                            : `${POINTS_PER_GENERATION} points per path`}
+                        </div>
                       </div>
                     </div>
-                    <form onSubmit={generateCourse} className="mt-5 space-y-3">
-                      <textarea
-                        value={prompt}
-                        onChange={(event) => setPrompt(event.target.value)}
-                        placeholder="e.g. I want to learn React from scratch and build a job-ready portfolio in 8 weeks…"
-                        className="min-h-28 w-full rounded-2xl border border-black/[0.08] bg-black/[0.025] p-4 text-sm leading-6 outline-none transition focus:border-[#7c6cf6] focus:ring-4 focus:ring-[#7c6cf6]/10 dark:border-white/10 dark:bg-black/20"
-                        required
-                        maxLength={1200}
-                      />
-                      <div className="grid gap-3 md:grid-cols-[180px_1fr_auto]">
-                        <select
-                          value={level}
-                          onChange={(event) => setLevel(event.target.value)}
-                          className="h-12 rounded-xl border border-black/[0.08] bg-transparent px-3 text-sm outline-none dark:border-white/10 placeholder:text-gray-500 pl-3"
-                        >
-                          <option className="text-gray-600">Beginner</option>
-                          <option className="text-gray-600">
-                            Intermediate
-                          </option>
-                          <option className="text-gray-600">Advanced</option>
-                        </select>
-                        <input
-                          value={goal}
-                          onChange={(event) => setGoal(event.target.value)}
-                          placeholder="Your desired outcome"
-                          className="h-12 rounded-xl border border-black/[0.08] bg-transparent px-4 text-sm outline-none focus:border-[#7c6cf6] dark:border-white/10"
-                          required
-                        />
-                        <button
-                          type="submit"
-                          disabled={
-                            !hasGenerationAccess || pendingAction === "generate"
-                          }
-                          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-6 text-sm font-bold text-white shadow-[0_12px_25px_rgba(124,108,246,0.22)] transition hover:bg-[#6b5bdd] disabled:opacity-40"
-                        >
-                          {pendingAction === "generate" ? (
-                            <LoadingSpinner />
-                          ) : (
-                            <SparkIcon small />
-                          )}
-                          {pendingAction === "generate"
-                            ? "Building your course…"
-                            : hasGenerationAccess
-                              ? "Generate path"
-                              : "Need more points"}
-                        </button>
-                      </div>
-                    </form>
-                    {pendingAction === "generate" && (
+
+                    {pendingAction === "generate" ? (
                       <div
-                        className="relative mt-5 overflow-hidden rounded-[1.5rem] border border-[#7c6cf6]/20 bg-[#10111a] p-5 text-white shadow-[0_18px_60px_rgba(38,29,75,0.22)]"
+                        className="relative overflow-hidden p-4 sm:p-7"
                         role="status"
                         aria-live="polite"
                       >
-                        <div className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-[#7c6cf6]/25 blur-3xl" />
-                        <div className="pointer-events-none absolute -bottom-20 left-10 h-36 w-36 rounded-full bg-cyan-400/10 blur-3xl" />
-                        <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#b9b1ff]">
-                              Building your Academy path
-                            </p>
-                            <h3 className="mt-2 text-xl font-semibold tracking-[-0.02em]">
-                              Designing the curriculum, finding videos, and
-                              writing assessments.
-                            </h3>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/52">
-                              This can take a minute because Lumyn creates the
-                              path, enriches lessons with YouTube study targets,
-                              and prepares the assessment gates before saving.
-                            </p>
-                          </div>
-                          <div className="relative flex h-24 w-24 shrink-0 items-center justify-center self-center rounded-[2rem] border border-white/10 bg-white/[0.04]">
-                            <span className="absolute h-20 w-20 animate-spin rounded-full border border-[#7c6cf6]/20 border-t-[#b9b1ff]" />
-                            <span className="absolute h-14 w-14 animate-ping rounded-full bg-[#7c6cf6]/10" />
-                            <SparkIcon />
-                          </div>
-                        </div>
-                        <div className="relative mt-5 grid gap-2 sm:grid-cols-4">
-                          {[
-                            ["01", "Map modules", "Structuring the route"],
-                            ["02", "Match videos", "Preparing study targets"],
-                            ["03", "Build checks", "Writing assessments"],
-                            ["04", "Save path", "Syncing dashboard"],
-                          ].map(([step, title, detail], index) => (
-                            <div
-                              key={title}
-                              className="rounded-2xl border border-white/8 bg-white/[0.035] p-3"
-                              style={{ animationDelay: `${index * 120}ms` }}
-                            >
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-[10px] font-black text-[#b9b1ff]">
-                                  {step}
-                                </span>
-                                <span className="h-2 w-2 animate-pulse rounded-full bg-[#8f82ff]" />
-                              </div>
-                              <p className="mt-2 text-xs font-bold">{title}</p>
-                              <p className="mt-1 text-[11px] leading-4 text-white/42">
-                                {detail}
+                        <div className="relative overflow-hidden rounded-[1.4rem] border border-[#7c6cf6]/20 bg-[#10111a] p-5 text-white shadow-[0_18px_60px_rgba(38,29,75,0.18)] sm:p-6">
+                          <div className="pointer-events-none absolute -right-12 -top-20 h-48 w-48 rounded-full bg-[#7c6cf6]/25 blur-3xl" />
+                          <div className="relative flex items-start gap-4">
+                            <div className="relative grid size-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.05] sm:size-14">
+                              <span className="absolute inset-1 animate-spin rounded-xl border border-[#7c6cf6]/20 border-t-[#b9b1ff]" />
+                              <SparkIcon small />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#b9b1ff]">
+                                {generationRecoveryAttempt > 0
+                                  ? `Automatic recovery · attempt ${generationRecoveryAttempt + 1}`
+                                  : "Creating your learning path"}
+                              </p>
+                              <h3 className="mt-1.5 text-lg font-semibold tracking-[-0.02em] sm:text-xl">
+                                {generationRecoveryAttempt > 0
+                                  ? "Demand is high, but your request is safe."
+                                  : "Lumyn is designing your curriculum."}
+                              </h3>
+                              <p className="mt-2 text-xs leading-5 text-white/50 sm:text-sm sm:leading-6">
+                                {generationRecoveryAttempt > 0
+                                  ? "Retrying automatically—do not resubmit. Recovery cannot create duplicate paths or extra charges."
+                                  : "Lumyn returns the usable path first. Full assessments prepare automatically when you reach them, so you can start learning sooner."}
                               </p>
                             </div>
-                          ))}
+                          </div>
+
+                          <div className="relative mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            {[
+                              ["01", "Structure", "Mapping modules"],
+                              ["02", "Study", "Matching videos"],
+                              ["03", "Practice", "Writing checks"],
+                              ["04", "Save", "Syncing path"],
+                            ].map(([step, title, detail], index) => (
+                              <div
+                                key={title}
+                                className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.035] p-3"
+                              >
+                                <span
+                                  className="absolute inset-x-0 bottom-0 h-px animate-pulse bg-gradient-to-r from-transparent via-[#8f82ff] to-transparent"
+                                  style={{ animationDelay: `${index * 180}ms` }}
+                                />
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[9px] font-black text-[#b9b1ff]">
+                                    {step}
+                                  </span>
+                                  <span
+                                    className="size-1.5 animate-pulse rounded-full bg-[#8f82ff]"
+                                    style={{ animationDelay: `${index * 180}ms` }}
+                                  />
+                                </div>
+                                <p className="mt-1.5 text-xs font-bold">{title}</p>
+                                <p className="mt-0.5 text-[10px] text-white/38">{detail}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="relative mt-4 rounded-xl border border-white/[0.07] bg-black/15 px-3.5 py-3">
+                            <p className="line-clamp-2 text-xs leading-5 text-white/62">
+                              <span className="mr-2 font-black uppercase tracking-wider text-white/35">Request</span>
+                              {prompt}
+                            </p>
+                          </div>
                         </div>
-                        <div className="relative mt-5 h-2 overflow-hidden rounded-full bg-white/[0.08]">
-                          <span className="academy-xp-bar absolute inset-y-0 left-0 w-2/3 rounded-full bg-gradient-to-r from-[#7c6cf6] via-[#38bdf8] to-[#b9b1ff]" />
-                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
+                        <form
+                          onSubmit={generateCourse}
+                          className="min-w-0 space-y-6 p-4 sm:p-7"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400 dark:text-white/38">
+                                Start with an idea
+                              </p>
+                              <span className="text-[10px] text-neutral-400 dark:text-white/32">
+                                Optional
+                              </span>
+                            </div>
+                            <div className="mt-2.5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap">
+                              {COURSE_STARTERS.map((starter) => (
+                                <button
+                                  key={starter.label}
+                                  type="button"
+                                  onClick={() => {
+                                    setPrompt(starter.prompt);
+                                    setGoal(starter.goal);
+                                    setLevel(starter.level);
+                                  }}
+                                  className="shrink-0 rounded-full border border-black/[0.08] bg-black/[0.025] px-3.5 py-2 text-xs font-bold text-neutral-600 transition hover:border-[#7c6cf6]/35 hover:bg-[#7c6cf6]/[0.07] hover:text-[#5c4cdb] dark:border-white/10 dark:bg-white/[0.035] dark:text-white/58 dark:hover:text-[#c9c3ff]"
+                                >
+                                  {starter.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <label className="block" htmlFor="course-learning-request">
+                            <span className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-bold">What do you want to learn?</span>
+                              <span className="text-[10px] tabular-nums text-neutral-400 dark:text-white/32">
+                                {prompt.length}/1200
+                              </span>
+                            </span>
+                            <textarea
+                              id="course-learning-request"
+                              value={prompt}
+                              onChange={(event) => setPrompt(event.target.value)}
+                              placeholder="Be specific about the skill, topics, timeframe, or project you have in mind…"
+                              className="mt-2 min-h-36 w-full resize-y rounded-2xl border border-black/[0.09] bg-black/[0.025] p-4 text-sm leading-6 outline-none transition placeholder:text-neutral-400 focus:border-[#7c6cf6] focus:bg-white focus:ring-4 focus:ring-[#7c6cf6]/10 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/28 dark:focus:bg-black/25"
+                              required
+                              maxLength={1200}
+                            />
+                          </label>
+
+                          <fieldset>
+                            <legend className="text-xs font-bold">Your current level</legend>
+                            <div className="mt-2 grid grid-cols-3 gap-2 rounded-2xl border border-black/[0.07] bg-black/[0.025] p-1.5 dark:border-white/[0.08] dark:bg-black/20">
+                              {["Beginner", "Intermediate", "Advanced"].map(
+                                (option) => (
+                                  <button
+                                    key={option}
+                                    type="button"
+                                    onClick={() => setLevel(option)}
+                                    aria-pressed={level === option}
+                                    className={`min-w-0 rounded-xl px-2 py-2.5 text-[11px] font-bold transition sm:text-xs ${
+                                      level === option
+                                        ? "bg-white text-[#5c4cdb] shadow-sm ring-1 ring-black/[0.05] dark:bg-white/10 dark:text-[#cbc5ff] dark:ring-white/10"
+                                        : "text-neutral-500 hover:text-neutral-800 dark:text-white/38 dark:hover:text-white/70"
+                                    }`}
+                                  >
+                                    {option}
+                                  </button>
+                                ),
+                              )}
+                            </div>
+                          </fieldset>
+
+                          <label className="block" htmlFor="course-learning-goal">
+                            <span className="text-xs font-bold">What should you be able to do?</span>
+                            <input
+                              id="course-learning-goal"
+                              value={goal}
+                              onChange={(event) => setGoal(event.target.value)}
+                              placeholder="e.g. Build and explain a production-ready application"
+                              className="mt-2 h-12 w-full rounded-xl border border-black/[0.09] bg-black/[0.025] px-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-[#7c6cf6] focus:bg-white focus:ring-4 focus:ring-[#7c6cf6]/10 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/28 dark:focus:bg-black/25"
+                              required
+                              maxLength={240}
+                            />
+                          </label>
+
+                          {hasGenerationAccess ? (
+                            <button
+                              type="submit"
+                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-6 text-sm font-black text-white shadow-[0_14px_30px_rgba(124,108,246,0.25)] transition hover:-translate-y-0.5 hover:bg-[#6b5bdd] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7c6cf6]/25"
+                            >
+                              <SparkIcon small />
+                              Build my learning path
+                              <span aria-hidden="true">→</span>
+                            </button>
+                          ) : (
+                            <Link
+                              href="/academy/dashboard/billing"
+                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-6 text-sm font-black text-white shadow-[0_14px_30px_rgba(124,108,246,0.25)] transition hover:-translate-y-0.5 hover:bg-[#6b5bdd]"
+                            >
+                              Get points to build this path
+                              <span aria-hidden="true">→</span>
+                            </Link>
+                          )}
+
+                          <p className="text-center text-[10px] leading-4 text-neutral-400 dark:text-white/30">
+                            Points are returned automatically if a path cannot be completed.
+                          </p>
+                        </form>
+
+                        <aside className="border-t border-black/[0.07] bg-black/[0.018] p-5 dark:border-white/[0.07] dark:bg-white/[0.018] sm:p-7 lg:border-l lg:border-t-0">
+                          <p className="text-[10px] font-black uppercase tracking-[0.17em] text-[#6c5ce7] dark:text-[#b9b1ff]">
+                            Your path includes
+                          </p>
+                          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                            {[
+                              ["01", "A clear sequence", "Three focused modules that build on each other."],
+                              ["02", "Curated study", "Video targets and concise notes for every lesson."],
+                              ["03", "Active practice", "Quizzes, assignments, and mini projects."],
+                              ["04", "Completion proof", "An in-system final project and certificate path."],
+                            ].map(([step, title, detail]) => (
+                              <div
+                                key={title}
+                                className="rounded-xl border border-black/[0.06] bg-white/60 p-3 dark:border-white/[0.07] dark:bg-white/[0.025]"
+                              >
+                                <div className="flex items-start gap-2.5">
+                                  <span className="mt-0.5 text-[9px] font-black text-[#6c5ce7] dark:text-[#a99eff]">
+                                    {step}
+                                  </span>
+                                  <div>
+                                    <p className="text-xs font-bold">{title}</p>
+                                    <p className="mt-1 text-[10px] leading-4 text-neutral-500 dark:text-white/38">
+                                      {detail}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-4 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06] p-3 text-[10px] leading-4 text-emerald-800/70 dark:text-emerald-200/55">
+                            Practice projects stay inside Lumyn—no external project links required.
+                          </div>
+                        </aside>
                       </div>
                     )}
                   </section>
@@ -1877,7 +2207,7 @@ export default function StudentDashboard() {
                 {(showLearning || showAssignments) && (
                   <section
                     id="learning"
-                    className="relative overflow-hidden rounded-[1.55rem] border border-black/[0.08] bg-white/75 p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#111219] sm:rounded-[1.75rem] sm:p-7"
+                    className="relative overflow-hidden rounded-[1.55rem] border border-black/[0.08] bg-white/75 p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#111219] sm:rounded-[1.75rem] sm:p-7 -mt-10 md:-mt-3"
                   >
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
@@ -1888,10 +2218,53 @@ export default function StudentDashboard() {
                           {selected?.course.courseTitle ??
                             "No learning path yet"}
                         </h2>
-                        <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-500 dark:text-white/48">
-                          {selected?.course.courseDescription ??
-                            "Use the AI builder above to create a personalized, persisted course."}
+                        <p
+                          id="active-course-description"
+                          className={`mt-3 max-w-3xl text-sm leading-6 text-neutral-500 dark:text-white/48 ${
+                            courseDescriptionNeedsToggle &&
+                            !courseDescriptionExpanded
+                              ? "line-clamp-3 sm:line-clamp-4"
+                              : ""
+                          }`}
+                        >
+                          {activeCourseDescription}
                         </p>
+                        {courseDescriptionNeedsToggle && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCourseDescriptionExpanded((current) => !current)
+                            }
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-lg py-1 text-xs font-bold text-[#6c5ce7] transition hover:text-[#5747d2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c6cf6]/40 dark:text-[#b9b1ff] dark:hover:text-[#d3ceff]"
+                            aria-expanded={courseDescriptionExpanded}
+                            aria-controls="active-course-description"
+                          >
+                            {courseDescriptionExpanded ? "Show less" : "Read more"}
+                            <svg
+                              aria-hidden="true"
+                              className={`size-3.5 transition-transform ${courseDescriptionExpanded ? "rotate-180" : ""}`}
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="m6 9 6 6 6-6"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                        {!selected && (
+                          <Link
+                            href="/academy/dashboard/generate"
+                            className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-5 text-sm font-bold text-white shadow-[0_12px_28px_rgba(124,108,246,0.22)] transition hover:-translate-y-0.5 hover:bg-[#6b5bdd]"
+                          >
+                            Build my first path
+                            <span aria-hidden="true">→</span>
+                          </Link>
+                        )}
                       </div>
                       {dashboard?.courses.length ? (
                         <details className="group w-full lg:max-w-sm">
@@ -2088,12 +2461,17 @@ export default function StudentDashboard() {
                       onLessonToggle={(lessonIndex, completed) =>
                         toggleLessonCompletion(lessonIndex, completed)
                       }
+                      onRefreshLessonVideo={refreshLessonVideo}
                       onQuizAnswerChange={(questionIndex, optionIndex) =>
                         setQuizAnswers((answers) => ({
                           ...answers,
                           [questionIndex]: optionIndex,
                         }))
                       }
+                      onRestartQuiz={() => {
+                        setQuizAnswers({});
+                        setQuizResult(null);
+                      }}
                       onRepairQuiz={repairModuleQuiz}
                       onSubmitQuiz={submitQuiz}
                       onSubmitAssignment={submitAssignment}
@@ -2134,6 +2512,7 @@ export default function StudentDashboard() {
             {showRouteAside && (
               <DashboardRightRail
                 routeClassName={dashboardView}
+                showOverviewCards={showOverview}
                 activityDates={dashboard?.metrics.activityDates ?? []}
                 certificateDisplayName={certificateDisplayName}
                 selected={selected}
@@ -2159,10 +2538,19 @@ export default function StudentDashboard() {
         onSignOut={handleSignOut}
         signingOut={pendingAction === "signout"}
       />
+      <AcademyInstallPrompt
+        open={academyInstall.promptOpen}
+        status={academyInstall.status}
+        onInstall={academyInstall.install}
+        onDismiss={academyInstall.dismissPrompt}
+        onClose={academyInstall.closePrompt}
+      />
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
       {selected && (
         <FloatingAstraChat
           messages={selected.tutorMessages}
+          streamingQuestion={tutorStream?.question}
+          streamingAnswer={tutorStream?.answer}
           moduleTitle={activeModuleData?.title}
           preferredName={
             preferredAstraName.trim() || name.split(" ")[0] || name
@@ -2193,63 +2581,75 @@ export default function StudentDashboard() {
       )}
       {deleteConfirmOpen && selected && (
         <div
-          className="fixed inset-0 z-[96] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[96] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-course-title"
+          onClick={() => {
+            if (pendingAction !== "delete-course") setDeleteConfirmOpen(false);
+          }}
         >
-          <div className="w-full max-w-lg overflow-hidden rounded-[2rem] border border-red-500/20 bg-[#111218] p-6 text-white shadow-2xl sm:p-7">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-500/12 text-red-200 ring-1 ring-red-500/20">
-                <span className="text-2xl font-black">!</span>
+          <div
+            className="max-h-[90svh] w-full max-w-md overflow-y-auto rounded-t-[1.75rem] border border-red-500/20 bg-[#111218] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-white shadow-2xl sm:rounded-[1.75rem] sm:p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/12 text-sm font-black text-red-200 ring-1 ring-red-500/20">
+                !
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-red-200/80">
                   Delete learning path
                 </p>
                 <h2
                   id="delete-course-title"
-                  className="mt-2 text-2xl font-semibold tracking-[-0.03em]"
+                  className="mt-1 text-xl font-semibold tracking-[-0.025em]"
                 >
-                  Delete "{selected.course.courseTitle}"?
+                  Delete this path?
                 </h2>
-                <p className="mt-3 text-sm leading-6 text-white/58">
-                  This permanently removes this generated course, lesson
-                  progress, quiz attempts, assignments, final project
-                  submission, and any certificate data for this path.
-                </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                aria-label="Close delete confirmation"
+              >
+                ×
+              </button>
             </div>
 
-            <div className="mt-6 rounded-2xl border border-red-500/15 bg-red-500/[0.06] p-4">
-              <p className="text-sm font-semibold text-red-100">
-                This cannot be undone.
+            <div className="mt-5 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3.5 py-3">
+              <p className="line-clamp-2 text-sm font-semibold leading-5 text-white/82">
+                {selected.course.courseTitle}
               </p>
-              <p className="mt-1 text-xs leading-5 text-red-100/62">
-                Your Academy points will not be refunded. You can generate a new
-                path later if you want to restart.
+              <p className="mt-1 text-[11px] leading-4 text-white/42">
+                Lessons, progress, submissions, and certificate data
               </p>
             </div>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            <p className="mt-4 text-xs leading-5 text-red-100/70">
+              This cannot be undone, and Academy points will not be refunded.
+            </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmOpen(false)}
                 disabled={pendingAction === "delete-course"}
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/12 px-5 text-sm font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/12 px-4 text-xs font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Keep this path
+                Cancel
               </button>
               <button
                 type="button"
                 onClick={() => void deleteSelectedCourse()}
                 disabled={pendingAction === "delete-course"}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-xs font-black text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {pendingAction === "delete-course" && <LoadingSpinner />}
                 {pendingAction === "delete-course"
                   ? "Deleting..."
-                  : "Delete permanently"}
+                  : "Delete path"}
               </button>
             </div>
           </div>
@@ -2257,24 +2657,20 @@ export default function StudentDashboard() {
       )}
       {pendingAction === "delete-course" && (
         <div
-          className="fixed inset-0 z-[96] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[96] flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center sm:p-4"
           role="status"
           aria-live="polite"
           aria-label="Deleting course"
         >
-          <div className="w-full max-w-sm overflow-hidden rounded-[2rem] border border-white/10 bg-[#111218] p-7 text-center text-white shadow-2xl">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-red-500/10 text-red-200">
+          <div className="w-full max-w-xs overflow-hidden rounded-t-[1.75rem] border border-white/10 bg-[#111218] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-white shadow-2xl sm:rounded-[1.5rem] sm:p-6">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-200">
               <LoadingSpinner />
             </div>
-            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-red-200/80">
-              Deleting path
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
-              Removing this course...
+            <h2 className="mt-4 text-lg font-semibold tracking-[-0.02em]">
+              Deleting path…
             </h2>
-            <p className="mt-3 text-sm leading-6 text-white/55">
-              We are deleting the generated lessons, progress, assignments, and
-              certificate data for this path. This should only take a moment.
+            <p className="mt-2 text-xs leading-5 text-white/48">
+              Removing the course and its progress. This may take a moment.
             </p>
           </div>
         </div>

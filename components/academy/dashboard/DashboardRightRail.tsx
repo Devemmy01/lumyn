@@ -5,11 +5,12 @@ import { POINTS_PER_GENERATION } from "@/lib/academy";
 import { CertificateCard } from "@/components/academy/dashboard/FeedbackParts";
 import { LoadingSpinner } from "@/components/academy/dashboard/LoadingStates";
 import { ActivityIcon } from "@/components/academy/dashboard/icons";
-import { lastSevenDays } from "@/components/academy/dashboard/utils";
+import { lastSevenDays, learningStreak } from "@/components/academy/dashboard/utils";
 import type { DashboardCourse } from "@/components/academy/dashboard/types";
 
 export function DashboardRightRail({
   routeClassName,
+  showOverviewCards,
   activityDates,
   certificateDisplayName,
   selected,
@@ -23,6 +24,7 @@ export function DashboardRightRail({
   onCheckout,
 }: {
   routeClassName: string;
+  showOverviewCards: boolean;
   activityDates: string[];
   certificateDisplayName: string;
   selected?: DashboardCourse;
@@ -35,6 +37,8 @@ export function DashboardRightRail({
   onPurchasePointsChange: (points: number) => void;
   onCheckout: () => void;
 }) {
+  const streak = learningStreak(activityDates);
+
   return (
     <aside
       className={`${routeClassName}-route-aside space-y-4 2xl:sticky 2xl:top-[100px] 2xl:self-start`}
@@ -45,7 +49,7 @@ export function DashboardRightRail({
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-400">
               Learning rhythm
             </p>
-            <h2 className="mt-1 font-semibold">Last 7 days</h2>
+            <h2 className="mt-1 font-semibold">{streak} {streak === 1 ? "day" : "days"} streak</h2>
           </div>
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7c6cf6]/10 text-[#6c5ce7] dark:text-[#b9b1ff]">
             <ActivityIcon />
@@ -67,14 +71,19 @@ export function DashboardRightRail({
           })}
         </div>
         <p className="mt-4 text-xs leading-5 text-neutral-500 dark:text-white/40">
-          Every completed lesson, quiz, and submission builds your streak.
+          {streak > 0
+            ? "Complete one focused activity today to keep your rhythm alive."
+            : "Complete one lesson, quiz, or submission to start your streak."}
         </p>
       </section>
-      <CertificateCard studentName={certificateDisplayName} course={selected} />
-      <section
-        id="billing"
-        className="rounded-[1.5rem] border border-black/[0.08] bg-white/75 p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#111219]"
-      >
+      {showOverviewCards && (
+        <CertificateCard studentName={certificateDisplayName} course={selected} />
+      )}
+      {showOverviewCards && (
+        <section
+          id="billing"
+          className="rounded-[1.5rem] border border-black/[0.08] bg-white/75 p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#111219]"
+        >
         <div className="flex items-center justify-between">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-400">
             Points
@@ -152,7 +161,8 @@ export function DashboardRightRail({
           </Link>
           <span>Payments by Flutterwave</span>
         </div>
-      </section>
+        </section>
+      )}
     </aside>
   );
 }

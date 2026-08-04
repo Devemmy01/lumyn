@@ -4,6 +4,10 @@ import Image from "next/image";
 import type { FormEvent } from "react";
 import { LoadingSpinner } from "@/components/academy/dashboard/LoadingStates";
 import { MoonIcon, SunIcon } from "@/components/academy/dashboard/icons";
+import {
+  InstallIcon,
+  type AcademyInstallStatus,
+} from "@/components/academy/dashboard/AcademyInstallPrompt";
 
 const academyAvatars = Array.from(
   { length: 17 },
@@ -22,10 +26,12 @@ export function AccountPanel({
   referralLink,
   referralsCount,
   isDark,
+  installStatus,
   pendingAction,
   onClose,
   onSaveProfile,
   onToggleTheme,
+  onInstallApp,
   onProfileNameChange,
   onAvatarChange,
   onCertificateNameChange,
@@ -41,10 +47,12 @@ export function AccountPanel({
   referralLink: string;
   referralsCount: number;
   isDark: boolean;
+  installStatus: AcademyInstallStatus;
   pendingAction: string | null;
   onClose: () => void;
   onSaveProfile: (event: FormEvent<HTMLFormElement>) => void;
   onToggleTheme: () => void;
+  onInstallApp: () => void;
   onProfileNameChange: (value: string) => void;
   onAvatarChange: (value: string) => void;
   onCertificateNameChange: (value: string) => void;
@@ -53,12 +61,16 @@ export function AccountPanel({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="account-panel-title"
+      onClick={onClose}
     >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-[2rem] border border-black/[0.08] bg-[#faf9f6] p-5 shadow-2xl dark:border-white/10 dark:bg-[#111219] sm:p-7">
+      <div
+        className="max-h-[92svh] w-full max-w-2xl overflow-y-auto rounded-t-[1.75rem] border border-black/[0.08] bg-[#faf9f6] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:border-white/10 dark:bg-[#111219] sm:max-h-[90vh] sm:rounded-[2rem] sm:p-7"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6c5ce7] dark:text-[#b9b1ff]">
@@ -134,6 +146,50 @@ export function AccountPanel({
 
         {mode === "settings" && (
           <div className="mt-6 space-y-5">
+            <section className="relative overflow-hidden rounded-2xl border border-[#7c6cf6]/25 bg-[#111218] p-4 text-white shadow-[0_16px_45px_rgba(58,45,130,0.14)] sm:p-5">
+              <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-[#7c6cf6]/25 blur-3xl" />
+              <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#7c6cf6]/18 text-[#c8c1ff] ring-1 ring-white/10">
+                    <InstallIcon />
+                  </span>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold">Install Lumyn Academy</p>
+                      {installStatus === "installed" && (
+                        <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-emerald-300">Installed</span>
+                      )}
+                    </div>
+                    <p className="mt-1 max-w-sm text-xs leading-5 text-white/45">
+                      {installStatus === "installed"
+                        ? "Academy is installed on this device and ready to launch."
+                        : installStatus === "ios" || installStatus === "ios-legacy"
+                          ? "Add Academy to your iPhone or iPad Home Screen."
+                          : installStatus === "android"
+                            ? "Add Academy to your Android Home Screen, including older Chrome devices."
+                          : installStatus === "manual"
+                            ? "Get browser-specific steps for installing the Academy app."
+                            : "Launch your learning workspace like a native app."}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={onInstallApp}
+                  disabled={installStatus === "installed" || installStatus === "checking"}
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-[#897af8] disabled:cursor-default disabled:bg-white/10 disabled:text-white/35"
+                >
+                  <InstallIcon />
+                  {installStatus === "installed"
+                    ? "Installed"
+                    : installStatus === "available"
+                      ? "Install app"
+                      : installStatus === "checking"
+                        ? "Checking…"
+                        : "Show me how"}
+                </button>
+              </div>
+            </section>
             <section className="rounded-2xl border border-black/[0.08] bg-white/60 p-4 dark:border-white/10 dark:bg-white/[0.04]">
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>

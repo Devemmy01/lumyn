@@ -2,6 +2,23 @@
   "name": "lumyn",
   "version": "1.0.0",
   "private": true,
+  "browserslist": {
+    "production": [
+      "chrome >= 64",
+      "and_chr >= 64",
+      "android >= 4.4",
+      "edge >= 79",
+      "firefox >= 67",
+      "opera >= 51",
+      "safari >= 12",
+      "ios_saf >= 12"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev",
     "dev:turbo": "NEXT_DIST_DIR=.next-turbo next dev --turbopack",

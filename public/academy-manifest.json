@@ -1,10 +1,14 @@
 {
   "name": "Lumyn Academy",
   "short_name": "Academy",
+  "id": "/academy/dashboard",
+  "lang": "en",
+  "dir": "ltr",
   "description": "An installable Lumyn Academy workspace for AI learning paths, projects, progress, and certificates.",
   "start_url": "/academy/dashboard",
   "scope": "/academy/dashboard",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#f4f7f2",
   "theme_color": "#23352a",
@@ -14,13 +18,25 @@
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/apple-touch-icon.png",
@@ -28,6 +44,7 @@
       "type": "image/png"
     }
   ],
+  "prefer_related_applications": false,
   "shortcuts": [
     {
       "name": "Build a Path",

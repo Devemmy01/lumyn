@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   MIN_MODULE_QUIZ_QUESTIONS,
   type AssignmentSubmission,
@@ -56,7 +56,9 @@ type LearningRouteProps = {
   onLearningStepSelect: (step: LearningStepId) => void;
   onLessonOpen: (lessonIndex: number) => void;
   onLessonToggle: (lessonIndex: number, completed: boolean) => void;
+  onRefreshLessonVideo: (lessonIndex: number, silent?: boolean) => void;
   onQuizAnswerChange: (questionIndex: number, optionIndex: number) => void;
+  onRestartQuiz: () => void;
   onRepairQuiz: () => void;
   onSubmitQuiz: (event: FormEvent<HTMLFormElement>) => void;
   onSubmitAssignment: (event: FormEvent<HTMLFormElement>) => void;
@@ -87,7 +89,9 @@ export function LearningRoute({
   onLearningStepSelect,
   onLessonOpen,
   onLessonToggle,
+  onRefreshLessonVideo,
   onQuizAnswerChange,
+  onRestartQuiz,
   onRepairQuiz,
   onSubmitQuiz,
   onSubmitAssignment,
@@ -97,6 +101,8 @@ export function LearningRoute({
   onAssignmentFilesChange,
   onFinalProjectFilesChange,
 }: LearningRouteProps) {
+  const [quizQuestionIndex, setQuizQuestionIndex] = useState(0);
+  const requestedQuizKey = useRef("");
   const quizQuestions = activeModuleData.quiz.questions;
   const usableQuizQuestionCount = quizQuestions.filter(
     (question) => typeof question !== "string",
@@ -104,6 +110,34 @@ export function LearningRoute({
   const quizReady =
     usableQuizQuestionCount >= MIN_MODULE_QUIZ_QUESTIONS &&
     usableQuizQuestionCount === quizQuestions.length;
+  const currentQuizQuestion = quizQuestions[quizQuestionIndex];
+  const answeredQuestionCount = quizQuestions.filter(
+    (_, index) => quizAnswers[index] !== undefined,
+  ).length;
+
+  useEffect(() => {
+    setQuizQuestionIndex(0);
+  }, [activeModule]);
+
+  useEffect(() => {
+    if (visibleLearningStep !== "quiz" || quizReady) return;
+    const requestKey = `${selected.id}:${activeModule}`;
+    if (
+      requestedQuizKey.current === requestKey ||
+      pendingAction === `repair-quiz-${activeModule}`
+    ) {
+      return;
+    }
+    requestedQuizKey.current = requestKey;
+    onRepairQuiz();
+  }, [
+    activeModule,
+    onRepairQuiz,
+    pendingAction,
+    quizReady,
+    selected.id,
+    visibleLearningStep,
+  ]);
 
   return (
     <>
@@ -147,6 +181,9 @@ export function LearningRoute({
                   index={index}
                   moduleTitle={activeModuleData.title}
                   pending={pendingAction === `lesson-${activeModule}-${index}`}
+                  videoPending={
+                    pendingAction === `refresh-video-${activeModule}-${index}`
+                  }
                   active={
                     resumeCursor?.step === "lessons" &&
                     resumeCursor.moduleIndex === activeModule &&
@@ -158,6 +195,9 @@ export function LearningRoute({
                       index,
                       lesson.completionStatus !== "completed",
                     )
+                  }
+                  onRefreshVideo={(silent) =>
+                    onRefreshLessonVideo(index, silent)
                   }
                 />
               ))}
@@ -173,122 +213,99 @@ export function LearningRoute({
           >
             <form onSubmit={onSubmitQuiz}>
               {latestAttempt && (
-                <span
-                  className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${latestAttempt.passed ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"}`}
-                >
-                  {latestAttempt.score}% ·{" "}
-                  {latestAttempt.passed ? "Passed" : "Try again"}
-                </span>
-              )}
-              {!quizReady && (
-                <div className="mt-6 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm leading-6 text-amber-700 dark:text-amber-200">
-                  <p>
-                    This module does not have enough usable AI-generated quiz
-                    questions yet. Repair just this assessment for free so it
-                    can include at least {MIN_MODULE_QUIZ_QUESTIONS} technical
-                    questions.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={onRepairQuiz}
-                    disabled={pendingAction === `repair-quiz-${activeModule}`}
-                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2 text-xs font-bold text-black transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {pendingAction === `repair-quiz-${activeModule}` && (
-                      <LoadingSpinner />
-                    )}
-                    {pendingAction === `repair-quiz-${activeModule}`
-                      ? "Repairing assessment..."
-                      : "Repair assessment for free"}
-                  </button>
-                </div>
-              )}
-              {quizReady && (
-                <div className="mt-7 space-y-8">
-                  {quizQuestions.map(
-                  (question, questionIndex) => {
-                    if (typeof question === "string")
-                      return (
-                        <p key={questionIndex} className="text-sm">
-                          This legacy quiz cannot be graded. Generate a new
-                          course.
-                        </p>
-                      );
-                    return (
-                      <fieldset
-                        key={questionIndex}
-                        disabled={Boolean(latestAttempt?.passed)}
-                      >
-                        <legend className="font-semibold leading-7">
-                          <span className="mr-2 text-[#7c6cf6]">
-                            {String(questionIndex + 1).padStart(2, "0")}
-                          </span>
-                          {question.question}
-                        </legend>
-                        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                          {question.options.map((option, optionIndex) => {
-                            const isSelected =
-                              quizAnswers[questionIndex] === optionIndex;
-                            const isCorrect =
-                              quizResult &&
-                              optionIndex === question.correctAnswerIndex;
-                            const isWrongSelection =
-                              quizResult && isSelected && !isCorrect;
-                            return (
-                              <label
-                                key={optionIndex}
-                                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 text-sm leading-6 transition ${isCorrect ? "border-emerald-500/40 bg-emerald-500/10" : isWrongSelection ? "border-red-500/40 bg-red-500/10" : isSelected ? "border-[#7c6cf6]/50 bg-[#7c6cf6]/10" : "border-black/[0.08] hover:border-[#7c6cf6]/25 dark:border-white/10"}`}
-                              >
-                                <input
-                                  type="radio"
-                                  className="accent-[#7c6cf6]"
-                                  name={`q-${activeModule}-${questionIndex}`}
-                                  checked={isSelected}
-                                  onChange={() =>
-                                    onQuizAnswerChange(
-                                      questionIndex,
-                                      optionIndex,
-                                    )
-                                  }
-                                />
-                                {option}
-                                {isCorrect && (
-                                  <span className="ml-auto text-emerald-600">
-                                    OK
-                                  </span>
-                                )}
-                              </label>
-                            );
-                          })}
-                        </div>
-                        {quizResult && (
-                          <p className="mt-3 rounded-xl bg-black/[0.03] p-3 text-xs leading-5 text-neutral-600 dark:bg-white/[0.04] dark:text-white/55">
-                            <strong>Explanation:</strong>{" "}
-                            {question.explanation}
-                          </p>
-                        )}
-                      </fieldset>
-                    );
-                  },
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${latestAttempt.passed ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"}`}>
+                    {latestAttempt.score}% · {latestAttempt.passed ? "Passed" : "Review ready"}
+                  </span>
+                  {quizResult && !quizResult.passed && (
+                    <button type="button" onClick={() => { onRestartQuiz(); setQuizQuestionIndex(0); }} className="rounded-full border border-[#7c6cf6]/25 px-3 py-1.5 text-xs font-bold text-[#6c5ce7] transition hover:bg-[#7c6cf6]/10 dark:text-[#b9b1ff]">Start fresh attempt</button>
                   )}
                 </div>
               )}
-              <button
-                type="submit"
-                disabled={
-                  !quizReady ||
-                  pendingAction === `quiz-${activeModule}` ||
-                  latestAttempt?.passed
-                }
-                className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(124,108,246,0.2)] transition disabled:cursor-not-allowed sm:w-auto ${latestAttempt?.passed ? "bg-emerald-500" : "bg-[#7c6cf6] hover:bg-[#6b5bdd] disabled:opacity-50"}`}
-              >
-                {pendingAction === `quiz-${activeModule}` && <LoadingSpinner />}
-                {latestAttempt?.passed
-                  ? "Completed"
-                  : pendingAction === `quiz-${activeModule}`
-                    ? "Grading quiz..."
-                    : "Submit quiz"}
-              </button>
+              {!quizReady && (
+                <div
+                  className={`mt-6 rounded-2xl border p-4 text-sm leading-6 ${
+                    pendingAction === `repair-quiz-${activeModule}`
+                      ? "border-[#7c6cf6]/25 bg-[#7c6cf6]/10 text-[#5c4cdb] dark:text-[#c9c3ff]"
+                      : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200"
+                  }`}
+                >
+                  {pendingAction === `repair-quiz-${activeModule}` ? (
+                    <div className="flex items-start gap-3">
+                      <LoadingSpinner />
+                      <div>
+                        <p className="font-bold">Preparing your assessment…</p>
+                        <p className="mt-1 text-xs leading-5 opacity-70">
+                          Lumyn is creating {MIN_MODULE_QUIZ_QUESTIONS} focused
+                          questions from the lessons you just studied.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p>
+                        This assessment still needs to be prepared. Your course
+                        is safe, and preparing it does not use Academy points.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={onRepairQuiz}
+                        className="mt-4 inline-flex items-center justify-center rounded-xl bg-amber-400 px-4 py-2 text-xs font-bold text-black transition hover:bg-amber-300"
+                      >
+                        Prepare assessment
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+              {quizReady && (
+                <div className="mt-7 overflow-hidden rounded-2xl border border-black/[0.08] bg-black/[0.018] dark:border-white/[0.08] dark:bg-white/[0.025]">
+                  <div className="border-b border-black/[0.07] p-4 dark:border-white/[0.07] sm:p-5">
+                    <div className="flex items-center justify-between gap-4 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+                      <span>Question {quizQuestionIndex + 1} of {quizQuestions.length}</span>
+                      <span>{answeredQuestionCount} answered</span>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.08]">
+                      <span className="block h-full rounded-full bg-gradient-to-r from-[#7c6cf6] to-[#38bdf8] transition-all" style={{ width: `${(answeredQuestionCount / quizQuestions.length) * 100}%` }} />
+                    </div>
+                  </div>
+                  {typeof currentQuizQuestion !== "string" && currentQuizQuestion ? (
+                    <fieldset className="p-4 sm:p-6" disabled={Boolean(latestAttempt?.passed)}>
+                      <legend className="text-lg font-semibold leading-7">
+                        {currentQuizQuestion.question}
+                      </legend>
+                      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        {currentQuizQuestion.options.map((option, optionIndex) => {
+                          const isSelected = quizAnswers[quizQuestionIndex] === optionIndex;
+                          const isCorrect = Boolean(quizResult) && optionIndex === currentQuizQuestion.correctAnswerIndex;
+                          const isWrongSelection = Boolean(quizResult) && isSelected && !isCorrect;
+                          return (
+                            <label key={optionIndex} className={`flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border p-4 text-sm font-medium leading-6 transition ${isCorrect ? "border-emerald-500/40 bg-emerald-500/10" : isWrongSelection ? "border-red-500/40 bg-red-500/10" : isSelected ? "border-[#7c6cf6]/50 bg-[#7c6cf6]/10" : "border-black/[0.08] bg-white/60 hover:border-[#7c6cf6]/25 dark:border-white/10 dark:bg-white/[0.025]"}`}>
+                              <input type="radio" className="accent-[#7c6cf6]" name={`q-${activeModule}-${quizQuestionIndex}`} checked={isSelected} onChange={() => onQuizAnswerChange(quizQuestionIndex, optionIndex)} />
+                              <span><strong className="mr-2 text-[#7c6cf6]">{String.fromCharCode(65 + optionIndex)}.</strong>{option}</span>
+                              {isCorrect && <span className="ml-auto text-emerald-600">✓</span>}
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {quizResult && (
+                        <p className="mt-4 rounded-xl bg-black/[0.03] p-3 text-xs leading-5 text-neutral-600 dark:bg-white/[0.04] dark:text-white/55"><strong>Explanation:</strong> {currentQuizQuestion.explanation}</p>
+                      )}
+                    </fieldset>
+                  ) : null}
+                  <div className="flex items-center justify-between gap-3 border-t border-black/[0.07] p-4 dark:border-white/[0.07] sm:px-6">
+                    <button type="button" onClick={() => setQuizQuestionIndex((index) => Math.max(0, index - 1))} disabled={quizQuestionIndex === 0} className="rounded-xl border border-black/[0.08] px-4 py-2.5 text-xs font-bold disabled:opacity-35 dark:border-white/10">Back</button>
+                    {quizQuestionIndex < quizQuestions.length - 1 ? (
+                      <button type="button" onClick={() => setQuizQuestionIndex((index) => Math.min(quizQuestions.length - 1, index + 1))} disabled={quizAnswers[quizQuestionIndex] === undefined} className="rounded-xl bg-[#7c6cf6] px-5 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">Continue</button>
+                    ) : (
+                      <button type="submit" disabled={pendingAction === `quiz-${activeModule}` || latestAttempt?.passed || Boolean(quizResult && !quizResult.passed) || answeredQuestionCount !== quizQuestions.length} className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold text-white ${latestAttempt?.passed ? "bg-emerald-500" : "bg-[#7c6cf6] disabled:opacity-40"}`}>
+                        {pendingAction === `quiz-${activeModule}` && <LoadingSpinner />}
+                        {latestAttempt?.passed ? "Completed" : pendingAction === `quiz-${activeModule}` ? "Grading…" : "Submit quiz"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </form>
           </LearningStepPanel>
         )}
@@ -297,7 +314,7 @@ export function LearningRoute({
           <LearningStepPanel
             eyebrow="Step 3 · practice"
             title="Build the module project"
-            description="Complete the assignment first, then extend it into the mini project. Submit your code, what you built, and evidence that it runs."
+            description="Complete the assignment and mini project entirely in the Academy workspace. Submit its files, notes, and built-in preview or terminal evidence."
           >
             <form onSubmit={onSubmitAssignment} id="assignments">
               <section className="mb-4 rounded-2xl border border-[#7c6cf6]/20 bg-[#7c6cf6]/[0.07] p-4">
@@ -361,7 +378,8 @@ export function LearningRoute({
                   Submit one response that covers both the assignment and mini
                   project. Include the relevant code or file names, a short
                   explanation of your decisions, and evidence that the result
-                  runs. A link alone is not enough for grading.
+                  runs. External project, repository, deployment, and demo links
+                  are not accepted.
                 </p>
               </div>
               {submitted?.evaluation && (
@@ -382,7 +400,8 @@ export function LearningRoute({
                   />
                   <p className="mt-2 text-xs text-neutral-500 dark:text-white/40">
                     The code workspace is included in your submission
-                    automatically. Score 70% or higher to pass.
+                    automatically. Do not paste an external project link. Score
+                    70% or higher to pass.
                   </p>
                   <button
                     type="submit"
@@ -537,7 +556,8 @@ function FinalProjectSection({
             <p className="mt-2 text-sm leading-6 text-neutral-600 dark:text-white/58">
               Your final project is assessed from this Academy workspace. Add
               notes below for decisions, tradeoffs, and anything the grader
-              should inspect in the preview.
+              should inspect in the preview. External repositories, deployments,
+              demos, and project links are not accepted.
             </p>
           </div>
           <textarea

@@ -8,6 +8,29 @@ export function lastSevenDays() {
   });
 }
 
+export function learningStreak(activityDates: string[], now = new Date()) {
+  const activeDays = new Set(activityDates.map((date) => date.slice(0, 10)));
+  const cursor = new Date(now);
+  cursor.setHours(12, 0, 0, 0);
+
+  const todayKey = cursor.toISOString().slice(0, 10);
+  if (!activeDays.has(todayKey)) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  let streak = 0;
+  while (activeDays.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+export function hasLearningActivityToday(activityDates: string[], now = new Date()) {
+  return activityDates.some((date) => date.slice(0, 10) === now.toISOString().slice(0, 10));
+}
+
 export function buildYouTubeLearningUrl(...topics: Array<string | undefined>) {
   const query = [
     ...topics.filter((topic): topic is string => Boolean(topic?.trim())),

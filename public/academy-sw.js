@@ -1,5 +1,5 @@
-const CACHE_NAME = "lumyn-academy-v2";
-const APP_SHELL = [
+var CACHE_NAME = "lumyn-academy-v3";
+var APP_SHELL = [
   "/academy/dashboard",
   "/academy/dashboard/learning",
   "/academy/dashboard/generate",
@@ -11,57 +11,78 @@ const APP_SHELL = [
   "/apple-touch-icon.png"
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+self.addEventListener("install", function (event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(function (cache) {
+      return cache.addAll(APP_SHELL);
+    })
+  );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", function (event) {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-    )
+    caches.keys().then(function (keys) {
+      return Promise.all(
+        keys.filter(function (key) {
+          return key !== CACHE_NAME;
+        }).map(function (key) {
+          return caches.delete(key);
+        })
+      );
+    })
   );
   self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
-  const url = new URL(event.request.url);
+  var url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith("/academy/dashboard")) return;
+  if (url.pathname.indexOf("/academy/dashboard") !== 0) return;
 
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
+      .then(function (response) {
         if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          var copy = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) {
+            return cache.put(event.request, copy);
+          });
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/academy/dashboard")))
+      .catch(function () {
+        return caches.match(event.request).then(function (cached) {
+          return cached || caches.match("/academy/dashboard");
+        });
+      })
   );
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", function (event) {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/academy/dashboard";
+  var notificationData = event.notification.data || {};
+  var targetUrl = notificationData.url || "/academy/dashboard";
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      const normalizedTarget = new URL(targetUrl, self.location.origin).href;
-      const existingClient = clients.find((client) => client.url === normalizedTarget);
-      if (existingClient) {
-        return existingClient.focus();
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clients) {
+      var normalizedTarget = new URL(targetUrl, self.location.origin).href;
+      var existingClient = null;
+      for (var index = 0; index < clients.length; index += 1) {
+        if (clients[index].url === normalizedTarget) {
+          existingClient = clients[index];
+          break;
+        }
       }
+      if (existingClient) return existingClient.focus();
       return self.clients.openWindow(normalizedTarget);
     })
   );
 });
 
-self.addEventListener("push", (event) => {
+self.addEventListener("push", function (event) {
   if (!event.data) return;
-  const payload = event.data.json();
+  var payload = event.data.json();
   event.waitUntil(
     self.registration.showNotification(payload.title || "Lumyn Academy", {
       body: payload.body || "You have a new Academy update.",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACADEMY_TUTOR_NAME } from "@/lib/academy";
-import { AcademyAIError, askAcademyTutor } from "@/lib/academy-ai";
+import { AcademyAIError, openAcademyTutorStream } from "@/lib/academy-ai";
 import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent } from "@/lib/academy-access";
 import AcademyCourse from "@/models/AcademyCourse";
 
@@ -20,29 +20,99 @@ export async function POST(request: NextRequest) {
     const course = await AcademyCourse.findOne({ _id: courseId, studentUid: decoded.uid });
     if (!course) return NextResponse.json({ error: "Course not found." }, { status: 404 });
 
-    const answer = await askAcademyTutor({
+    const submittedQuestion = message.trim();
+    const geminiStream = await openAcademyTutorStream({
       course: course.course,
       moduleIndex: Number(moduleIndex) || 0,
-      message: message.trim(),
+      message: submittedQuestion,
       studentName: typeof studentName === "string" && studentName.length <= 80 ? studentName : undefined,
       history: (course.tutorMessages ?? []).map(({ role, content }) => ({ role, content })),
     });
-    const now = new Date().toISOString();
-    course.tutorMessages.push(
-      { role: "user", content: message.trim(), createdAt: now },
-      { role: "assistant", content: answer, createdAt: now }
-    );
-    if (course.tutorMessages.length > 40) course.tutorMessages = course.tutorMessages.slice(-40);
-    await course.save();
+    const encoder = new TextEncoder();
+    const responseStream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const send = (event: Record<string, unknown>) => {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        };
+        let answer = "";
 
-    return NextResponse.json({ success: true, answer, messages: course.tutorMessages });
+        try {
+          send({ type: "status", status: "thinking" });
+          for await (const text of geminiStream) {
+            answer += text;
+            send({ type: "delta", text });
+          }
+
+          const completedAnswer = answer.trim();
+          if (!completedAnswer) {
+            throw new AcademyAIError(`${ACADEMY_TUTOR_NAME} returned an empty answer.`);
+          }
+
+          const now = new Date().toISOString();
+          course.tutorMessages.push(
+            { role: "user", content: submittedQuestion, createdAt: now },
+            { role: "assistant", content: completedAnswer, createdAt: now },
+          );
+          if (course.tutorMessages.length > 40) {
+            course.tutorMessages = course.tutorMessages.slice(-40);
+          }
+          await course.save();
+
+          send({
+            type: "done",
+            messages: course.tutorMessages.map(({ role, content, createdAt }) => ({
+              role,
+              content,
+              createdAt,
+            })),
+          });
+        } catch (error) {
+          console.error("[POST /api/academy/tutor stream]", error);
+          const message =
+            error instanceof AcademyAIError
+              ? error.message
+              : `${ACADEMY_TUTOR_NAME} could not finish that answer.`;
+          try {
+            send({ type: "error", error: message });
+          } catch {
+            // The browser closed the stream before Gemini finished.
+          }
+        } finally {
+          try {
+            controller.close();
+          } catch {
+            // The stream was already closed by the browser.
+          }
+        }
+      },
+    });
+
+    return new NextResponse(responseStream, {
+      headers: {
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (error) {
     console.error("[POST /api/academy/tutor]", error);
     if (error instanceof AcademyDatabaseUnavailableError) {
       return NextResponse.json({ error: error.message }, { status: 503 });
     }
     if (error instanceof AcademyAIError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        {
+          error:
+            error.status === 503
+              ? `${ACADEMY_TUTOR_NAME} is still busy after retrying. Your question is still in the chat box—wait a moment, then tap Ask again.`
+              : error.message,
+          retryable: error.status === 503 || error.status === 429,
+        },
+        {
+          status: error.status,
+          headers: error.status === 503 ? { "Retry-After": "5" } : undefined,
+        },
+      );
     }
     return NextResponse.json({ error: `${ACADEMY_TUTOR_NAME} could not answer right now.` }, { status: 500 });
   }

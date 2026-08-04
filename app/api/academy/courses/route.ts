@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent, hasCourseGenerationExemption } from "@/lib/academy-access";
-import { ensureModulePractice, ensureModuleQuizQuestions, type GeneratedCourse } from "@/lib/academy";
+import { ensureInSystemFinalProject, ensureModulePractice, ensureModuleQuizQuestions, type GeneratedCourse } from "@/lib/academy";
 import AcademyCourse from "@/models/AcademyCourse";
 
 function courseWithQuizGuard(course: GeneratedCourse): GeneratedCourse {
+  const finalProject = ensureInSystemFinalProject(course);
   return {
     ...course,
+    ...finalProject,
     modules: course.modules.map((module) => ({
       ...module,
       ...ensureModulePractice(module),

@@ -11,6 +11,8 @@ const COMPOSER_MIN_HEIGHT = 48;
 
 export function FloatingAstraChat({
   messages,
+  streamingQuestion,
+  streamingAnswer,
   moduleTitle,
   pending,
   preferredName,
@@ -22,6 +24,8 @@ export function FloatingAstraChat({
   onSubmit,
 }: {
   messages: TutorMessage[];
+  streamingQuestion?: string;
+  streamingAnswer?: string;
   moduleTitle?: string;
   pending: boolean;
   preferredName: string;
@@ -36,11 +40,16 @@ export function FloatingAstraChat({
   const [confirmReset, setConfirmReset] = useState(false);
   const conversationEndRef = useRef<HTMLDivElement>(null);
   const questionInputRef = useRef<HTMLTextAreaElement>(null);
+  const suggestedPrompts = [
+    "Explain this simply",
+    "Give me a hint, not the answer",
+    "Quiz me with one question",
+  ];
 
   useEffect(() => {
     if (!open) return;
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [messages.length, open, pending]);
+  }, [messages.length, open, pending, streamingAnswer]);
 
   useEffect(() => {
     if (!open || messages.length === 0) setConfirmReset(false);
@@ -69,6 +78,11 @@ export function FloatingAstraChat({
     setConfirmReset(true);
   };
 
+  const choosePrompt = (prompt: string) => {
+    onQuestionChange(moduleTitle ? `${prompt} about ${moduleTitle}.` : `${prompt}.`);
+    window.setTimeout(() => questionInputRef.current?.focus(), 0);
+  };
+
   const confirmNewChat = async () => {
     setConfirmReset(false);
     await onResetChat();
@@ -83,7 +97,7 @@ export function FloatingAstraChat({
               <AstraMascot expression={pending ? "thinking" : "focused"} className="h-14 w-14 translate-y-1" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6c5ce7] dark:text-[#b9b1ff]">Always-on help</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6c5ce7] dark:text-[#b9b1ff]">Personal AI coach</p>
               <h2 className="truncate text-sm font-semibold">{ACADEMY_TUTOR_NAME}{moduleTitle ? ` · ${moduleTitle}` : ""}</h2>
             </div>
             <button type="button" onClick={requestNewChat} disabled={resetting || pending || messages.length === 0} className="hidden h-9 items-center justify-center gap-2 rounded-full border border-black/[0.08] px-3 text-xs font-bold text-neutral-500 transition hover:border-[#7c6cf6]/30 hover:text-[#6c5ce7] disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10 dark:text-white/50 sm:inline-flex">
@@ -123,22 +137,50 @@ export function FloatingAstraChat({
           </div>
 
           <div className="academy-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(124,108,246,0.08),transparent_42%)] p-4" aria-live="polite" aria-busy={pending}>
-            {messages.length ? messages.slice(-10).map((entry, index) => (
-              <div key={`${entry.createdAt}-${index}`} className={`rounded-[1.2rem] p-3 text-sm leading-6 shadow-sm ${
-                entry.role === "assistant"
-                  ? "mr-6 border border-black/[0.07] bg-white/82 text-neutral-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-white/75"
-                  : "ml-8 bg-[#7c6cf6] text-white shadow-[0_12px_28px_rgba(124,108,246,0.22)]"
-              }`}>
-                <p className="mb-1 text-[9px] font-black uppercase tracking-widest opacity-55">{entry.role === "assistant" ? ACADEMY_TUTOR_NAME : "You"}</p>
-                {entry.role === "assistant" ? <FormattedTutorMessage content={entry.content} /> : <p className="whitespace-pre-wrap">{entry.content}</p>}
-              </div>
-            )) : (
-              <div className="rounded-2xl border border-dashed border-[#7c6cf6]/25 p-5 text-center">
-                <p className="text-sm font-semibold">Need a hint?</p>
-                <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-white/42">Ask about the current module, your assignment, or what to do next.</p>
+            {messages.length || streamingQuestion ? (
+              <>
+                {messages.slice(-10).map((entry, index) => (
+                  <div key={`${entry.createdAt}-${index}`} className={`rounded-[1.2rem] p-3 text-sm leading-6 shadow-sm ${
+                    entry.role === "assistant"
+                      ? "mr-6 border border-black/[0.07] bg-white/82 text-neutral-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-white/75"
+                      : "ml-8 bg-[#7c6cf6] text-white shadow-[0_12px_28px_rgba(124,108,246,0.22)]"
+                  }`}>
+                    <p className="mb-1 text-[9px] font-black uppercase tracking-widest opacity-55">{entry.role === "assistant" ? ACADEMY_TUTOR_NAME : "You"}</p>
+                    {entry.role === "assistant" ? <FormattedTutorMessage content={entry.content} /> : <p className="whitespace-pre-wrap">{entry.content}</p>}
+                  </div>
+                ))}
+                {streamingQuestion && (
+                  <div className="ml-8 rounded-[1.2rem] bg-[#7c6cf6] p-3 text-sm leading-6 text-white shadow-[0_12px_28px_rgba(124,108,246,0.22)]">
+                    <p className="mb-1 text-[9px] font-black uppercase tracking-widest opacity-55">You</p>
+                    <p className="whitespace-pre-wrap">{streamingQuestion}</p>
+                  </div>
+                )}
+                {streamingQuestion && (
+                  <div className="mr-6 rounded-[1.2rem] border border-black/[0.07] bg-white/82 p-3 text-sm leading-6 text-neutral-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/75">
+                    <p className="mb-1 text-[9px] font-black uppercase tracking-widest opacity-55">{ACADEMY_TUTOR_NAME}</p>
+                    {streamingAnswer ? (
+                      <div>
+                        <FormattedTutorMessage content={streamingAnswer} />
+                        <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse rounded-full bg-[#7c6cf6] align-[-2px]" aria-hidden="true" />
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#6c5ce7] dark:text-[#b9b1ff]"><LoadingSpinner /> Thinking…</span>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-[#7c6cf6]/25 p-5">
+                <p className="text-center text-sm font-semibold">How should we learn this?</p>
+                <p className="mt-1 text-center text-xs leading-5 text-neutral-500 dark:text-white/42">Astra knows your current module and can explain, hint, or test you.</p>
+                <div className="mt-4 grid gap-2">
+                  {suggestedPrompts.map((prompt) => (
+                    <button key={prompt} type="button" onClick={() => choosePrompt(prompt)} className="rounded-xl border border-black/[0.08] bg-white/70 px-3 py-2.5 text-left text-xs font-bold transition hover:border-[#7c6cf6]/35 hover:text-[#6c5ce7] dark:border-white/10 dark:bg-white/[0.04] dark:hover:text-[#b9b1ff]">{prompt}</button>
+                  ))}
+                </div>
               </div>
             )}
-            {pending && <div className="inline-flex items-center gap-2 rounded-full border border-[#7c6cf6]/15 px-3 py-2 text-xs font-semibold text-[#6c5ce7] dark:text-[#b9b1ff]"><LoadingSpinner /> Thinking...</div>}
+            {pending && !streamingQuestion && <div className="inline-flex items-center gap-2 rounded-full border border-[#7c6cf6]/15 px-3 py-2 text-xs font-semibold text-[#6c5ce7] dark:text-[#b9b1ff]"><LoadingSpinner /> Thinking...</div>}
             <div ref={conversationEndRef} />
           </div>
 

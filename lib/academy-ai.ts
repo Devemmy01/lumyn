@@ -1,6 +1,7 @@
 import {
   ACADEMY_TUTOR_NAME,
   ACADEMY_TUTOR_ROLE,
+  ensureInSystemFinalProject,
   ensureModulePractice,
   ensureModuleQuizQuestions,
   isGeneratedQuizQuestion,
@@ -9,8 +10,8 @@ import {
   type SubmissionEvaluation,
 } from "@/lib/academy";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta";
+const GEMINI_MODEL = "gemini-3.6-flash";
 
 type AcademyAIMessage = {
   role: "system" | "user" | "assistant";
@@ -30,29 +31,73 @@ type AcademyAIRequestBody = {
   messages?: AcademyAIMessage[];
 };
 
+type AcademyAICompleteOptions = {
+  lengthErrorMessage?: string;
+  thinkingLevel?: "minimal" | "low" | "medium" | "high";
+  transientRetries?: number;
+};
+
 export class AcademyAIError extends Error {
-  constructor(message: string, public readonly status: number = 503) {
+  constructor(
+    message: string,
+    public readonly status: number = 503,
+    public readonly reason?: "max_tokens",
+  ) {
     super(message);
     this.name = "AcademyAIError";
   }
 }
 
-function openRouterConfig() {
-  const apiKey = process.env.OPENROUTER_API_KEY ?? process.env.OPEN_ROUTER_KEY;
-  if (!apiKey) return null;
-  return { apiKey, model: process.env.OPENROUTER_MODEL ?? "openai/gpt-4.1-mini" };
-}
-
 function geminiConfig() {
   const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) return null;
-  return { apiKey, model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite" };
+  return { apiKey, model: GEMINI_MODEL };
 }
 
 function outputTokenLimit() {
-  const configured = Number(process.env.OPENROUTER_MAX_TOKENS ?? 8000);
+  const configured = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS ?? 8000);
   if (!Number.isFinite(configured) || configured <= 0) return 8000;
   return Math.min(Math.max(Math.floor(configured), 2000), 12000);
+}
+
+function courseOutputTokenLimit() {
+  const configured = Number(
+    process.env.GEMINI_COURSE_MAX_OUTPUT_TOKENS ?? 8_000,
+  );
+  if (!Number.isFinite(configured) || configured <= 0) return 8_000;
+  return Math.min(Math.max(Math.floor(configured), 6_000), 16_000);
+}
+
+function transientRetryLimit() {
+  const configured = Number(process.env.GEMINI_TRANSIENT_RETRIES ?? 4);
+  if (!Number.isFinite(configured)) return 4;
+  return Math.min(Math.max(Math.floor(configured), 0), 6);
+}
+
+function isTransientGeminiStatus(status: number) {
+  return status === 408 || status === 429 || status >= 500;
+}
+
+function retryDelay(attempt: number, response?: Response) {
+  const retryAfter = response?.headers.get("retry-after")?.trim();
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+    const retryAt = Date.parse(retryAfter);
+    const requestedDelay = Number.isFinite(seconds)
+      ? seconds * 1000
+      : Number.isFinite(retryAt)
+        ? retryAt - Date.now()
+        : 0;
+    if (requestedDelay > 0) return Math.min(requestedDelay, 15_000);
+  }
+
+  const exponentialDelay = Math.min(1200 * 2 ** attempt, 12_000);
+  const jitter = Math.floor(Math.random() * 500);
+  return exponentialDelay + jitter;
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function jsonResponseInstruction(body: AcademyAIRequestBody) {
@@ -76,73 +121,12 @@ function normalizeAIRequestBody(body: Record<string, unknown>): AcademyAIRequest
   return body as AcademyAIRequestBody;
 }
 
-function shouldTryFallback(error: unknown) {
-  if (!(error instanceof AcademyAIError)) return false;
-  return [429, 503].includes(error.status);
-}
-
-async function completeWithOpenRouter(
-  body: AcademyAIRequestBody,
-  options: { lengthErrorMessage?: string } = {},
+function buildGeminiRequest(
+  rawBody: Record<string, unknown>,
+  options: AcademyAICompleteOptions = {},
+  streaming = false,
 ) {
-  const config = openRouterConfig();
-  if (!config) {
-    throw new AcademyAIError("OpenRouter is not configured.");
-  }
-
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio",
-      "X-Title": "Lumyn Academy",
-    },
-    body: JSON.stringify({ model: config.model, ...body }),
-  });
-
-  if (!response.ok) {
-    const failure = await response.json().catch(() => null) as
-      | { error?: { message?: string; code?: number } }
-      | null;
-    console.error("[OpenRouter]", {
-      status: response.status,
-      model: config.model,
-      code: failure?.error?.code,
-      message: failure?.error?.message,
-    });
-    if (response.status === 402) {
-      throw new AcademyAIError(
-        "AI generation credits are currently insufficient for this request. Please lower OPENROUTER_MAX_TOKENS or top up the OpenRouter balance and try again.",
-        503
-      );
-    }
-    if (response.status === 429) {
-      throw new AcademyAIError("The learning AI is busy. Please wait a moment and try again.", 429);
-    }
-    throw new AcademyAIError("The learning AI is temporarily unavailable.");
-  }
-
-  const payload = await response.json();
-  const choice = payload?.choices?.[0];
-  const content = choice?.message?.content;
-  if (choice?.finish_reason === "length") {
-    throw new AcademyAIError(
-      options.lengthErrorMessage ??
-        "The learning path was too large to finish. Please try a narrower topic or lower course detail.",
-      503,
-    );
-  }
-  if (typeof content !== "string" || !content.trim()) {
-    throw new Error("The learning AI returned an empty response.");
-  }
-  return content;
-}
-
-async function completeWithGemini(
-  body: AcademyAIRequestBody,
-  options: { lengthErrorMessage?: string } = {},
-) {
+  const body = normalizeAIRequestBody(rawBody);
   const config = geminiConfig();
   if (!config) {
     throw new AcademyAIError("Gemini is not configured.");
@@ -165,58 +149,157 @@ async function completeWithGemini(
       parts: [{ text: message.content }],
     }));
 
-  const response = await fetch(
-    `${GEMINI_URL}/models/${encodeURIComponent(config.model)}:generateContent?key=${encodeURIComponent(config.apiKey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...(systemText
-          ? {
-              systemInstruction: {
-                parts: [{ text: systemText }],
-              },
-            }
-          : {}),
-        contents,
-        generationConfig: {
-          temperature: body.temperature ?? 0.35,
-          maxOutputTokens: body.max_tokens ?? outputTokenLimit(),
-          ...(body.response_format?.type === "json_schema"
-            ? { responseMimeType: "application/json" }
-            : {}),
-        },
-      }),
+  const modelPath = `${GEMINI_URL}/models/${encodeURIComponent(config.model)}`;
+  const encodedKey = encodeURIComponent(config.apiKey);
+  const requestUrl = streaming
+    ? `${modelPath}:streamGenerateContent?alt=sse&key=${encodedKey}`
+    : `${modelPath}:generateContent?key=${encodedKey}`;
+  const requestBody = JSON.stringify({
+    ...(systemText
+      ? {
+          systemInstruction: {
+            parts: [{ text: systemText }],
+          },
+        }
+      : {}),
+    contents,
+    generationConfig: {
+      maxOutputTokens: body.max_tokens ?? outputTokenLimit(),
+      ...(typeof body.temperature === "number"
+        ? { temperature: body.temperature }
+        : {}),
+      ...(options.thinkingLevel
+        ? { thinkingConfig: { thinkingLevel: options.thinkingLevel } }
+        : {}),
+      ...(body.response_format?.type === "json_schema"
+        ? { responseMimeType: "application/json" }
+        : {}),
     },
-  );
+  });
+
+  return {
+    model: config.model,
+    requestUrl,
+    requestBody,
+    retries: options.transientRetries ?? transientRetryLimit(),
+  };
+}
+
+async function requestGemini(
+  rawBody: Record<string, unknown>,
+  options: AcademyAICompleteOptions = {},
+  streaming = false,
+) {
+  const request = buildGeminiRequest(rawBody, options, streaming);
+  let response: Response | null = null;
+
+  for (let attempt = 0; attempt <= request.retries; attempt += 1) {
+    try {
+      response = await fetch(request.requestUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: request.requestBody,
+      });
+    } catch (error) {
+      if (attempt >= request.retries) {
+        console.error("[Gemini network]", {
+          model: request.model,
+          attempts: attempt + 1,
+          message: error instanceof Error ? error.message : "Network request failed",
+        });
+        throw new AcademyAIError("Gemini is temporarily unavailable.");
+      }
+      const delay = retryDelay(attempt);
+      console.warn("[Gemini retry]", {
+        model: request.model,
+        reason: "network",
+        attempt: attempt + 1,
+        retryInMs: delay,
+      });
+      await wait(delay);
+      continue;
+    }
+
+    if (
+      response.ok ||
+      !isTransientGeminiStatus(response.status) ||
+      attempt >= request.retries
+    ) {
+      break;
+    }
+
+    const delay = retryDelay(attempt, response);
+    console.warn("[Gemini retry]", {
+      model: request.model,
+      status: response.status,
+      attempt: attempt + 1,
+      retryInMs: delay,
+    });
+    await response.text().catch(() => "");
+    await wait(delay);
+  }
+
+  if (!response) {
+    throw new AcademyAIError(
+      "Gemini is still busy after retrying. Please wait a moment and try again.",
+    );
+  }
 
   if (!response.ok) {
     const failure = (await response.json().catch(() => null)) as
       | { error?: { message?: string; status?: string; code?: number } }
       | null;
-    console.error("[Gemini]", {
+    const failureDetails = {
       status: response.status,
-      model: config.model,
+      model: request.model,
       code: failure?.error?.code,
       errorStatus: failure?.error?.status,
       message: failure?.error?.message,
-    });
+    };
+    if (isTransientGeminiStatus(response.status)) {
+      console.warn("[Gemini unavailable after retries]", failureDetails);
+    } else {
+      console.error("[Gemini]", failureDetails);
+    }
     if (response.status === 429) {
       throw new AcademyAIError("The learning AI is busy. Please wait a moment and try again.", 429);
     }
     if (response.status === 400) {
-      throw new AcademyAIError("Gemini could not generate this request. Please try a narrower topic.", 503);
+      throw new AcademyAIError("Gemini could not generate this request. Please try a narrower topic.", 400);
     }
-    throw new AcademyAIError("The Gemini fallback is temporarily unavailable.");
+    throw new AcademyAIError(
+      "Gemini is still busy after retrying. Please wait a moment and try again.",
+    );
   }
 
+  return { response, model: request.model };
+}
+
+async function complete(
+  rawBody: Record<string, unknown>,
+  options: AcademyAICompleteOptions = {},
+) {
+  const { response, model } = await requestGemini(rawBody, options);
+
   const payload = await response.json();
+  const usage = payload?.usageMetadata;
+  if (usage) {
+    console.info("[Gemini usage]", {
+      model,
+      inputTokens: usage.promptTokenCount ?? 0,
+      outputTokens: usage.candidatesTokenCount ?? 0,
+      thinkingTokens: usage.thoughtsTokenCount ?? 0,
+      cachedTokens: usage.cachedContentTokenCount ?? 0,
+      totalTokens: usage.totalTokenCount ?? 0,
+    });
+  }
   const candidate = payload?.candidates?.[0];
   if (candidate?.finishReason === "MAX_TOKENS") {
     throw new AcademyAIError(
       options.lengthErrorMessage ??
         "The learning path was too large to finish. Please try a narrower topic or lower course detail.",
-      503,
+      422,
+      "max_tokens",
     );
   }
 
@@ -225,45 +308,116 @@ async function completeWithGemini(
     .join("")
     .trim();
   if (!content) {
-    throw new Error("The Gemini fallback returned an empty response.");
+    throw new Error("Gemini returned an empty response.");
   }
   return content;
 }
 
-async function complete(
-  rawBody: Record<string, unknown>,
-  options: { lengthErrorMessage?: string } = {},
+type GeminiStreamPayload = {
+  candidates?: Array<{
+    finishReason?: string;
+    content?: { parts?: Array<{ text?: unknown; thought?: boolean }> };
+  }>;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    thoughtsTokenCount?: number;
+    cachedContentTokenCount?: number;
+    totalTokenCount?: number;
+  };
+};
+
+function parseGeminiStreamEvent(event: string) {
+  const data = event
+    .split("\n")
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trimStart())
+    .join("\n")
+    .trim();
+  if (!data || data === "[DONE]") return null;
+  return JSON.parse(data) as GeminiStreamPayload;
+}
+
+async function* readGeminiTextStream(
+  response: Response,
+  model: string,
+  options: AcademyAICompleteOptions,
 ) {
-  const body = normalizeAIRequestBody(rawBody);
-  const preferredProvider = process.env.ACADEMY_AI_PROVIDER?.trim().toLowerCase();
-  const openRouter = openRouterConfig();
-  const gemini = geminiConfig();
-
-  if (preferredProvider === "gemini") {
-    return completeWithGemini(body, options);
+  if (!response.body) {
+    throw new AcademyAIError("Gemini returned an empty response stream.");
   }
 
-  if (preferredProvider === "openrouter") {
-    return completeWithOpenRouter(body, options);
-  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let receivedText = false;
 
-  if (openRouter) {
-    try {
-      return await completeWithOpenRouter(body, options);
-    } catch (error) {
-      if (!gemini || !shouldTryFallback(error)) throw error;
-      console.warn("[Academy AI] OpenRouter failed; retrying with Gemini fallback.");
+  const processPayload = function* (payload: GeminiStreamPayload) {
+    const usage = payload.usageMetadata;
+    if (usage) {
+      console.info("[Gemini usage]", {
+        model,
+        inputTokens: usage.promptTokenCount ?? 0,
+        outputTokens: usage.candidatesTokenCount ?? 0,
+        thinkingTokens: usage.thoughtsTokenCount ?? 0,
+        cachedTokens: usage.cachedContentTokenCount ?? 0,
+        totalTokens: usage.totalTokenCount ?? 0,
+      });
     }
+
+    const candidate = payload.candidates?.[0];
+    if (candidate?.finishReason === "MAX_TOKENS") {
+      throw new AcademyAIError(
+        options.lengthErrorMessage ??
+          "The response was too large to finish. Please request a shorter answer.",
+      );
+    }
+
+    for (const part of candidate?.content?.parts ?? []) {
+      if (part.thought === true || typeof part.text !== "string" || !part.text) {
+        continue;
+      }
+      receivedText = true;
+      yield part.text;
+    }
+  };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      buffer = buffer.replace(/\r\n/g, "\n");
+      const events = buffer.split("\n\n");
+      buffer = events.pop() ?? "";
+
+      for (const event of events) {
+        const payload = parseGeminiStreamEvent(event);
+        if (!payload) continue;
+        yield* processPayload(payload);
+      }
+
+      if (done) break;
+    }
+
+    if (buffer.trim()) {
+      const payload = parseGeminiStreamEvent(buffer);
+      if (payload) yield* processPayload(payload);
+    }
+  } finally {
+    reader.releaseLock();
   }
 
-  if (gemini) {
-    return completeWithGemini(body, options);
+  if (!receivedText) {
+    throw new AcademyAIError("Gemini returned an empty response stream.");
   }
+}
 
-  throw new AcademyAIError(
-    "No Academy AI provider is configured. Add OPENROUTER_API_KEY or GEMINI_API_KEY.",
-    503,
-  );
+async function openGeminiTextStream(
+  rawBody: Record<string, unknown>,
+  options: AcademyAICompleteOptions = {},
+) {
+  const { response, model } = await requestGemini(rawBody, options, true);
+  return readGeminiTextStream(response, model, options);
 }
 
 const stringProperty = { type: "string", maxLength: 180 } as const;
@@ -292,7 +446,7 @@ const courseSchema = {
   schema: {
     type: "object",
     additionalProperties: false,
-    required: ["courseTitle", "courseDescription", "difficulty", "modules", "finalProject", "finalProjectPlan", "progressStructure", "certificateEligible"],
+    required: ["courseTitle", "courseDescription", "difficulty", "modules", "finalProject", "progressStructure", "certificateEligible"],
     properties: {
       courseTitle: stringProperty,
       courseDescription: stringProperty,
@@ -301,7 +455,7 @@ const courseSchema = {
         type: "array", minItems: 3, maxItems: 3,
         items: {
           type: "object", additionalProperties: false,
-          required: ["title", "description", "lessons", "quiz", "assignment", "assignmentDeliverables", "assignmentAssessmentCriteria", "miniProject", "miniProjectDeliverables", "miniProjectAssessmentCriteria", "labEnvironment", "safetyNotes"],
+          required: ["title", "description", "lessons", "quiz", "assignment", "miniProject", "safetyNotes"],
           properties: {
             title: stringProperty,
             description: paragraphTextProperty,
@@ -309,7 +463,7 @@ const courseSchema = {
               type: "array", minItems: 2, maxItems: 2,
               items: {
                 type: "object", additionalProperties: false,
-                required: ["title", "goal", "videoTitle", "videoSearchQuery", "videoLearningGoal", "recommendedChannels", "keyTakeaways", "notes", "practicalTask", "challenge", "expectedResult", "tests", "lessonAssessment", "deliverables", "assessmentCriteria", "safetyNotes", "estimatedTime"],
+                required: ["title", "goal", "videoTitle", "videoSearchQuery", "videoLearningGoal", "keyTakeaways", "notes", "practicalTask", "challenge", "expectedResult", "lessonAssessment", "safetyNotes", "estimatedTime"],
                 properties: {
                   title: stringProperty,
                   goal: conciseTextProperty,
@@ -368,7 +522,7 @@ const courseSchema = {
               properties: {
                 title: stringProperty,
                 questions: {
-                  type: "array", minItems: 10, maxItems: 12,
+                  type: "array", maxItems: 0,
                   items: {
                     type: "object", additionalProperties: false,
                     required: ["question", "options", "correctAnswerIndex", "explanation"],
@@ -536,12 +690,6 @@ function parseCourse(content: string): GeneratedCourse {
       title: stringValue(module.title, `Module ${moduleIndex + 1}`),
       lessons,
     });
-    if (quizQuestions.length < MIN_MODULE_QUIZ_QUESTIONS) {
-      throw new AcademyAIError(
-        `The learning AI returned only ${quizQuestions.length} usable quiz questions for "${module.title}". Each module needs at least ${MIN_MODULE_QUIZ_QUESTIONS}. Please regenerate the course.`,
-        503,
-      );
-    }
     const practice = ensureModulePractice({
       ...module,
       title: stringValue(module.title, `Module ${moduleIndex + 1}`),
@@ -569,7 +717,7 @@ function parseCourse(content: string): GeneratedCourse {
   });
   const courseTitle = stringValue(parsed.courseTitle, "Personalized Lumyn Academy Learning Path");
 
-  return {
+  return ensureInSystemFinalProject({
     courseTitle,
     courseDescription: normalizeCourseDescription(stringValue(
       parsed.courseDescription,
@@ -599,22 +747,67 @@ function parseCourse(content: string): GeneratedCourse {
     },
     progressStructure: stringArray(parsed.progressStructure, ["Watch lesson videos", "Complete practice tasks", "Pass assessments", "Submit final project"]),
     certificateEligible: parsed.certificateEligible !== false,
-  };
+  });
 }
 
 export async function generateAcademyCourse(input: { prompt: string; level: string; goal: string }) {
-  const content = await complete({
+  const buildRequest = (maxTokens: number) => ({
     temperature: 0.35,
-    max_tokens: outputTokenLimit(),
+    max_tokens: maxTokens,
     response_format: { type: "json_schema", json_schema: courseSchema },
     messages: [
       {
         role: "system",
-        content: "You are Lumyn Academy's curriculum architect. Build a serious video-supported curriculum, not a generated textbook. The AI's job is to design the learning path, choose the learning sequence, create precise YouTube search targets, define what the student should watch for, add compact notes, set practice work, and assess understanding. Each lesson must have a specific videoTitle, videoSearchQuery, videoLearningGoal, recommendedChannels, keyTakeaways, concise notes, a practical task, and a short lessonAssessment. Use YouTube search queries that are likely to surface strong educational videos from channels such as freeCodeCamp, Traversy Media, The Net Ninja, Web Dev Simplified, Fireship, CrashCourse, Simplilearn, IBM Technology, NetworkChuck, or other topic-appropriate reputable channels. Do not invent exact YouTube URLs or claim a video exists at a specific URL. Lesson titles must sound like concrete learning milestones, for example 'Build Your First Page Structure' instead of 'HTML Basics' or 'Turn Events Into Interactive UI' instead of 'JavaScript Basics'. Avoid generic lessons like 'Introduction to X' unless the lesson outcome is specific and measurable. Each module quiz must contain at least 10 technical multiple-choice questions that directly test the module's concepts, syntax, debugging decisions, outputs, tradeoffs, and edge cases. Never fill module quizzes with effort, motivation, evidence, submission, or reflection questions such as 'what proves you understood this?' or 'what should you check before submitting?'. Assignments and mini projects must produce real evidence, not vague reflection. The final project must be broken into concise phases with instructions and evidence for each phase, and it must be possible to complete and submit inside Lumyn Academy's in-browser workspace using self-contained files, notes, preview output, and written evidence. Do not require external deployments, paid tools, local databases, cloud accounts, real production systems, or repository-only submissions for the final project. For cybersecurity, all offensive techniques must be framed for owned, authorized, or simulated labs only; include rules of engagement, scope, evidence handling, and mitigation expectations. The courseDescription field must be a complete sentence and should clearly explain that the path uses curated video study, practice tasks, assessments, and a final project. Never include external URLs, never require attacking real systems, and never claim a certificate has already been earned.",
+        content: "You are Lumyn Academy's curriculum architect. Build a serious video-supported curriculum, not a generated textbook. Return a compact, immediately usable learning path and populate only the required schema fields; omit optional properties so the learner receives the path quickly. The AI's job is to design the learning sequence, create precise YouTube search targets, add concise notes, set practical work, and assess lesson understanding. Each lesson must have a specific videoTitle, videoSearchQuery, videoLearningGoal, keyTakeaways, compact notes, a practical task, and a short lessonAssessment. Use YouTube search queries likely to surface strong educational videos from reputable, topic-appropriate channels. Do not invent exact YouTube URLs or claim a video exists at a specific URL. Lesson titles must be concrete learning milestones, such as 'Build Your First Page Structure' instead of 'HTML Basics'. For each module, return a descriptive quiz title and an empty questions array; Lumyn generates the full technical assessment just before the learner reaches it. Every practical task, assignment, mini project, and final project must be completed entirely inside Lumyn Academy's built-in workspace using self-contained files, preview or terminal evidence, and in-system notes. Never require or suggest a local editor, external sandbox, GitHub repository, deployment, hosted demo, cloud account, or pasted project URL. For cybersecurity, all offensive techniques must be limited to owned, authorized, or simulated labs and must include appropriate safety boundaries. The courseDescription must be a complete sentence explaining that the path uses curated video study, practice tasks, assessments, and a final project. Never include external URLs, require attacking real systems, or claim a certificate has already been earned.",
       },
       { role: "user", content: `Learning request: ${input.prompt}\nCurrent level: ${input.level}\nDesired outcome: ${input.goal}` },
     ],
   });
+  const tokenLimit = courseOutputTokenLimit();
+  let content: string;
+
+  try {
+    content = await complete(buildRequest(tokenLimit), {
+      transientRetries: 3,
+      thinkingLevel: "minimal",
+      lengthErrorMessage:
+        "Lumyn needs a larger response budget to finish this path.",
+    });
+  } catch (error) {
+    if (!(error instanceof AcademyAIError) || error.reason !== "max_tokens") {
+      throw error;
+    }
+
+    const recoveryTokenLimit = Math.min(
+      Math.max(Math.ceil(tokenLimit * 1.5), tokenLimit + 6_000),
+      16_000,
+    );
+    console.warn("[Gemini course overflow recovery]", {
+      model: GEMINI_MODEL,
+      previousTokenLimit: tokenLimit,
+      recoveryTokenLimit,
+    });
+    try {
+      content = await complete(buildRequest(recoveryTokenLimit), {
+        transientRetries: 3,
+        thinkingLevel: "minimal",
+        lengthErrorMessage:
+          "Lumyn is automatically restructuring this learning path.",
+      });
+    } catch (recoveryError) {
+      if (
+        recoveryError instanceof AcademyAIError &&
+        recoveryError.reason === "max_tokens"
+      ) {
+        throw new AcademyAIError(
+          "Lumyn is automatically restructuring this learning path.",
+          503,
+          "max_tokens",
+        );
+      }
+      throw recoveryError;
+    }
+  }
   return parseCourse(content);
 }
 
@@ -631,26 +824,29 @@ export async function generateAcademyModuleQuiz(input: {
     tests?: string[];
   }>;
 }) {
-  const content = await complete({
-    temperature: 0.25,
-    max_tokens: 3500,
-    response_format: { type: "json_schema", json_schema: moduleQuizSchema },
-    messages: [
-      {
-        role: "system",
-        content:
-          "You repair Lumyn Academy module quizzes. Generate only a rigorous technical multiple-choice assessment for the provided module. The quiz must contain at least 10 questions. Every question must test concrete module knowledge: concepts, syntax, debugging choices, expected outputs, tradeoffs, edge cases, or implementation decisions. Do not ask effort, motivation, reflection, submission, evidence, or generic learning-process questions. Use four plausible options per question, exactly one correct answer, and a concise explanation. Return only valid JSON.",
-      },
-      {
-        role: "user",
-        content: `Course: ${input.courseTitle}\nModule: ${input.moduleTitle}\nDescription: ${input.moduleDescription}\n\nLessons:\n${input.lessons
-          .map((lesson, index) =>
-            `${index + 1}. ${lesson.title}\nGoal: ${lesson.goal ?? ""}\nNotes: ${lesson.notes}\nKey takeaways: ${(lesson.keyTakeaways ?? []).join(" | ")}\nPractice: ${lesson.practicalTask}\nTests: ${(lesson.tests ?? []).join(" | ")}`,
-          )
-          .join("\n\n")}`,
-      },
-    ],
-  });
+  const content = await complete(
+    {
+      temperature: 0.25,
+      max_tokens: 4000,
+      response_format: { type: "json_schema", json_schema: moduleQuizSchema },
+      messages: [
+        {
+          role: "system",
+          content:
+            "You prepare Lumyn Academy module quizzes. Generate only a rigorous technical multiple-choice assessment for the provided module. The quiz must contain at least 10 questions. Every question must test concrete module knowledge: concepts, syntax, debugging choices, expected outputs, tradeoffs, edge cases, or implementation decisions. Do not ask effort, motivation, reflection, submission, evidence, or generic learning-process questions. Use four plausible options per question, exactly one correct answer, and a concise explanation. Return only valid JSON.",
+        },
+        {
+          role: "user",
+          content: `Course: ${input.courseTitle}\nModule: ${input.moduleTitle}\nDescription: ${input.moduleDescription}\n\nLessons:\n${input.lessons
+            .map((lesson, index) =>
+              `${index + 1}. ${lesson.title}\nGoal: ${lesson.goal ?? ""}\nNotes: ${lesson.notes}\nKey takeaways: ${(lesson.keyTakeaways ?? []).join(" | ")}\nPractice: ${lesson.practicalTask}\nTests: ${(lesson.tests ?? []).join(" | ")}`,
+            )
+            .join("\n\n")}`,
+        },
+      ],
+    },
+    { thinkingLevel: "minimal", transientRetries: 4 },
+  );
 
   let parsed: { title?: unknown; questions?: unknown };
   try {
@@ -679,29 +875,62 @@ export async function generateAcademyModuleQuiz(input: {
   };
 }
 
-export async function askAcademyTutor(input: {
+type AcademyTutorInput = {
   course: GeneratedCourse;
   moduleIndex: number;
   message: string;
   history: Array<{ role: "user" | "assistant"; content: string }>;
   studentName?: string;
-}) {
+};
+
+function academyTutorRequest(input: AcademyTutorInput) {
   const courseModule = input.course.modules[input.moduleIndex];
   if (!courseModule) throw new Error("The selected module does not exist.");
   const studentName = input.studentName?.trim();
 
-  return complete({
-    temperature: 0.25,
-    max_tokens: 900,
-    messages: [
-      {
-        role: "system",
-        content: `You are ${ACADEMY_TUTOR_NAME}, the student's ${ACADEMY_TUTOR_ROLE}, for "${input.course.courseTitle}". They are studying "${courseModule.title}". ${studentName ? `Address the student naturally as ${studentName}, but do not overuse their name.` : "Address the student warmly and directly."} Explain clearly with short sections and compact examples. Prefer plain markdown with short paragraphs, bullets, and occasional numbered steps. Do not complete graded assignments, perform unsafe actions, or reveal quiz answer keys. If the topic is cybersecurity, keep guidance inside authorized labs, simulations, and defensive learning. Lesson material:\n${courseModule.lessons.map((lesson) => `${lesson.title}\nNotes: ${lesson.notes}\nConcept: ${lesson.conceptExplanation ?? ""}\nWhy it matters: ${lesson.whyItMatters ?? ""}\nLab: ${(lesson.stepByStepLab ?? []).join(" | ")}\nDeliverables: ${(lesson.deliverables ?? []).join(" | ")}\nSafety: ${lesson.safetyNotes ?? ""}`).join("\n\n")}`,
-      },
-      ...input.history.slice(-8),
-      { role: "user", content: input.message },
-    ],
-  });
+  return {
+    body: {
+      temperature: 0.25,
+      max_tokens: 1600,
+      messages: [
+        {
+          role: "system",
+          content: `You are ${ACADEMY_TUTOR_NAME}, the student's adaptive ${ACADEMY_TUTOR_ROLE}, for "${input.course.courseTitle}". They are studying "${courseModule.title}". ${studentName ? `Address the student naturally as ${studentName}, but do not overuse their name.` : "Address the student warmly and directly."}
+
+Act like a patient coach, not an answer machine. Keep responses compact and interactive:
+- For explanations, use one plain-language idea, one concrete example, then one quick check question.
+- When asked for a hint, use a three-level hint ladder and give only the first useful hint unless the student asks for more.
+- When asked to be quizzed, ask exactly one question at a time and wait for the student's answer before giving feedback.
+- If the learner is wrong, identify the misconception without shaming them and let them retry.
+- If asked what to do next, recommend one small action from the current module that can be finished in 10–15 minutes.
+- Prefer recall and application over passive summaries. Use short paragraphs, bullets, and occasional numbered steps.
+- Keep the response under 220 words unless the student explicitly requests code or a deeper explanation.
+
+Do not complete graded assignments, perform unsafe actions, or reveal quiz answer keys. If the topic is cybersecurity, keep guidance inside authorized labs, simulations, and defensive learning.
+
+Lesson material:
+${courseModule.lessons.map((lesson) => `${lesson.title}\nNotes: ${lesson.notes}\nConcept: ${lesson.conceptExplanation ?? ""}\nWhy it matters: ${lesson.whyItMatters ?? ""}\nLab: ${(lesson.stepByStepLab ?? []).join(" | ")}\nDeliverables: ${(lesson.deliverables ?? []).join(" | ")}\nSafety: ${lesson.safetyNotes ?? ""}`).join("\n\n")}`,
+        },
+        ...input.history.slice(-6),
+        { role: "user", content: input.message },
+      ],
+    },
+    options: {
+      thinkingLevel: "minimal",
+      transientRetries: 2,
+      lengthErrorMessage: `${ACADEMY_TUTOR_NAME}'s answer was cut short. Please ask again or request a shorter explanation.`,
+    } satisfies AcademyAICompleteOptions,
+  };
+}
+
+export async function askAcademyTutor(input: AcademyTutorInput) {
+  const request = academyTutorRequest(input);
+  return complete(request.body, request.options);
+}
+
+export async function openAcademyTutorStream(input: AcademyTutorInput) {
+  const request = academyTutorRequest(input);
+  return openGeminiTextStream(request.body, request.options);
 }
 
 const submissionEvaluationSchema = {
@@ -749,7 +978,7 @@ async function requestSubmissionEvaluation(input: {
         {
           role: "system",
           content:
-            "You are a strict but constructive software education assessor. Return only the requested compact JSON. Keep summary, strengths, and improvements brief. Evaluate only evidence actually present in the submission. A URL alone is never proof of satisfying the requirements. Require a clear explanation of the implementation, relevant code/file details, and how each requested deliverable was met. Set passed=true only for a score of 70 or higher. Do not invent facts about linked websites you cannot inspect.",
+            "You are a strict but constructive software education assessor. Return only the requested compact JSON. Keep summary, strengths, and improvements brief. Evaluate only the Lumyn Academy workspace files, built-in preview or terminal evidence, and in-system notes present in the submission. External project, repository, deployment, and demo links are forbidden and must never count as evidence. Require a clear explanation of the implementation, relevant workspace file details, and how each requested deliverable was met. Set passed=true only for a score of 70 or higher.",
         },
         {
           role: "user",

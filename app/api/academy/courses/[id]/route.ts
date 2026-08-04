@@ -5,6 +5,8 @@ import { recalculateCourseProgress } from "@/lib/academy-progress";
 import { sendAcademyEmail } from "@/lib/academy-emails";
 import { AcademyAIError, evaluateAcademySubmission, generateAcademyModuleQuiz } from "@/lib/academy-ai";
 import {
+  containsExternalProjectLink,
+  ensureInSystemFinalProject,
   ensureModulePractice,
   ensureModuleQuizQuestions,
   MIN_MODULE_QUIZ_QUESTIONS,
@@ -12,6 +14,7 @@ import {
   type LearningCursor,
 } from "@/lib/academy";
 import AcademyCourse from "@/models/AcademyCourse";
+import { attachYouTubeVideos } from "@/lib/youtube";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -20,6 +23,25 @@ function evidenceLength(content: string) {
     .replace(/https?:\/\/\S+/gi, "")
     .replace(/\s+/g, " ")
     .trim().length;
+}
+
+function projectNarrative(content: string) {
+  return content.split(/\n\nCode workspace:\s*/i, 1)[0] ?? "";
+}
+
+function hasAcademyWorkspaceEvidence(content: string) {
+  const workspace = content.match(/(?:^|\n\n)Code workspace:\s*([\s\S]+)$/i)?.[1];
+  return Boolean(workspace && /(?:^|\n)File:\s*[^\n]+\n```/i.test(workspace));
+}
+
+function validateInSystemProject(content: string) {
+  if (!hasAcademyWorkspaceEvidence(content)) {
+    return "Build and submit the project using the Lumyn Academy workspace files. External work cannot be assessed.";
+  }
+  if (containsExternalProjectLink(projectNarrative(content))) {
+    return "External project, repository, deployment, and demo links are not accepted. Submit only the files, preview evidence, terminal evidence, and notes created inside Lumyn Academy.";
+  }
+  return null;
 }
 
 function moduleCompletionMessage(moduleTitle: string, moduleIndex: number) {
@@ -33,6 +55,7 @@ function moduleCompletionMessage(moduleTitle: string, moduleIndex: number) {
 }
 
 function applyCourseLearningGuards(course: GeneratedCourse) {
+  Object.assign(course, ensureInSystemFinalProject(course));
   course.modules.forEach((module, index) => {
     Object.assign(module, ensureModulePractice(module));
     module.quiz = {
@@ -152,7 +175,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (!course) return NextResponse.json({ error: "Course not found." }, { status: 404 });
 
     const body = await request.json() as {
-      action?: "lesson" | "quiz" | "repair_quiz" | "assignment" | "final_project" | "archive" | "cursor";
+      action?: "lesson" | "quiz" | "repair_quiz" | "refresh_video" | "assignment" | "final_project" | "archive" | "cursor";
       moduleIndex?: number;
       lessonIndex?: number;
       completed?: boolean;
@@ -181,6 +204,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const moduleIndex = Number(body.moduleIndex);
     const learningModule = course.course.modules[moduleIndex];
     const previousModuleStatus = learningModule?.completionStatus;
+    let videoRefreshFound: boolean | undefined;
     if (learningModule) {
       Object.assign(learningModule, ensureModulePractice(learningModule));
     }
@@ -189,6 +213,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       course.status = "archived";
     } else if (!learningModule && body.action !== "final_project") {
       return NextResponse.json({ error: "Module not found." }, { status: 400 });
+    } else if (body.action === "refresh_video") {
+      const lessonIndex = Number(body.lessonIndex);
+      const lesson = learningModule.lessons[lessonIndex];
+      if (!lesson || learningModule.completionStatus === "locked") {
+        return NextResponse.json({ error: "Lesson video is not available." }, { status: 400 });
+      }
+      const previousVideoId = lesson.youtubeVideo?.videoId;
+      delete lesson.youtubeVideo;
+      await attachYouTubeVideos(course.course, {
+        force: true,
+        moduleIndex,
+        lessonIndex,
+        excludeVideoId: previousVideoId,
+      });
+      videoRefreshFound = Boolean(lesson.youtubeVideo);
     } else if (body.action === "lesson") {
       const lesson = learningModule.lessons[Number(body.lessonIndex)];
       if (!lesson || learningModule.completionStatus === "locked") {
@@ -269,9 +308,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }).catch((error) => console.error("[academy quiz email]", error));
     } else if (body.action === "assignment") {
       const content = body.content?.trim();
+      const projectError = content ? validateInSystemProject(content) : null;
+      if (projectError) {
+        return NextResponse.json({ error: projectError }, { status: 400 });
+      }
       if (!content || evidenceLength(content) < 80) {
         return NextResponse.json({
-          error: "A link alone cannot be assessed. Explain what you built, how it meets each requirement, and include relevant code or file details.",
+          error: "Build the assignment in the Academy workspace and include enough file and preview evidence for assessment.",
         }, { status: 400 });
       }
       const evaluation = await evaluateAcademySubmission({
@@ -303,9 +346,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }
     } else if (body.action === "final_project") {
       const content = body.content?.trim();
+      const projectError = content ? validateInSystemProject(content) : null;
+      if (projectError) {
+        return NextResponse.json({ error: projectError }, { status: 400 });
+      }
       if (!content || evidenceLength(content) < 120) {
         return NextResponse.json({
-          error: "Describe the implementation, decisions, completed requirements, and evidence. A repository or demo link alone is not enough.",
+          error: "Build the capstone in the Academy workspace and include enough file, preview, and implementation evidence for assessment.",
         }, { status: 400 });
       }
       const evaluation = await evaluateAcademySubmission({
@@ -378,6 +425,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           }
         : course.certificate,
       activityLog: course.activityLog,
+      videoRefreshFound,
       moduleCelebration: moduleJustCompleted
         ? {
             title: learningModule.title,

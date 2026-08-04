@@ -7,15 +7,20 @@ import { sendAcademyEmail } from "@/lib/academy-emails";
 import { attachYouTubeVideos } from "@/lib/youtube";
 import AcademyCourse from "@/models/AcademyCourse";
 
+// Safety ceiling only. The compact first-path response should normally finish
+// far sooner; deeper assessments are generated just in time.
+export const maxDuration = 120;
+
 export async function POST(request: NextRequest) {
   let reservedPoints = false;
   let reservedStudentUid: string | null = null;
 
   try {
-    const { prompt, level, goal } = (await request.json()) as {
+    const { prompt, level, goal, generationId: rawGenerationId } = (await request.json()) as {
       prompt?: string;
       level?: string;
       goal?: string;
+      generationId?: string;
     };
 
     if (!prompt || !level || !goal) {
@@ -26,9 +31,32 @@ export async function POST(request: NextRequest) {
     }
 
     const { decoded, student } = await getVerifiedAcademyStudent(request);
+    const generationId =
+      typeof rawGenerationId === "string" &&
+      /^[a-zA-Z0-9_-]{12,120}$/.test(rawGenerationId)
+        ? rawGenerationId
+        : undefined;
 
     const hasExemption = hasCourseGenerationExemption(student);
     let pointsBalance = student.pointsBalance ?? 0;
+
+    if (generationId) {
+      const existingCourse = await AcademyCourse.findOne({
+        studentUid: decoded.uid,
+        generationId,
+      });
+      if (existingCourse) {
+        return NextResponse.json({
+          success: true,
+          courseId: existingCourse._id.toString(),
+          course: existingCourse.course,
+          accessType: hasExemption ? "exemption" : "points",
+          pointsSpent: hasExemption ? 0 : POINTS_PER_GENERATION,
+          pointsBalance,
+          recovered: true,
+        });
+      }
+    }
 
     if (!hasExemption) {
       const reservedStudent = await reserveGenerationPoints(decoded.uid);
@@ -51,6 +79,7 @@ export async function POST(request: NextRequest) {
     const savedCourse = await AcademyCourse.create({
       studentUid: decoded.uid,
       studentEmail: student.email,
+      generationId,
       prompt: prompt.trim(),
       level: level.trim(),
       goal: goal.trim(),
@@ -82,25 +111,43 @@ export async function POST(request: NextRequest) {
       await refundGenerationPoints(reservedStudentUid)
         .catch((releaseError) => console.error("[academy point refund]", releaseError));
     }
-    console.error("[POST /api/academy/generate]", error);
     if (error instanceof Error && error.message.includes("points")) {
+      console.error("[POST /api/academy/generate]", error);
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 402 }
       );
     }
     if (error instanceof AcademyAIError) {
+      const retryable = error.status === 429 || error.status === 503;
+      if (retryable) {
+        console.warn("[academy/generate recovery]", {
+          status: error.status,
+          message: error.message,
+        });
+      } else {
+        console.error("[POST /api/academy/generate]", error);
+      }
       return NextResponse.json(
-        { success: false, error: error.message },
+        {
+          success: false,
+          error: retryable
+            ? "Lumyn is handling unusually high demand. Your request is safe and will retry automatically."
+            : error.message,
+          retryable,
+          retryAfterMs: retryable ? 4_000 : undefined,
+        },
         { status: error.status }
       );
     }
     if (error instanceof AcademyDatabaseUnavailableError) {
+      console.error("[POST /api/academy/generate]", error);
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 503 }
       );
     }
+    console.error("[POST /api/academy/generate]", error);
     return NextResponse.json(
       { success: false, error: "Could not generate the learning path." },
       { status: 500 }

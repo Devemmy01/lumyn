@@ -144,12 +144,34 @@ function isVaguePracticeItem(value: string) {
   ].some((phrase) => text === phrase || text.includes(phrase));
 }
 
+export const ACADEMY_WORKSPACE_LAB =
+  "Complete the entire project in Lumyn Academy's built-in workspace. Use its files, preview, terminal evidence, and notes; do not use an external editor, repository, deployment, sandbox, or project link.";
+
+const externalProjectLinkPattern =
+  /(?:https?:\/\/|www\.)\S+|\b(?:[a-z0-9-]+\.)+(?:com|net|org|io|dev|app|co|me|ai)(?:\/\S*)?\b/i;
+
+export function containsExternalProjectLink(value: string) {
+  return externalProjectLinkPattern.test(value);
+}
+
+export function requiresExternalProjectWork(value: string) {
+  return (
+    containsExternalProjectLink(value) ||
+    /\b(?:github|gitlab|bitbucket|codepen|codesandbox|replit|stackblitz|external (?:editor|sandbox|platform|tool)|local editor|deploy(?:ment)?|host(?:ed|ing)?|live demo|repository-only|repo(?:sitory)? link)\b/i.test(
+      value,
+    )
+  );
+}
+
 function practiceItems(value: unknown, fallback: string[]) {
   const values = Array.isArray(value)
     ? value
         .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
         .map((item) => item.trim())
-        .filter((item) => !isVaguePracticeItem(item))
+        .filter(
+          (item) =>
+            !isVaguePracticeItem(item) && !requiresExternalProjectWork(item),
+        )
     : [];
   return values.length ? values : fallback;
 }
@@ -162,7 +184,7 @@ function topicPracticePlan(moduleTitle: string, lessonTitles: string[]): ModuleP
       assignment:
         "Create an index.html file for a simple personal profile page. It must include <!DOCTYPE html>, <html>, <head>, <title>, and <body>, then add a visible <h1>, at least one paragraph, one link, and one semantic section such as <main>, <section>, <nav>, or <footer>.",
       assignmentDeliverables: [
-        "The full index.html code or a link to the file",
+        "The completed index.html file in the Academy workspace",
         "A short note naming the required tags you used",
         "A browser screenshot or preview description of the rendered page",
       ],
@@ -184,7 +206,7 @@ function topicPracticePlan(moduleTitle: string, lessonTitles: string[]): ModuleP
         "Links, text, and sections render correctly in the browser",
       ],
       labEnvironment:
-        "Use the practice playground, a local editor, or any browser-based HTML sandbox. Save the work as index.html if using your own editor.",
+        ACADEMY_WORKSPACE_LAB,
       safetyNotes:
         "Use your own text and safe placeholder links. Do not paste private personal information into the page.",
     };
@@ -217,7 +239,7 @@ function topicPracticePlan(moduleTitle: string, lessonTitles: string[]): ModuleP
         "Visual hierarchy is clear",
       ],
       labEnvironment:
-        "Use the practice playground tabs or a local editor with index.html and style.css.",
+        ACADEMY_WORKSPACE_LAB,
       safetyNotes:
         "Use original or placeholder content and avoid external assets you do not have permission to use.",
     };
@@ -250,7 +272,7 @@ function topicPracticePlan(moduleTitle: string, lessonTitles: string[]): ModuleP
         "The code is readable and organized",
       ],
       labEnvironment:
-        "Use the practice playground tabs or a local editor with index.html, style.css, and script.js.",
+        ACADEMY_WORKSPACE_LAB,
       safetyNotes:
         "Run only your own learning code in the browser. Do not paste unknown scripts from untrusted sources.",
     };
@@ -282,7 +304,7 @@ function topicPracticePlan(moduleTitle: string, lessonTitles: string[]): ModuleP
       "Includes clear evidence",
     ],
     labEnvironment:
-      "Use the practice playground, local editor, browser, notebook, or a relevant safe practice environment.",
+      ACADEMY_WORKSPACE_LAB,
     safetyNotes:
       "Stay within authorized, safe, and appropriate learning environments.",
   };
@@ -297,7 +319,9 @@ export function ensureModulePractice(module: Partial<GeneratedModule>): ModulePr
   const fallback = topicPracticePlan(moduleTitle, lessonTitles);
 
   return {
-    assignment: isVaguePracticeText(module.assignment)
+    assignment:
+      isVaguePracticeText(module.assignment) ||
+      requiresExternalProjectWork(module.assignment ?? "")
       ? fallback.assignment
       : module.assignment!.trim(),
     assignmentDeliverables: practiceItems(
@@ -308,7 +332,9 @@ export function ensureModulePractice(module: Partial<GeneratedModule>): ModulePr
       module.assignmentAssessmentCriteria,
       fallback.assignmentAssessmentCriteria,
     ),
-    miniProject: isVaguePracticeText(module.miniProject)
+    miniProject:
+      isVaguePracticeText(module.miniProject) ||
+      requiresExternalProjectWork(module.miniProject ?? "")
       ? fallback.miniProject
       : module.miniProject!.trim(),
     miniProjectDeliverables: practiceItems(
@@ -319,10 +345,7 @@ export function ensureModulePractice(module: Partial<GeneratedModule>): ModulePr
       module.miniProjectAssessmentCriteria,
       fallback.miniProjectAssessmentCriteria,
     ),
-    labEnvironment:
-      typeof module.labEnvironment === "string" && module.labEnvironment.trim()
-        ? module.labEnvironment.trim()
-        : fallback.labEnvironment,
+    labEnvironment: ACADEMY_WORKSPACE_LAB,
     safetyNotes:
       typeof module.safetyNotes === "string" && module.safetyNotes.trim()
         ? module.safetyNotes.trim()
@@ -407,6 +430,55 @@ export type GeneratedCourse = {
   progressStructure: string[];
   certificateEligible: boolean;
 };
+
+export function ensureInSystemFinalProject(course: GeneratedCourse) {
+  const fallbackFinalProject = `Build a self-contained capstone for ${course.courseTitle} entirely inside the Lumyn Academy workspace, then submit its files, preview or terminal evidence, and implementation notes through the system.`;
+  const finalProject = requiresExternalProjectWork(course.finalProject)
+    ? fallbackFinalProject
+    : course.finalProject;
+  const plan = course.finalProjectPlan;
+
+  if (!plan) return { ...course, finalProject, finalProjectPlan: plan };
+
+  const safeItems = (items: string[] | undefined, fallback: string[]) => {
+    const filtered = (items ?? []).filter(
+      (item) => !requiresExternalProjectWork(item),
+    );
+    return filtered.length ? filtered : fallback;
+  };
+
+  return {
+    ...course,
+    finalProject,
+    finalProjectPlan: {
+      ...plan,
+      overview: requiresExternalProjectWork(plan.overview)
+        ? fallbackFinalProject
+        : plan.overview,
+      labEnvironment: ACADEMY_WORKSPACE_LAB,
+      phases: plan.phases.map((phase) => ({
+        ...phase,
+        instructions: requiresExternalProjectWork(phase.instructions)
+          ? `Complete the ${phase.title} phase entirely in the Lumyn Academy workspace.`
+          : phase.instructions,
+        evidence: safeItems(phase.evidence, [
+          "Academy workspace files",
+          "Built-in preview or terminal evidence",
+        ]),
+      })),
+      deliverables: safeItems(plan.deliverables, [
+        "Academy workspace files",
+        "Implementation notes",
+        "Built-in preview or terminal evidence",
+      ]),
+      assessmentCriteria: safeItems(plan.assessmentCriteria, [
+        "Applies the course concepts",
+        "Runs or is evidenced inside the Academy workspace",
+        "Includes clear implementation notes",
+      ]),
+    },
+  };
+}
 
 export type LearningCursor = {
   moduleIndex?: number;

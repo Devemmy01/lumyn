@@ -1,4 +1,5 @@
 export * from "@/components/academy/dashboard/AccountPanel";
+export * from "@/components/academy/dashboard/AcademyInstallPrompt";
 export * from "@/components/academy/dashboard/DashboardChrome";
 export * from "@/components/academy/dashboard/DashboardRightRail";
 export * from "@/components/academy/dashboard/CertificateRoute";

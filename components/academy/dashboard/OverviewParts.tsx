@@ -6,7 +6,7 @@ import AcademyLogo from "@/components/academy/AcademyLogo";
 import AcademyAuthForm from "@/components/academy/AcademyAuthForm";
 import AcademyThemeToggle from "@/components/academy/AcademyThemeToggle";
 import AstraMascot from "@/components/academy/AstraMascot";
-import { ACADEMY_TUTOR_NAME } from "@/lib/academy";
+import { ACADEMY_TUTOR_NAME, type LearningCursor } from "@/lib/academy";
 import { ArrowIcon } from "@/components/academy/dashboard/icons";
 import { LoadingSpinner } from "@/components/academy/dashboard/LoadingStates";
 import type { DashboardCourse } from "@/components/academy/dashboard/types";
@@ -118,18 +118,72 @@ export function DashboardAuthScreen() {
   );
 }
 
-export function OverviewMetricRail({ progress, completedModules, moduleCount, quizAverage, pendingAssignments }: { progress: number; completedModules: number; moduleCount: number; quizAverage: number | null; pendingAssignments: number }) {
+export function OverviewMetricRail({ progress, completedModules, moduleCount, quizAverage, xp, streak }: { progress: number; completedModules: number; moduleCount: number; quizAverage: number | null; xp: number; streak: number }) {
   const metrics = [
     { label: "Path progress", value: `${progress}%`, detail: "overall" },
-    { label: "Modules", value: `${completedModules}/${moduleCount}`, detail: "completed" },
-    { label: "Quiz signal", value: quizAverage === null ? "—" : `${quizAverage}%`, detail: "average" },
-    { label: "Open work", value: String(pendingAssignments), detail: "assignments" },
+    { label: "Learning streak", value: `${streak}`, detail: streak === 1 ? "day" : "days" },
+    { label: "Total XP", value: String(xp), detail: "earned" },
+    { label: "Mastery", value: quizAverage === null ? `${completedModules}/${moduleCount}` : `${quizAverage}%`, detail: quizAverage === null ? "modules" : "quiz avg" },
   ];
 
   return (
     <section className="mt-6 overflow-hidden border-y border-black/[0.08] dark:border-white/[0.08]" aria-label="Learning metrics">
       <div className="grid grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric, index) => <div key={metric.label} className={`relative px-4 py-5 sm:px-6 ${index % 2 === 0 ? "border-r border-black/[0.08] dark:border-white/[0.08]" : ""} ${index < 2 ? "border-b border-black/[0.08] lg:border-b-0 dark:border-white/[0.08]" : ""} ${index === 1 ? "lg:border-r" : ""} ${index === 2 ? "lg:border-r" : ""}`}><span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full bg-[#7c6cf6] opacity-0 transition group-hover:opacity-100" /><p className="text-[9px] font-bold uppercase tracking-[0.18em] text-neutral-400">{metric.label}</p><div className="mt-2 flex items-baseline gap-2"><span className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">{metric.value}</span><span className="text-[10px] text-neutral-400">{metric.detail}</span></div></div>)}
+      </div>
+    </section>
+  );
+}
+
+export function DailyQuest({
+  course,
+  cursor,
+  complete,
+  streak,
+}: {
+  course?: DashboardCourse;
+  cursor?: LearningCursor;
+  complete: boolean;
+  streak: number;
+}) {
+  if (!course) return null;
+
+  const moduleIndex = cursor?.moduleIndex ?? 0;
+  const learningModule = course.course.modules[moduleIndex];
+  const lesson = learningModule?.lessons[cursor?.lessonIndex ?? 0];
+  const mission = cursor?.step === "quiz"
+    ? `Pass the ${learningModule?.title ?? "module"} quiz`
+    : cursor?.step === "assignment"
+      ? `Build the ${learningModule?.title ?? "module"} practice task`
+      : cursor?.step === "final_project"
+        ? "Make progress on your final project"
+        : `Finish ${lesson?.title ?? "your next lesson"}`;
+
+  return (
+    <section className="mt-6 overflow-hidden rounded-[1.75rem] border border-black/[0.08] bg-white/75 shadow-sm dark:border-white/[0.08] dark:bg-[#111219]">
+      <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="flex min-w-0 gap-4">
+          <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-2xl ${complete ? "bg-emerald-500/12" : "bg-orange-500/12"}`} aria-hidden="true">
+            {complete ? "✓" : "🔥"}
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.17em] text-[#6c5ce7] dark:text-[#b9b1ff]">Today&apos;s quest</p>
+              <span className="rounded-full bg-orange-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-300">{streak} {streak === 1 ? "day" : "days"} streak</span>
+            </div>
+            <h2 className="mt-2 text-lg font-semibold sm:text-xl">{complete ? "Daily goal complete—nice work." : mission}</h2>
+            <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-white/45">{complete ? "Come back tomorrow to keep the streak alive." : "One focused activity · about 10–15 min · earns XP"}</p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[180px_auto] sm:items-center">
+          <div>
+            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400"><span>Daily goal</span><span>{complete ? "1/1" : "0/1"}</span></div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.08]"><span className="block h-full rounded-full bg-gradient-to-r from-orange-400 to-[#7c6cf6] transition-all" style={{ width: complete ? "100%" : "8%" }} /></div>
+          </div>
+          <Link href="/academy/dashboard/learning" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-5 text-xs font-black text-white transition hover:-translate-y-0.5 hover:bg-[#6b5bdd]">
+            {complete ? "Keep learning" : "Start quest"} <ArrowIcon />
+          </Link>
+        </div>
       </div>
     </section>
   );

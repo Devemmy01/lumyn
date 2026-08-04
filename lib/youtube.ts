@@ -1,11 +1,16 @@
 import { createHash } from "crypto";
 import type { GeneratedCourse, GeneratedLesson, YouTubeLessonVideo } from "@/lib/academy";
+import {
+  isRelevantLessonVideo,
+  youtubeDurationSeconds,
+} from "@/lib/youtube-relevance";
 import AcademyVideoCache from "@/models/AcademyVideoCache";
 
 const YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
 const YOUTUBE_VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos";
 const DEFAULT_CACHE_DAYS = 30;
-const MAX_SEARCH_RESULTS = 5;
+const MAX_SEARCH_RESULTS = 15;
+const VIDEO_MATCH_VERSION = "tutorial-v3";
 
 type YouTubeSearchItem = {
   id?: { videoId?: string };
@@ -72,17 +77,19 @@ function normalizeQuery(query: string) {
 }
 
 function cacheKey(query: string) {
-  return createHash("sha256").update(normalizeQuery(query)).digest("hex");
+  return createHash("sha256")
+    .update(`${VIDEO_MATCH_VERSION}:${normalizeQuery(query)}`)
+    .digest("hex");
 }
 
-function buildLessonQuery(course: GeneratedCourse, moduleTitle: string, lesson: GeneratedLesson) {
+function buildLessonQuery(moduleTitle: string, lesson: GeneratedLesson) {
+  const focusedTopic =
+    lesson.videoSearchQuery?.trim() ||
+    lesson.videoTitle?.trim() ||
+    `${lesson.title} ${moduleTitle}`;
   return [
-    lesson.videoSearchQuery,
-    course.courseTitle,
-    moduleTitle,
-    lesson.title,
-    "tutorial",
-    "explained",
+    focusedTopic,
+    "step by step tutorial",
   ]
     .filter((part): part is string => Boolean(part?.trim()))
     .join(" ");
@@ -99,13 +106,6 @@ function durationLabel(duration?: string) {
   if (minutes) return `${minutes}m`;
   if (seconds) return `${seconds}s`;
   return undefined;
-}
-
-function durationSeconds(duration?: string) {
-  if (!duration) return 0;
-  const match = duration.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
-  if (!match) return 0;
-  return (Number(match[1] ?? 0) * 3600) + (Number(match[2] ?? 0) * 60) + Number(match[3] ?? 0);
 }
 
 function thumbnailUrl(item: YouTubeVideoItem) {
@@ -154,19 +154,16 @@ function channelScore(video: YouTubeLessonVideo, lesson: GeneratedLesson) {
 
 function pickBestVideo(candidates: YouTubeLessonVideo[], lesson: GeneratedLesson) {
   return [...candidates]
-    .filter((video) => {
-      const seconds = durationSeconds(video.duration);
-      return seconds === 0 || (seconds >= 180 && seconds <= 7200);
-    })
+    .filter((video) => isRelevantLessonVideo(video, lesson))
     .sort((first, second) => {
       const channelDelta = channelScore(second, lesson) - channelScore(first, lesson);
       if (channelDelta !== 0) return channelDelta;
       const durationDelta =
-        Number(durationSeconds(second.duration) >= 480 && durationSeconds(second.duration) <= 3600) -
-        Number(durationSeconds(first.duration) >= 480 && durationSeconds(first.duration) <= 3600);
+        Number(youtubeDurationSeconds(second.duration) >= 480 && youtubeDurationSeconds(second.duration) <= 3600) -
+        Number(youtubeDurationSeconds(first.duration) >= 480 && youtubeDurationSeconds(first.duration) <= 3600);
       if (durationDelta !== 0) return durationDelta;
       return (second.viewCount ?? 0) - (first.viewCount ?? 0);
-    })[0] ?? candidates[0];
+    })[0];
 }
 
 async function youtubeJson<T>(url: string) {
@@ -208,14 +205,28 @@ async function getVideoDetails(videoIds: string[], apiKey: string) {
   return (payload.items ?? []).map(toLessonVideo).filter((video): video is YouTubeLessonVideo => Boolean(video));
 }
 
-export async function attachYouTubeVideos(course: GeneratedCourse) {
+export async function attachYouTubeVideos(
+  course: GeneratedCourse,
+  options: {
+    force?: boolean;
+    moduleIndex?: number;
+    lessonIndex?: number;
+    excludeVideoId?: string;
+  } = {},
+) {
   const apiKey = youtubeApiKey();
   if (!apiKey) return course;
 
   const requests: CandidateRequest[] = [];
-  for (const learningModule of course.modules) {
-    for (const lesson of learningModule.lessons) {
-      const query = buildLessonQuery(course, learningModule.title, lesson);
+  for (const [moduleIndex, learningModule] of course.modules.entries()) {
+    if (options.moduleIndex !== undefined && options.moduleIndex !== moduleIndex) {
+      continue;
+    }
+    for (const [lessonIndex, lesson] of learningModule.lessons.entries()) {
+      if (options.lessonIndex !== undefined && options.lessonIndex !== lessonIndex) {
+        continue;
+      }
+      const query = buildLessonQuery(learningModule.title, lesson);
       if (!query.trim()) continue;
       requests.push({ key: cacheKey(query), query, lesson });
     }
@@ -223,11 +234,26 @@ export async function attachYouTubeVideos(course: GeneratedCourse) {
 
   if (!requests.length) return course;
 
-  const cached = await AcademyVideoCache.find({
-    normalizedQuery: { $in: requests.map((request) => request.key) },
-    expiresAt: { $gt: new Date() },
-  }).lean();
-  const cachedByKey = new Map(cached.map((item) => [item.normalizedQuery, item.selectedVideo]));
+  const cached = options.force
+    ? []
+    : await AcademyVideoCache.find({
+        normalizedQuery: { $in: requests.map((request) => request.key) },
+        expiresAt: { $gt: new Date() },
+      }).lean();
+  const lessonByKey = new Map(requests.map((request) => [request.key, request.lesson]));
+  const cachedByKey = new Map(
+    cached
+      .filter(
+        (item) =>
+          item.selectedVideo &&
+          lessonByKey.get(item.normalizedQuery) &&
+          isRelevantLessonVideo(
+            item.selectedVideo,
+            lessonByKey.get(item.normalizedQuery)!,
+          ),
+      )
+      .map((item) => [item.normalizedQuery, item.selectedVideo]),
+  );
   const misses = requests.filter((request) => !cachedByKey.get(request.key));
 
   const candidatesByKey = new Map<string, YouTubeLessonVideo[]>();
@@ -248,7 +274,8 @@ export async function attachYouTubeVideos(course: GeneratedCourse) {
       if (result.status !== "fulfilled") continue;
       const candidates = result.value.videoIds
         .map((videoId) => detailsById.get(videoId))
-        .filter((video): video is YouTubeLessonVideo => Boolean(video));
+        .filter((video): video is YouTubeLessonVideo => Boolean(video))
+        .filter((video) => video.videoId !== options.excludeVideoId);
       candidatesByKey.set(result.value.request.key, candidates);
       const selectedVideo = pickBestVideo(candidates, result.value.request.lesson);
       if (selectedVideo) cachedByKey.set(result.value.request.key, selectedVideo);

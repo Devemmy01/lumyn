@@ -11,6 +11,7 @@ import type {
 export interface IAcademyCourseDocument extends Document {
   studentUid: string;
   studentEmail: string;
+  generationId?: string;
   prompt: string;
   level: string;
   goal: string;
@@ -72,6 +73,11 @@ const AcademyCourseSchema = new Schema<IAcademyCourseDocument>(
       lowercase: true,
       index: true,
     },
+    generationId: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+    },
     prompt: {
       type: String,
       required: true,
@@ -130,6 +136,10 @@ const AcademyCourseSchema = new Schema<IAcademyCourseDocument>(
 );
 
 AcademyCourseSchema.index({ studentUid: 1, createdAt: -1 });
+AcademyCourseSchema.index(
+  { studentUid: 1, generationId: 1 },
+  { unique: true, sparse: true },
+);
 
 const AcademyCourse: Model<IAcademyCourseDocument> =
   mongoose.models.AcademyCourse ||

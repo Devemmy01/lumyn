@@ -312,21 +312,25 @@ export function QuizResultModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="quiz-result-title"
+      onClick={onClose}
     >
-      <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#111218] p-7 text-center text-white shadow-2xl">
+      <div
+        className="max-h-[90svh] w-full max-w-md overflow-y-auto rounded-t-[1.75rem] border border-white/10 bg-[#111218] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-white shadow-2xl sm:rounded-[2rem] sm:p-7"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div
-          className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold ${result.passed ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}
+          className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full text-xl font-bold sm:h-20 sm:w-20 sm:text-2xl ${result.passed ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}
         >
           {result.score}%
         </div>
-        <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a99eff]">
+        <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a99eff] sm:mt-6">
           Quiz result
         </p>
-        <h2 id="quiz-result-title" className="mt-2 text-2xl font-semibold">
+        <h2 id="quiz-result-title" className="mt-2 text-xl font-semibold sm:text-2xl">
           {result.passed
             ? "Excellent!\nmodule quiz passed!"
             : "Good attempt—review and retry."}
@@ -340,7 +344,7 @@ export function QuizResultModal({
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full rounded-xl bg-[#7c6cf6] px-5 py-3 text-sm font-bold text-white"
+          className="mt-5 h-11 w-full rounded-xl bg-[#7c6cf6] px-5 text-sm font-bold text-white sm:mt-6"
         >
           Review answers
         </button>
@@ -358,9 +362,10 @@ export function CelebrationModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[95] flex items-center justify-center overflow-hidden bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[95] flex items-end justify-center overflow-hidden bg-black/75 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
+      onClick={onClose}
     >
       <div className="pointer-events-none absolute inset-0">
         {Array.from({ length: 28 }, (_, index) => (
@@ -381,33 +386,36 @@ export function CelebrationModal({
           />
         ))}
       </div>
-      <div className="relative w-full max-w-lg rounded-[2.25rem] border border-white/10 bg-[#111218] p-8 text-center text-white shadow-2xl sm:p-10">
-        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white/[0.06]">
+      <div
+        className="relative max-h-[90svh] w-full max-w-lg overflow-y-auto rounded-t-[1.75rem] border border-white/10 bg-[#111218] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-white shadow-2xl sm:rounded-[2.25rem] sm:p-10"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-white/[0.06] sm:h-28 sm:w-28 sm:rounded-[2rem]">
           <AstraMascot
             expression="celebrating"
-            className="h-32 w-32 translate-y-1"
+            className="h-24 w-24 translate-y-1 sm:h-32 sm:w-32"
           />
         </div>
-        <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b9b1ff]">
+        <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b9b1ff] sm:mt-6">
           Course complete
         </p>
-        <h2 className="mt-3 text-3xl font-semibold">You did it!</h2>
+        <h2 className="mt-2 text-2xl font-semibold sm:mt-3 sm:text-3xl">You did it!</h2>
         <p className="mt-3 text-sm leading-6 text-white/55">
           You completed <strong className="text-white">{courseTitle}</strong>.
           Your certificate is ready to view and print.
         </p>
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-7">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 px-3 text-xs font-semibold sm:px-5 sm:text-sm"
           >
             Stay here
           </button>
           <Link
             href="/academy/dashboard/certificates"
             onClick={onClose}
-            className="flex-1 rounded-xl bg-[#7c6cf6] px-5 py-3 text-sm font-bold text-white"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#7c6cf6] px-3 text-xs font-bold text-white sm:px-5 sm:text-sm"
           >
             View certificate
           </Link>
@@ -430,9 +438,10 @@ export function ModuleCelebrationModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[94] flex items-center justify-center overflow-hidden bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[94] flex items-end justify-center overflow-hidden bg-black/75 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
+      onClick={onClose}
     >
       <div className="pointer-events-none absolute inset-0">
         {Array.from({ length: 32 }, (_, index) => (
@@ -473,15 +482,18 @@ export function ModuleCelebrationModal({
           />
         ))}
       </div>
-      <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/10 bg-[#111218] p-7 text-center text-white shadow-2xl">
+      <div
+        className="relative max-h-[90svh] w-full max-w-md overflow-y-auto rounded-t-[1.75rem] border border-white/10 bg-[#111218] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-white shadow-2xl sm:rounded-[2rem] sm:p-7"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_center,rgba(124,108,246,0.34),transparent_68%)]" />
-        <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-[1.75rem] bg-[#7c6cf6]/15 text-3xl font-black text-[#d8d3ff] ring-1 ring-[#b9b1ff]/25 shadow-[0_0_70px_rgba(124,108,246,0.36)]">
+        <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-[#7c6cf6]/15 text-2xl font-black text-[#d8d3ff] ring-1 ring-[#b9b1ff]/25 shadow-[0_0_70px_rgba(124,108,246,0.36)] sm:h-24 sm:w-24 sm:rounded-[1.75rem] sm:text-3xl">
           +{xp}
         </div>
-        <p className="relative mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-[#b9b1ff]">
+        <p className="relative mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#b9b1ff] sm:mt-6">
           Module complete
         </p>
-        <h2 className="relative mt-2 text-2xl font-semibold tracking-[-0.03em]">
+        <h2 className="relative mt-2 text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
           {title}
         </h2>
         <p className="relative mt-3 text-sm leading-6 text-white/58">
@@ -490,7 +502,7 @@ export function ModuleCelebrationModal({
         <button
           type="button"
           onClick={onClose}
-          className="relative mt-7 w-full rounded-xl bg-[#7c6cf6] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#6b5bdd]"
+          className="relative mt-5 h-11 w-full rounded-xl bg-[#7c6cf6] px-5 text-sm font-bold text-white transition hover:bg-[#6b5bdd] sm:mt-7"
         >
           Keep learning
         </button>
