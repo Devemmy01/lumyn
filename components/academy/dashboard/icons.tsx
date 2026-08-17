@@ -6,6 +6,7 @@ export function DashboardIcon({ type }: { type: string }) {
   if (type === "spark") return <SparkIcon small />;
   if (type === "check" || type === "work") return <svg {...common}><path {...stroke} d="M8.2 4.5h7.6" /><path {...stroke} d="M9 3h6l.7 2.2c.2.5-.2 1-.7 1H9c-.5 0-.9-.5-.7-1L9 3Z" /><path {...stroke} d="M6.2 5.2h-.1A2.1 2.1 0 0 0 4 7.3v11.1c0 1.2.9 2.1 2.1 2.1h11.8c1.2 0 2.1-.9 2.1-2.1V7.3c0-1.2-.9-2.1-2.1-2.1h-.1" /><path {...stroke} d="m8 13 2.4 2.4L16 9.8" /></svg>;
   if (type === "award") return <AwardIcon />;
+  if (type === "gem") return <svg {...common}><path {...stroke} d="M6.2 4.5h11.6L21 9.3l-9 10.2-9-10.2 3.2-4.8Z" /><path {...stroke} d="M3 9.3h18M9 4.5 7.5 9.3l4.5 10.2 4.5-10.2L15 4.5" /></svg>;
   if (type === "card") return <svg {...common}><path {...stroke} d="M4 8.2c0-1.5 1.2-2.7 2.7-2.7h10.6c1.5 0 2.7 1.2 2.7 2.7v7.6c0 1.5-1.2 2.7-2.7 2.7H6.7A2.7 2.7 0 0 1 4 15.8V8.2Z" /><path {...stroke} d="M4.5 9.5h15M7.5 15h3" /></svg>;
   return <svg {...common}><path {...stroke} d="M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0Z" /><path {...stroke} d="M12 8v4l2.5 1.7" /></svg>;
 }

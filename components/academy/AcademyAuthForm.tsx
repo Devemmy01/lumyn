@@ -10,7 +10,6 @@ import {
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { getFirebaseAuth, googleProvider } from "@/lib/firebase/client";
-import { academyPlans } from "@/lib/academy";
 
 type AuthMode = "signin" | "signup";
 
@@ -34,7 +33,6 @@ function getAuthErrorMessage(error: unknown) {
 export default function AcademyAuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedPlan = searchParams.get("plan") ?? "ai-learning-path";
   const referralCode = searchParams.get("ref") ?? "";
   const [mode, setMode] = useState<AuthMode>("signin");
   const [name, setName] = useState("");
@@ -44,7 +42,6 @@ export default function AcademyAuthForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [message, setMessage] = useState("");
   const auth = useMemo(() => getFirebaseAuth(), []);
-  const plan = academyPlans.find((item) => item.id === selectedPlan) ?? academyPlans[0];
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
@@ -56,7 +53,7 @@ export default function AcademyAuthForm() {
     const response = await fetch("/api/academy/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken, planId: selectedPlan, referralCode }),
+      body: JSON.stringify({ idToken, referralCode }),
     });
     const payload = (await response.json().catch(() => null)) as
       | { error?: string }
@@ -70,7 +67,7 @@ export default function AcademyAuthForm() {
 
   async function finishAuth(idToken: string) {
     await createSession(idToken);
-    router.push(`/academy/dashboard?plan=${encodeURIComponent(selectedPlan)}`);
+    router.push("/academy/dashboard");
   }
 
   async function handleGoogleSignIn() {
@@ -158,7 +155,7 @@ export default function AcademyAuthForm() {
             {status !== "loading" && <svg width="17" height="17" viewBox="0 0 24 24" fill="none" className="relative z-10 ml-2 transition-transform group-hover:translate-x-1" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
           </button>
         </form>
-        <p className="relative mt-5 text-center text-[10px] leading-5 text-[#8a8298] dark:text-white/30">By continuing, you agree to Lumyn’s <a href="/terms" className="font-semibold text-[#6757df] underline underline-offset-2 hover:text-[#17131f] dark:text-white/55 dark:hover:text-white">Terms</a> and acknowledge the <a href="/privacy" className="font-semibold text-[#6757df] underline underline-offset-2 hover:text-[#17131f] dark:text-white/55 dark:hover:text-white">Privacy Policy</a>. Point purchases are also covered by our <a href="/refund-policy" className="font-semibold text-[#6757df] underline underline-offset-2 hover:text-[#17131f] dark:text-white/55 dark:hover:text-white">Refund Policy</a>.</p>
+        <p className="relative mt-5 text-center text-[10px] leading-5 text-[#8a8298] dark:text-white/30">By continuing, you agree to Lumyn’s <a href="/terms" className="font-semibold text-[#6757df] underline underline-offset-2 hover:text-[#17131f] dark:text-white/55 dark:hover:text-white">Terms</a> and acknowledge the <a href="/privacy" className="font-semibold text-[#6757df] underline underline-offset-2 hover:text-[#17131f] dark:text-white/55 dark:hover:text-white">Privacy Policy</a>. Subscription and certificate payments are also covered by our <a href="/refund-policy" className="font-semibold text-[#6757df] underline underline-offset-2 hover:text-[#17131f] dark:text-white/55 dark:hover:text-white">Refund Policy</a>.</p>
       </div>
     </div>
   );

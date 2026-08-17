@@ -1,5 +1,11 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import { STARTER_ACADEMY_POINTS, type AcademyPlanId, type AcademyRole, type SubscriptionStatus } from "@/lib/academy";
+import type { AcademyPlanId, AcademyRole, SubscriptionStatus } from "@/lib/academy";
+
+export interface IAcademyStudentBadge {
+  badgeId: string;
+  earnedAt: string;
+  contextSlug?: string;
+}
 
 export interface IAcademyStudentDocument extends Document {
   firebaseUid: string;
@@ -19,17 +25,21 @@ export interface IAcademyStudentDocument extends Document {
     cancelAtPeriodEnd?: boolean;
   };
   mentorshipStatus: "none" | "applied" | "approved" | "active" | "completed";
-  pointsBalance: number;
-  starterPointsGrantedAt?: Date;
+  gamification: {
+    xpTotal: number;
+    streakCurrent: number;
+    streakLongest: number;
+    activeDates: string[];
+    badges: IAcademyStudentBadge[];
+  };
+  diamondsBalance: number;
   referralCode?: string;
   referredByCode?: string;
   referredByUid?: string;
   referredAt?: Date;
   referralsCount?: number;
-  courseGenerationExempt?: boolean;
-  freeCourseUsedAt?: Date;
-  freeCourseId?: string;
-  freeCourseClaimId?: string;
+  /** Admin-grantable VIP flag: free tutor access and free certificates regardless of subscription. */
+  vipAccess?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,7 +83,7 @@ const AcademyStudentSchema = new Schema<IAcademyStudentDocument>(
     subscription: {
       planId: {
         type: String,
-        enum: ["ai-learning-path", "guided-mentorship"],
+        enum: ["ai-tutor", "guided-mentorship"],
       },
       status: {
         type: String,
@@ -98,14 +108,25 @@ const AcademyStudentSchema = new Schema<IAcademyStudentDocument>(
       enum: ["none", "applied", "approved", "active", "completed"],
       default: "none",
     },
-    pointsBalance: {
-      type: Number,
-      default: STARTER_ACADEMY_POINTS,
-      min: 0,
+    gamification: {
+      xpTotal: { type: Number, default: 0, min: 0 },
+      streakCurrent: { type: Number, default: 0, min: 0 },
+      streakLongest: { type: Number, default: 0, min: 0 },
+      activeDates: { type: [String], default: [] },
+      badges: {
+        type: [
+          new Schema(
+            { badgeId: String, earnedAt: String, contextSlug: String },
+            { _id: false },
+          ),
+        ],
+        default: [],
+      },
     },
-    starterPointsGrantedAt: {
-      type: Date,
-      default: Date.now,
+    diamondsBalance: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     referralCode: {
       type: String,
@@ -131,13 +152,10 @@ const AcademyStudentSchema = new Schema<IAcademyStudentDocument>(
       default: 0,
       min: 0,
     },
-    courseGenerationExempt: {
+    vipAccess: {
       type: Boolean,
       index: true,
     },
-    freeCourseUsedAt: Date,
-    freeCourseId: String,
-    freeCourseClaimId: String,
   },
   {
     timestamps: true,

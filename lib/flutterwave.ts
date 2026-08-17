@@ -1,4 +1,4 @@
-import { ACADEMY_POINT_PRICE_CENTS, MAX_POINT_PURCHASE, MIN_POINT_PURCHASE } from "@/lib/academy";
+import { ACADEMY_CERTIFICATE_PRICE_CENTS, ACADEMY_SUBSCRIPTION_PRICE_CENTS } from "@/lib/academy";
 
 const FLUTTERWAVE_URL = "https://api.flutterwave.com/v3";
 
@@ -12,22 +12,28 @@ function secretKey() {
   return key;
 }
 
-export function pointPriceCents() {
-  const configured = Number(process.env.ACADEMY_POINT_PRICE_CENTS ?? ACADEMY_POINT_PRICE_CENTS);
-  return Number.isInteger(configured) && configured > 0 ? configured : ACADEMY_POINT_PRICE_CENTS;
+function academyPaymentCurrency() {
+  return process.env.ACADEMY_PAYMENT_CURRENCY ?? "USD";
 }
 
-export function calculatePointPurchase(points: number) {
-  if (!Number.isInteger(points) || points < MIN_POINT_PURCHASE || points > MAX_POINT_PURCHASE) {
-    throw new Error(`Choose between ${MIN_POINT_PURCHASE} and ${MAX_POINT_PURCHASE} points.`);
-  }
-  const amountCents = points * pointPriceCents();
-  return {
-    points,
-    amountCents,
-    amount: amountCents / 100,
-    currency: process.env.ACADEMY_PAYMENT_CURRENCY ?? "USD",
-  };
+export function subscriptionPriceCents() {
+  const configured = Number(process.env.ACADEMY_SUBSCRIPTION_PRICE_CENTS ?? ACADEMY_SUBSCRIPTION_PRICE_CENTS);
+  return Number.isInteger(configured) && configured > 0 ? configured : ACADEMY_SUBSCRIPTION_PRICE_CENTS;
+}
+
+export function certificatePriceCents() {
+  const configured = Number(process.env.ACADEMY_CERTIFICATE_PRICE_CENTS ?? ACADEMY_CERTIFICATE_PRICE_CENTS);
+  return Number.isInteger(configured) && configured > 0 ? configured : ACADEMY_CERTIFICATE_PRICE_CENTS;
+}
+
+export function calculateSubscriptionCharge() {
+  const amountCents = subscriptionPriceCents();
+  return { amountCents, amount: amountCents / 100, currency: academyPaymentCurrency() };
+}
+
+export function calculateCertificateCharge() {
+  const amountCents = certificatePriceCents();
+  return { amountCents, amount: amountCents / 100, currency: academyPaymentCurrency() };
 }
 
 export async function flutterwaveRequest<T>(path: string, init?: RequestInit) {

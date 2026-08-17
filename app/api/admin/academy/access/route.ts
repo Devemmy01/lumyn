@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { grantAcademyPoints } from "@/lib/academy-points";
+import { grantAcademyDiamonds } from "@/lib/academy-diamonds";
 import connectDB from "@/lib/mongodb";
 import AcademyStudent from "@/models/AcademyStudent";
 
@@ -14,8 +14,8 @@ export async function PATCH(request: Request) {
 
     const body = await request.json() as {
       email?: string;
-      courseGenerationExempt?: boolean;
-      pointsToGrant?: number;
+      vipAccess?: boolean;
+      diamondsToGrant?: number;
       note?: string;
     };
     const email = body.email?.trim().toLowerCase();
@@ -27,15 +27,15 @@ export async function PATCH(request: Request) {
       );
     }
 
-    if (body.pointsToGrant !== undefined) {
-      const points = Number(body.pointsToGrant);
-      if (!Number.isInteger(points) || points < 1 || points > 500) {
-        return NextResponse.json({ error: "Grant between 1 and 500 points." }, { status: 400 });
+    if (body.diamondsToGrant !== undefined) {
+      const diamonds = Number(body.diamondsToGrant);
+      if (!Number.isInteger(diamonds) || diamonds < 1 || diamonds > 100) {
+        return NextResponse.json({ error: "Grant between 1 and 100 diamonds." }, { status: 400 });
       }
 
-      const student = await grantAcademyPoints({
+      const student = await grantAcademyDiamonds({
         email,
-        points,
+        diamonds,
         note: body.note,
         createdBy: session.user?.email ?? "admin",
       });
@@ -46,15 +46,15 @@ export async function PATCH(request: Request) {
           id: student._id.toString(),
           name: student.name,
           email: student.email,
-          pointsBalance: student.pointsBalance,
-          courseGenerationExempt: student.courseGenerationExempt === true,
+          diamondsBalance: student.diamondsBalance,
+          vipAccess: student.vipAccess === true,
         },
       });
     }
 
-    if (typeof body.courseGenerationExempt !== "boolean") {
+    if (typeof body.vipAccess !== "boolean") {
       return NextResponse.json(
-        { error: "An exemption state or point grant is required." },
+        { error: "A VIP state or diamond grant is required." },
         { status: 400 }
       );
     }
@@ -62,7 +62,7 @@ export async function PATCH(request: Request) {
     await connectDB();
     const student = await AcademyStudent.findOneAndUpdate(
       { email },
-      { $set: { courseGenerationExempt: body.courseGenerationExempt } },
+      { $set: { vipAccess: body.vipAccess } },
       { new: true, runValidators: true }
     ).lean();
 
@@ -79,14 +79,14 @@ export async function PATCH(request: Request) {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
-        pointsBalance: student.pointsBalance ?? 0,
-        courseGenerationExempt: student.courseGenerationExempt === true,
+        diamondsBalance: student.diamondsBalance ?? 0,
+        vipAccess: student.vipAccess === true,
       },
     });
   } catch (error) {
     console.error("[PATCH /api/admin/academy/access]", error);
     return NextResponse.json(
-      { error: "The Academy access exemption could not be updated." },
+      { error: "The Academy access grant could not be updated." },
       { status: 500 }
     );
   }

@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import StudentDashboard from "@/components/academy/StudentDashboard";
 import connectDB from "@/lib/mongodb";
+import AcademyCatalogCourse from "@/models/AcademyCatalogCourse";
 import AcademyCourse from "@/models/AcademyCourse";
+import AcademyEnrollment from "@/models/AcademyEnrollment";
 import AcademyStudent from "@/models/AcademyStudent";
 
 export const metadata: Metadata = { title: "Certificates | Lumyn Academy" };
@@ -13,21 +15,50 @@ type PageProps = {
   searchParams: Promise<{ id?: string }>;
 };
 
+async function findCertificateRecord(certificateId: string) {
+  const enrollment = await AcademyEnrollment.findOne({
+    "certificate.certificateId": certificateId,
+  }).lean();
+  if (enrollment?.certificate) {
+    const catalogCourse = await AcademyCatalogCourse.findById(enrollment.catalogCourseId)
+      .select("content.courseTitle")
+      .lean();
+    return {
+      studentUid: enrollment.studentUid,
+      certificate: enrollment.certificate,
+      courseTitle: catalogCourse?.content?.courseTitle ?? "a Lumyn Academy course",
+    };
+  }
+
+  const legacyCourse = await AcademyCourse.findOne({
+    "certificate.certificateId": certificateId,
+  }).lean();
+  if (legacyCourse?.certificate) {
+    return {
+      studentUid: legacyCourse.studentUid,
+      certificate: legacyCourse.certificate,
+      courseTitle: legacyCourse.course?.courseTitle ?? "a Lumyn Academy course",
+    };
+  }
+
+  return null;
+}
+
 export default async function AcademyCertificatesPage({ searchParams }: PageProps) {
   const params = await searchParams;
   if (!params.id) return <StudentDashboard />;
 
   await connectDB();
-  const course = await AcademyCourse.findOne({ "certificate.certificateId": params.id }).lean();
-  if (!course || !course.certificate) notFound();
+  const record = await findCertificateRecord(params.id);
+  if (!record) notFound();
 
-  const student = await AcademyStudent.findOne({ firebaseUid: course.studentUid }).lean();
+  const student = await AcademyStudent.findOne({ firebaseUid: record.studentUid }).lean();
   const certificateName =
-    course.certificate.certificateName?.trim() ||
+    record.certificate.certificateName?.trim() ||
     student?.certificateName?.trim() ||
     student?.name?.trim() ||
     "Lumyn Academy Student";
-  const issuedAt = new Date(course.certificate.issuedAt).toLocaleDateString(undefined, {
+  const issuedAt = new Date(record.certificate.issuedAt).toLocaleDateString(undefined, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -70,7 +101,7 @@ export default async function AcademyCertificatesPage({ searchParams }: PageProp
               </h1>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
                 This certificate recognizes successful completion of{" "}
-                <strong className="text-white">{course.course.courseTitle}</strong>{" "}
+                <strong className="text-white">{record.courseTitle}</strong>{" "}
                 by Lumyn Academy.
               </p>
               <div className="mt-8 grid max-w-xs gap-4">

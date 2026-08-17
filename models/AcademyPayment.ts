@@ -1,11 +1,14 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
+export type AcademyPaymentKind = "subscription" | "certificate_unlock";
+
 export interface IAcademyPaymentDocument extends Document {
   reference: string;
   studentUid: string;
   studentEmail: string;
-  kind: "point_purchase";
-  points: number;
+  kind: AcademyPaymentKind;
+  /** Populated only for kind: "certificate_unlock". */
+  enrollmentId?: string;
   amount: number;
   currency: string;
   status: "pending" | "success" | "failed";
@@ -21,8 +24,8 @@ const AcademyPaymentSchema = new Schema<IAcademyPaymentDocument>(
     reference: { type: String, required: true, unique: true, index: true },
     studentUid: { type: String, required: true, index: true },
     studentEmail: { type: String, required: true, lowercase: true },
-    kind: { type: String, enum: ["point_purchase"], default: "point_purchase" },
-    points: { type: Number, required: true, min: 1 },
+    kind: { type: String, enum: ["subscription", "certificate_unlock"], required: true },
+    enrollmentId: { type: String, index: true },
     amount: { type: Number, required: true },
     currency: { type: String, required: true, uppercase: true },
     status: { type: String, enum: ["pending", "success", "failed"], default: "pending" },

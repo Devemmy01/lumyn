@@ -25,18 +25,18 @@ export async function GET(request: NextRequest) {
       : await flutterwaveRequest<FlutterwaveCharge>(`/transactions/verify_by_reference?tx_ref=${encodeURIComponent(reference!)}`);
 
     const { payment, student, alreadyProcessed } = await activateAcademyPayment(data);
-    if (student && !alreadyProcessed) {
+    if (student && !alreadyProcessed && payment.kind === "subscription") {
       sendAcademyEmail({
-        event: "points_purchased",
+        event: "subscription_activated",
         to: student.email,
-        details: `${payment.points} Academy points have been added to your balance.`,
+        details: "Your Astra AI tutor subscription is now active.",
       }).catch((error) => console.error("[academy payment email]", error));
     }
 
     return NextResponse.json({
       success: true,
-      points: payment.points,
-      balance: student?.pointsBalance,
+      kind: payment.kind,
+      subscription: student?.subscription,
       alreadyProcessed,
     });
   } catch (error) {

@@ -103,7 +103,7 @@ export default function AboutPage() {
                 The rest follows from that.
               </p>
               <p>
-                Our team is small by design. We believe small teams build better products — they
+                Our team is small by design. We believe small teams build better products: they
                 stay closer to the work, communicate faster, and hold quality to a higher standard
                 because they can't hide behind process.
               </p>
@@ -175,7 +175,7 @@ export default function AboutPage() {
             {
               step: "Build with care",
               detail:
-                "Craftsmanship matters. The details that users notice consciously and the ones they don't — both matter. We take time on both.",
+                "Craftsmanship matters. The details that users notice consciously and the ones they don't both matter. We take time on both.",
             },
             {
               step: "Ship and refine",

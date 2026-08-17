@@ -1,4 +1,4 @@
-export type AcademyPlanId = "ai-learning-path";
+export type AcademyPlanId = "ai-tutor" | "guided-mentorship";
 
 export type AcademyRole = "student" | "mentor" | "admin";
 
@@ -9,11 +9,49 @@ export type SubscriptionStatus =
   | "past_due"
   | "cancelled";
 
-export const STARTER_ACADEMY_POINTS = 10;
-export const POINTS_PER_GENERATION = 10;
-export const ACADEMY_POINT_PRICE_CENTS = 50;
-export const MIN_POINT_PURCHASE = 1;
-export const MAX_POINT_PURCHASE = 500;
+export type AcademyLevel = "beginner" | "intermediate" | "advanced";
+
+export const SUPPORTED_ACADEMY_LEVELS: AcademyLevel[] = [
+  "beginner",
+  "intermediate",
+  "advanced",
+];
+
+export const academyLevelLabels: Record<AcademyLevel, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
+export type AcademyLanguageId =
+  | "python"
+  | "javascript"
+  | "typescript"
+  | "cpp"
+  | "java"
+  | "go"
+  | "rust"
+  | "csharp";
+
+export const academyLanguages: Array<{
+  id: AcademyLanguageId;
+  label: string;
+  available: boolean;
+}> = [
+  { id: "python", label: "Python", available: true },
+  { id: "javascript", label: "JavaScript", available: false },
+  { id: "typescript", label: "TypeScript", available: false },
+  { id: "cpp", label: "C++", available: false },
+  { id: "java", label: "Java", available: false },
+  { id: "go", label: "Go", available: false },
+  { id: "rust", label: "Rust", available: false },
+  { id: "csharp", label: "C#", available: false },
+];
+
+export const ACADEMY_SUBSCRIPTION_PRICE_CENTS = 500;
+export const ACADEMY_CERTIFICATE_PRICE_CENTS = 200;
+export const REFERRALS_PER_DIAMOND = 10;
+export const DIAMONDS_TO_UNLOCK_CERTIFICATE = 2;
 export const ACADEMY_TUTOR_NAME = "Astra";
 export const ACADEMY_TUTOR_ROLE = "Lumyn Academy learning agent";
 
@@ -517,30 +555,46 @@ export type LearningActivity = {
   createdAt: string;
 };
 
-export const academyPlans = [
-  {
-    id: "ai-learning-path" as const,
-    name: "AI Learning Path",
-    price: "$0.50",
-    cadence: "per point",
-    description:
-      "New students receive 10 free points. Each AI-generated course costs 10 points, with video-supported lessons, assessments, projects, progress, and certificates.",
-    cta: "Generate Your First Course",
-    href: "/academy/dashboard?plan=ai-learning-path",
-    includes: [
-      "10 free starter points",
-      "10 points per generation",
-      "AI-generated courses",
-      "Personalized learning paths",
-      "Quizzes",
-      "Assignments",
-      "Progress dashboard",
-      "Certificates",
-      "Saved courses",
-      "Learning history",
-    ],
-  },
-];
+/**
+ * Client-safe mirror of `hasPaidAcademyAccess` in lib/academy-access.ts (which
+ * cannot be imported from client components since it pulls in next/headers
+ * and server-only DB models). Keep both in sync if the access rules change.
+ */
+export function hasPaidAcademyAccess(student: {
+  role?: string;
+  vipAccess?: boolean;
+  subscription?: { status?: string; currentPeriodEnd?: Date | string };
+}) {
+  const status = student.subscription?.status ?? "inactive";
+  const periodEnd = student.subscription?.currentPeriodEnd
+    ? new Date(student.subscription.currentPeriodEnd).getTime()
+    : 0;
+  return (
+    student.role === "admin" ||
+    student.vipAccess === true ||
+    status === "active" ||
+    status === "past_due" ||
+    (status === "cancelled" && periodEnd > Date.now())
+  );
+}
+
+export const academySubscriptionPlan = {
+  id: "ai-tutor" as const,
+  name: "AI Tutor Subscription",
+  priceCents: ACADEMY_SUBSCRIPTION_PRICE_CENTS,
+  price: `$${(ACADEMY_SUBSCRIPTION_PRICE_CENTS / 100).toFixed(2)}`,
+  cadence: "per month",
+  description:
+    "Every course, lesson, quiz, and project is free forever. Subscribe monthly to unlock Astra, your AI tutor, for unlimited help, hints, and feedback across every course.",
+  cta: "Subscribe to Astra",
+  href: "/academy/dashboard/billing",
+  includes: [
+    "Unlimited AI tutor conversations",
+    "Hints, code review, and quiz prep from Astra",
+    "Free certificates on every completed course",
+    "All course content stays free either way",
+  ],
+};
 
 export const academySkillExamples = [
   "Frontend Development",
@@ -552,36 +606,35 @@ export const academySkillExamples = [
 ];
 
 export const learningPathModules = [
-  "HTML & CSS Foundations",
-  "JavaScript Basics",
-  "DOM Manipulation",
-  "React Basics",
-  "TailwindCSS",
-  "API Integration",
-  "Portfolio Project",
-  "Final Assessment",
+  "Python Basics & Your First Program",
+  "Data Types & Operators",
+  "Making Decisions with Conditionals",
+  "Loops: Repeating Work",
+  "Collections: Lists, Dictionaries, Tuples & Sets",
+  "Functions: Reusable Blocks of Code",
+  "Strings, Errors & Files",
 ];
 
 export const howAcademyWorks = [
-  "Tell the AI what you want to learn",
-  "Choose your current level and career goal",
-  "Get a complete structured course",
-  "Learn through modules, quizzes, and assignments",
-  "Complete a final project",
-  "Earn your certificate",
+  "Pick a language and your current level",
+  "Learn through video-supported lessons, quizzes, and assignments",
+  "Earn XP, build a streak, and unlock badges as you go",
+  "Complete a final project to finish the course",
+  "Subscribe anytime to unlock Astra, your AI tutor",
+  "Unlock your certificate: free for subscribers, $2, or 2 diamonds from referrals",
 ];
 
 export const dashboardSections = [
   "Welcome section",
-  "Active learning path",
-  "Generated courses",
+  "Course catalog",
+  "Active enrollments",
   "Course progress",
   "Completed modules",
   "Pending assignments",
   "Quiz scores",
   "Certificates",
-  "Saved courses",
-  "Point balance",
+  "XP, streaks, and badges",
+  "Diamonds and referrals",
   "Notifications",
   "Profile settings",
 ];
@@ -648,31 +701,33 @@ export const academyFaqs = [
   {
     question: "Is Lumyn Academy beginner-friendly?",
     answer:
-      "Yes. Students choose their level before generating a path, so the system can start from fundamentals or move faster for experienced learners.",
+      "Yes. Every course has a beginner, intermediate, and advanced track, so you can start from fundamentals or move faster if you already have experience.",
   },
   {
-    question: "Is the AI Learning Path a fixed course?",
+    question: "Is learning really free?",
     answer:
-      "No. It generates a structured course around the student's goal, level, timeline, and desired outcome.",
+      "Yes. Every course, lesson, quiz, assignment, and project is free with no subscription required.",
   },
   {
-    question: "How do points work?",
-    answer:
-      "Every new student receives 10 free points. Each AI-generated learning path costs 10 points, and extra points can be purchased whenever needed.",
+    question: "What does the monthly subscription unlock?",
+    answer: `A subscription unlocks unlimited conversations with ${ACADEMY_TUTOR_NAME}, your AI tutor, for hints, explanations, code review, and quiz prep across every course.`,
   },
   {
-    question: "Do students receive certificates?",
-    answer:
-      "Yes. Certificates can be issued after course completion, final project submission, and required assessments.",
+    question: "How much does a certificate cost?",
+    answer: `Certificates are $${(ACADEMY_CERTIFICATE_PRICE_CENTS / 100).toFixed(2)} each, free for active subscribers, or free once you've earned ${DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds.`,
   },
-  
+  {
+    question: "How do diamonds work?",
+    answer: `You earn 1 diamond for every ${REFERRALS_PER_DIAMOND} friends who sign up using your referral link. ${DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds unlock one certificate for free.`,
+  },
 ];
 
 export const adminAcademyTools = [
   "View students",
-  "View generated courses",
-  "Grant student points",
-  "View payments and point purchases",
+  "Manage course catalog",
+  "Generate and publish courses",
+  "Grant student diamonds",
+  "View subscriptions and certificate payments",
   "Issue certificates",
   "Send emails",
   "View student progress",

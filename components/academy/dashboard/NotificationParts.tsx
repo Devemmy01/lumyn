@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { POINTS_PER_GENERATION } from "@/lib/academy";
-import type { DashboardCourse, DashboardPayload } from "@/components/academy/dashboard/types";
+import { ACADEMY_TUTOR_NAME, DIAMONDS_TO_UNLOCK_CERTIFICATE } from "@/lib/academy";
+import type { DashboardPayload } from "@/components/academy/dashboard/types";
 
 export type AcademyNotification = {
   id: string;
@@ -18,39 +18,42 @@ export type BrowserNotificationPermission =
   | NotificationPermission
   | "unsupported";
 
+function isPaidStatus(status?: string) {
+  return status === "active" || status === "past_due";
+}
+
 export function buildAcademyNotifications(
   dashboard: DashboardPayload | null,
-  selected: DashboardCourse | undefined,
 ): AcademyNotification[] {
   const now = new Date().toISOString();
   if (!dashboard) return [];
 
   const notifications: AcademyNotification[] = [];
-  const pointsBalance = dashboard.student.pointsBalance ?? 0;
-  const hasPointExemption = dashboard.student.courseGenerationExempt === true;
+  const enrollments = dashboard.enrollments;
+  const isSubscribed = isPaidStatus(dashboard.student.subscription?.status);
 
-  if (!dashboard.courses.length) {
+  if (!enrollments.length) {
     notifications.push({
-      id: "start-first-path",
-      title: "Build your first learning path",
+      id: "start-first-course",
+      title: "Enroll in your first course",
       message:
-        "Tell Astra what you want to learn and Lumyn will generate a structured course for you.",
-      href: "/academy/dashboard/generate",
-      actionLabel: "Build path",
+        "Browse the Lumyn Academy catalog and start a free, structured learning path.",
+      href: "/academy/dashboard/catalog",
+      actionLabel: "Browse catalog",
       createdAt: now,
       tone: "info",
     });
   }
 
-  if (!hasPointExemption && pointsBalance < POINTS_PER_GENERATION) {
+  if (!isSubscribed) {
     notifications.push({
-      id: "points-low",
-      title: "Points are running low",
-      message: `${POINTS_PER_GENERATION} points are required to generate a new path. You currently have ${pointsBalance}.`,
+      id: "subscribe-astra",
+      title: `Unlock ${ACADEMY_TUTOR_NAME}, your AI tutor`,
+      message: `Subscribe to get unlimited help from ${ACADEMY_TUTOR_NAME} and free certificates on every course.`,
       href: "/academy/dashboard/billing",
-      actionLabel: "Top up",
+      actionLabel: "Subscribe",
       createdAt: now,
-      tone: "warning",
+      tone: "info",
     });
   }
 
@@ -66,92 +69,54 @@ export function buildAcademyNotifications(
     });
   }
 
-  if (selected && selected.progressPercent < 100) {
-    const nextModuleIndex = selected.course.modules.findIndex(
-      (module) =>
-        module.completionStatus !== "locked" &&
-        module.completionStatus !== "completed",
-    );
-    const moduleIndex = nextModuleIndex >= 0 ? nextModuleIndex : 0;
-    const learningModule = selected.course.modules[moduleIndex];
-    if (learningModule) {
-      notifications.push({
-        id: `resume-${selected.id}-${moduleIndex}-${learningModule.completionStatus}`,
-        title: "Continue your active path",
-        message: `Next up: ${learningModule.title}. Keep the streak warm while the idea is still fresh.`,
-        href: "/academy/dashboard/learning",
-        actionLabel: "Resume",
-        createdAt: selected.createdAt,
-        tone: "info",
-      });
-    }
+  const activeEnrollment = enrollments.find(
+    (enrollment) => enrollment.status === "active" && enrollment.progressPercent < 100,
+  );
+  if (activeEnrollment) {
+    notifications.push({
+      id: `resume-${activeEnrollment.id}`,
+      title: "Continue your active path",
+      message: `${activeEnrollment.courseTitle ?? "Your course"} is ${activeEnrollment.progressPercent}% complete. Keep the streak warm while it's fresh.`,
+      href: "/academy/dashboard/learning",
+      actionLabel: "Resume",
+      createdAt: activeEnrollment.createdAt,
+      tone: "info",
+    });
   }
 
-  dashboard.courses.forEach((course) => {
-    const passedQuizModules = new Set(
-      course.quizAttempts
-        .filter((attempt) => attempt.passed)
-        .map((attempt) => attempt.moduleIndex),
-    );
-    const quizReadyModule = course.course.modules.findIndex(
-      (module, index) =>
-        module.completionStatus !== "locked" &&
-        module.lessons.every(
-          (lesson) => lesson.completionStatus === "completed",
-        ) &&
-        !passedQuizModules.has(index),
-    );
-    if (quizReadyModule >= 0) {
+  enrollments.forEach((enrollment) => {
+    if (enrollment.certificate) {
       notifications.push({
-        id: `quiz-ready-${course.id}-${quizReadyModule}`,
-        title: "Quiz gate is ready",
-        message: `${course.course.modules[quizReadyModule].title} is ready for a quick knowledge check.`,
-        href: "/academy/dashboard/learning",
-        actionLabel: "Take quiz",
-        createdAt: now,
-        tone: "info",
-      });
-    }
-
-    const revision = course.assignmentSubmissions.find(
-      (submission) =>
-        submission.status === "needs_revision" ||
-        submission.evaluation?.passed === false,
-    );
-    if (revision) {
-      notifications.push({
-        id: `assignment-revision-${course.id}-${revision.moduleIndex}-${revision.submittedAt}`,
-        title: "Assignment needs revision",
-        message: `${course.course.modules[revision.moduleIndex]?.title ?? "A module"} needs another pass before it is cleared.`,
-        href: "/academy/dashboard/assignments",
-        actionLabel: "Review",
-        createdAt: revision.submittedAt,
-        tone: "warning",
-      });
-    }
-
-    if (course.certificate) {
-      notifications.push({
-        id: `certificate-${course.certificate.certificateId}`,
+        id: `certificate-${enrollment.certificate.certificateId}`,
         title: "Certificate is ready",
-        message: `Your certificate for ${course.course.courseTitle} is ready to view, print, or verify.`,
-        href: `/academy/dashboard/certificates?id=${encodeURIComponent(course.certificate.certificateId)}`,
+        message: `Your certificate for ${enrollment.courseTitle ?? "this course"} is ready to view, print, or verify.`,
+        href: `/academy/dashboard/certificates?id=${encodeURIComponent(enrollment.certificate.certificateId)}`,
         actionLabel: "View certificate",
-        createdAt: course.certificate.issuedAt,
+        createdAt: enrollment.certificate.issuedAt,
         tone: "success",
+      });
+    } else if (enrollment.status === "completed") {
+      notifications.push({
+        id: `unlock-${enrollment.id}`,
+        title: "Certificate ready to unlock",
+        message: `${enrollment.courseTitle ?? "This course"} is complete. Subscribe, pay, or spend ${DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds to unlock your certificate.`,
+        href: "/academy/dashboard/certificates",
+        actionLabel: "Unlock certificate",
+        createdAt: enrollment.createdAt,
+        tone: "warning",
       });
     }
   });
 
-  const latestCourse = dashboard.courses[0];
-  if (latestCourse) {
+  const latestEnrollment = enrollments[0];
+  if (latestEnrollment) {
     notifications.push({
-      id: `course-created-${latestCourse.id}`,
-      title: "Learning path saved",
-      message: `${latestCourse.course.courseTitle} is saved to your workspace and ready when you are.`,
+      id: `enrolled-${latestEnrollment.id}`,
+      title: "Enrollment saved",
+      message: `${latestEnrollment.courseTitle ?? "Your course"} is saved to your workspace and ready when you are.`,
       href: "/academy/dashboard/learning",
       actionLabel: "Open path",
-      createdAt: latestCourse.createdAt,
+      createdAt: latestEnrollment.createdAt,
       tone: "success",
     });
   }
@@ -405,8 +370,8 @@ export function NotificationBell({
                     No notifications yet.
                   </p>
                   <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-white/45">
-                    New course, assignment, certificate, and point updates will
-                    appear here.
+                    New enrollment, assignment, certificate, and diamond updates
+                    will appear here.
                   </p>
                 </div>
               )}

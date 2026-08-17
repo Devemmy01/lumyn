@@ -26,7 +26,7 @@ export function DashboardLoading({ delayed = false }: { delayed?: boolean }) {
         </aside>
         <main className="p-5 sm:p-8">
           {delayed && (
-            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#7c6cf6]/20 bg-[#7c6cf6]/[0.07] px-4 py-3 text-sm font-semibold text-[#6555db] dark:text-[#c8c1ff]">
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#7c6cf6]/20 bg-[#7c6cf6]/[0.07] px-4 py-3 text-sm font-semibold text-[#6555db] dark:text-[#c8c1ff] w-fit">
               <LoadingSpinner />
               Preparing your Academy workspace…
             </div>

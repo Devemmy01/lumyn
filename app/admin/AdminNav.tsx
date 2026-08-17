@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type AdminUser = {
   name?: string | null;
@@ -36,18 +37,16 @@ export default function AdminNav({ user }: { user: AdminUser }) {
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-white/[0.07] bg-[#08080b] lg:flex">
         <div className="flex h-24 items-center border-b border-white/[0.07] px-7">
           <Link href="/admin" className="flex items-center gap-3" aria-label="Lumyn admin home">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#9b8cff] to-[#5e4ed5] text-sm font-black text-white shadow-[0_12px_30px_rgba(124,108,246,0.25)]">
-              L
-            </span>
+            <Image src="/logo.png" alt="Lumyn Logo" width={36} height={36} />
             <span>
               <span className="block text-sm font-bold tracking-[0.18em] text-white">LUMYN</span>
-              <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30">Operations</span>
+              <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">Operations</span>
             </span>
           </Link>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          <p className="px-3 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">Workspace</p>
+          <p className="px-3 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Workspace</p>
           <nav className="space-y-1.5" aria-label="Admin navigation">
             {links.map((item) => {
               const active = isActiveRoute(pathname, item.href);
@@ -59,7 +58,7 @@ export default function AdminNav({ user }: { user: AdminUser }) {
                     "group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition",
                     active
                       ? "bg-[#7c6cf6]/15 text-white shadow-[inset_0_0_0_1px_rgba(124,108,246,0.18)]"
-                      : "text-white/45 hover:bg-white/[0.04] hover:text-white/80",
+                      : "text-white/65 hover:bg-white/[0.04] hover:text-white/90",
                   )}
                 >
                   <AdminIcon name={item.icon} active={active} />
@@ -74,10 +73,10 @@ export default function AdminNav({ user }: { user: AdminUser }) {
         <div className="border-t border-white/[0.07] p-4">
           <div className="mb-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] text-xs font-bold text-white/70">A</span>
+              <Image src="/logo.png" alt="Lumyn Logo" width={36} height={36} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white">{user?.name || "Admin"}</p>
-                <p className="truncate text-xs text-white/30">{user?.email || "Lumyn operations"}</p>
+                <p className="truncate text-xs text-white/50">{user?.email || "Lumyn operations"}</p>
               </div>
             </div>
           </div>
@@ -85,7 +84,7 @@ export default function AdminNav({ user }: { user: AdminUser }) {
             <Link
               href="/"
               target="_blank"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/[0.08] text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/[0.08] text-xs font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
             >
               View site ↗
             </Link>
@@ -103,7 +102,7 @@ export default function AdminNav({ user }: { user: AdminUser }) {
       <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#08080b]/90 px-4 backdrop-blur-xl lg:hidden">
         <div className="flex h-16 items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7c6cf6] text-xs font-black">L</span>
+            <Image src="/logo.png" alt="Lumyn Logo" width={36} height={36} />
             <span className="text-xs font-bold tracking-[0.18em]">LUMYN / ADMIN</span>
           </Link>
           <button
@@ -128,7 +127,7 @@ export default function AdminNav({ user }: { user: AdminUser }) {
                     href={item.href}
                     className={clsx(
                       "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
-                      active ? "bg-[#7c6cf6]/15 text-white" : "text-white/50",
+                      active ? "bg-[#7c6cf6]/15 text-white" : "text-white/65",
                     )}
                   >
                     <AdminIcon name={item.icon} active={active} />
@@ -138,7 +137,7 @@ export default function AdminNav({ user }: { user: AdminUser }) {
               })}
             </nav>
             <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/[0.07] pt-3">
-              <Link href="/" target="_blank" className="flex h-10 items-center justify-center rounded-xl border border-white/10 text-xs text-white/60">View site ↗</Link>
+              <Link href="/" target="_blank" className="flex h-10 items-center justify-center rounded-xl border border-white/10 text-xs text-white/75">View site ↗</Link>
               <button type="button" onClick={() => signOut({ callbackUrl: "/admin/login" })} className="h-10 rounded-xl border border-red-500/20 text-xs text-red-300">Sign out</button>
             </div>
           </div>
@@ -159,7 +158,7 @@ function AdminIcon({ name, active }: { name: (typeof links)[number]["icon"]; act
   };
 
   return (
-    <span className={clsx("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", active ? "bg-[#7c6cf6]/20 text-[#b9b1ff]" : "bg-white/[0.035] text-white/35 group-hover:text-white/60")}>
+    <span className={clsx("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", active ? "bg-[#7c6cf6]/20 text-[#b9b1ff]" : "bg-white/[0.035] text-white/50 group-hover:text-white/75")}>
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {paths[name]}
       </svg>

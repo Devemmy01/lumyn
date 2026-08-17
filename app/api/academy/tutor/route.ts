@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACADEMY_TUTOR_NAME } from "@/lib/academy";
 import { AcademyAIError, openAcademyTutorStream } from "@/lib/academy-ai";
-import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent } from "@/lib/academy-access";
-import AcademyCourse from "@/models/AcademyCourse";
+import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent, hasPaidAcademyAccess } from "@/lib/academy-access";
+import connectDB from "@/lib/mongodb";
+import AcademyCatalogCourse from "@/models/AcademyCatalogCourse";
+import AcademyEnrollment from "@/models/AcademyEnrollment";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,13 +18,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "A valid course and question are required." }, { status: 400 });
     }
 
-    const { decoded } = await getVerifiedAcademyStudent(request);
-    const course = await AcademyCourse.findOne({ _id: courseId, studentUid: decoded.uid });
+    const { decoded, student } = await getVerifiedAcademyStudent(request);
+    if (!hasPaidAcademyAccess(student)) {
+      return NextResponse.json(
+        { error: `Subscribe to unlock ${ACADEMY_TUTOR_NAME}, your AI tutor.`, requiresSubscription: true },
+        { status: 402 },
+      );
+    }
+
+    await connectDB();
+    const course = await AcademyEnrollment.findOne({ _id: courseId, studentUid: decoded.uid });
     if (!course) return NextResponse.json({ error: "Course not found." }, { status: 404 });
+    const catalogCourse = await AcademyCatalogCourse.findById(course.catalogCourseId).lean();
+    if (!catalogCourse?.content) return NextResponse.json({ error: "Course content is not available." }, { status: 404 });
 
     const submittedQuestion = message.trim();
-    const geminiStream = await openAcademyTutorStream({
-      course: course.course,
+    const tutorStream = await openAcademyTutorStream({
+      course: catalogCourse.content,
       moduleIndex: Number(moduleIndex) || 0,
       message: submittedQuestion,
       studentName: typeof studentName === "string" && studentName.length <= 80 ? studentName : undefined,
@@ -38,7 +50,7 @@ export async function POST(request: NextRequest) {
 
         try {
           send({ type: "status", status: "thinking" });
-          for await (const text of geminiStream) {
+          for await (const text of tutorStream) {
             answer += text;
             send({ type: "delta", text });
           }
@@ -104,7 +116,7 @@ export async function POST(request: NextRequest) {
         {
           error:
             error.status === 503
-              ? `${ACADEMY_TUTOR_NAME} is still busy after retrying. Your question is still in the chat box—wait a moment, then tap Ask again.`
+              ? `${ACADEMY_TUTOR_NAME} is still busy after retrying. Your question is still in the chat box. Wait a moment, then tap Ask again.`
               : error.message,
           retryable: error.status === 503 || error.status === 429,
         },
@@ -126,7 +138,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { decoded } = await getVerifiedAcademyStudent(request);
-    const course = await AcademyCourse.findOne({ _id: courseId, studentUid: decoded.uid });
+    await connectDB();
+    const course = await AcademyEnrollment.findOne({ _id: courseId, studentUid: decoded.uid });
     if (!course) return NextResponse.json({ error: "Course not found." }, { status: 404 });
 
     course.tutorMessages = [];

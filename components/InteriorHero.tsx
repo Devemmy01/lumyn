@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import Image from "next/image";
 
 type HeroAction = {
   label: string;
@@ -116,9 +117,7 @@ export default function InteriorHero({
                 <p className="max-w-[14rem] text-sm leading-6 text-white/45">
                   Clear thinking, carefully translated into useful digital systems.
                 </p>
-                <span className="text-4xl font-medium tracking-[-0.06em] text-white">
-                  L<span className="text-[#897af8]">.</span>
-                </span>
+                <Image src="/logo.png" alt="Lumyn Logo" width={36} height={36} />
               </div>
             </div>
           </div>

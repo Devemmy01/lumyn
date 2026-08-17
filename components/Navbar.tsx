@@ -8,6 +8,7 @@ import LumynLogo from "./LumynLogo";
 import { useTheme } from "./ThemeProvider";
 
 const navLinks = [
+  { href: "/", label: "Home" },
   { href: "/about", label: "Studio" },
   { href: "/products", label: "Products" },
   { href: "/academy", label: "Academy" },

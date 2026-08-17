@@ -112,29 +112,15 @@ function ProductVisual({ type }: { type: string }) {
   return (
     <div className="dark-visual relative min-h-72 overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#070707] p-5">
       <div className="lumyn-grid lumyn-soft-glow absolute inset-0" />
-      <div className="relative grid h-full gap-4">
-        <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
-          <div className="mb-5 flex items-center justify-between">
-            <p className="text-sm font-semibold text-white">Lumyn Academy</p>
-            <span className="rounded-full bg-[#7c6cf6]/15 px-3 py-1 text-xs text-[#c9c1ff]">
-              Paid
-            </span>
-          </div>
-          <div className="space-y-3">
-            {["AI Learning Path", "Point Top-ups", "Certificate Progress"].map(
-              (item, index) => (
-                <div key={item} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                  <div className="mb-2 flex items-center justify-between text-xs text-white/40">
-                    <span>0{index + 1}</span>
-                    <span>{64 + index * 12}%</span>
-                  </div>
-                  <p className="text-sm font-medium text-white">{item}</p>
-                </div>
-              ),
-            )}
-          </div>
-        </div>
-      </div>
+      
+      <Image
+        src="/aca.png"
+        alt="Lumyn Academy product preview"
+        width={1279}
+        height={924}
+        sizes="(max-width: 768px) 100vw, 50vw"
+        className="relative h-full min-h-72 w-full object-contain object-center opacity-95 drop-shadow-[0_24px_35px_rgba(0,0,0,0.5)] transition duration-500 group-hover:scale-[1.02]"
+      />
     </div>
   );
 }

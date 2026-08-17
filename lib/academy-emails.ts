@@ -2,11 +2,12 @@ import { lumynEmailLayout, sendLumynEmail } from "@/lib/resend";
 
 type AcademyEmailEvent =
   | "welcome"
-  | "course_generated"
   | "assignment_reminder"
   | "quiz_completion"
   | "certificate_issued"
-  | "points_purchased"
+  | "subscription_activated"
+  | "subscription_renewal_reminder"
+  | "subscription_cancelled"
   | "admin_notification";
 
 const copy: Record<AcademyEmailEvent, { subject: string; title: string; intro: string }> = {
@@ -14,11 +15,6 @@ const copy: Record<AcademyEmailEvent, { subject: string; title: string; intro: s
     subject: "Welcome to Lumyn Academy",
     title: "Welcome to Lumyn Academy",
     intro: "Your student account is ready. You can now continue into your academy dashboard.",
-  },
-  course_generated: {
-    subject: "Your Lumyn Academy course is ready",
-    title: "Your learning path is ready",
-    intro: "Your AI-generated course has been created and saved to your dashboard.",
   },
   assignment_reminder: {
     subject: "Lumyn Academy assignment reminder",
@@ -35,10 +31,20 @@ const copy: Record<AcademyEmailEvent, { subject: string; title: string; intro: s
     title: "Certificate issued",
     intro: "Your course completion has been approved and your certificate is ready.",
   },
-  points_purchased: {
-    subject: "Lumyn Academy points added",
-    title: "Your points are ready",
-    intro: "Your Lumyn Academy point purchase has been confirmed.",
+  subscription_activated: {
+    subject: "Your Lumyn Academy AI tutor is unlocked",
+    title: "Subscription active",
+    intro: "Your monthly subscription is active. Astra, your AI tutor, is ready whenever you need help.",
+  },
+  subscription_renewal_reminder: {
+    subject: "Your Lumyn Academy subscription renews soon",
+    title: "Renewal coming up",
+    intro: "Your AI tutor subscription renews in a few days. Renew to keep Astra unlocked without interruption.",
+  },
+  subscription_cancelled: {
+    subject: "Your Lumyn Academy subscription was cancelled",
+    title: "Subscription cancelled",
+    intro: "Your AI tutor subscription will not renew. You can keep learning for free anytime, and resubscribe when you want Astra back.",
   },
   admin_notification: {
     subject: "New Lumyn Academy activity",

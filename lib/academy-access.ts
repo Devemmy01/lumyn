@@ -3,7 +3,6 @@ import { decodeProtectedHeader } from "jose";
 import connectDB, { MongoConnectionUnavailableError } from "@/lib/mongodb";
 import { verifyAcademySessionToken } from "@/lib/academy-session";
 import { FirebaseCertificatesUnavailableError, verifyAcademyToken } from "@/lib/firebase/admin";
-import { ensureStarterAcademyPoints } from "@/lib/academy-points";
 import { ensureAcademyReferralCode } from "@/lib/academy-referrals";
 import AcademyStudent, { type IAcademyStudentDocument } from "@/models/AcademyStudent";
 
@@ -90,47 +89,48 @@ export async function getVerifiedAcademyStudent(request: Request) {
   if (!student) {
     throw new Error("Academy student account was not found.");
   }
-  student = await ensureStarterAcademyPoints(student);
   student = await ensureAcademyReferralCode(student);
 
   return { decoded, student };
 }
 
-export function hasPaidAcademyAccess(student: {
-  role?: string;
-  subscription?: { status?: string; currentPeriodEnd?: Date | string };
-}) {
-  const status = student.subscription?.status ?? "inactive";
-  const periodEnd = student.subscription?.currentPeriodEnd
-    ? new Date(student.subscription.currentPeriodEnd).getTime()
-    : 0;
-  return student.role === "admin" || paidStatuses.has(status) ||
-    (status === "cancelled" && periodEnd > Date.now());
-}
-
-function configuredCourseExemptions() {
+function configuredVipEmails() {
   return new Set(
-    (process.env.ACADEMY_COURSE_EXEMPT_EMAILS ?? "")
+    (process.env.ACADEMY_VIP_EMAILS ?? "")
       .split(",")
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean)
   );
 }
 
-export function hasCourseGenerationExemption(student: {
+export function hasVipAccess(student: {
   email?: string;
-  courseGenerationExempt?: boolean;
+  vipAccess?: boolean;
 }) {
-  if (student.courseGenerationExempt === true) return true;
-  if (student.courseGenerationExempt === false) return false;
-  return Boolean(student.email) && configuredCourseExemptions().has(student.email!.toLowerCase());
+  if (student.vipAccess === true) return true;
+  if (student.vipAccess === false) return false;
+  return Boolean(student.email) && configuredVipEmails().has(student.email!.toLowerCase());
 }
 
-export function hasUnlimitedAcademyAccess(student: {
-  email?: string;
+/**
+ * True when a student can use the AI tutor and unlock certificates for free:
+ * admins, VIP-flagged students, active/past-due subscribers, or a cancelled
+ * subscription that hasn't reached its paid-through date yet.
+ */
+export function hasPaidAcademyAccess(student: {
   role?: string;
-  courseGenerationExempt?: boolean;
+  email?: string;
+  vipAccess?: boolean;
   subscription?: { status?: string; currentPeriodEnd?: Date | string };
 }) {
-  return hasCourseGenerationExemption(student) || hasPaidAcademyAccess(student);
+  const status = student.subscription?.status ?? "inactive";
+  const periodEnd = student.subscription?.currentPeriodEnd
+    ? new Date(student.subscription.currentPeriodEnd).getTime()
+    : 0;
+  return (
+    student.role === "admin" ||
+    hasVipAccess(student) ||
+    paidStatuses.has(status) ||
+    (status === "cancelled" && periodEnd > Date.now())
+  );
 }

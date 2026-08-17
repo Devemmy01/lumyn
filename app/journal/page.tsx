@@ -30,8 +30,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
   const suffix = canonicalParams.toString();
   const title = tag
-    ? `${tag.replace(/-/g, " ")} Articles${page > 1 ? ` — Page ${page}` : ""}`
-    : `Software Engineering & Product Journal${page > 1 ? ` — Page ${page}` : ""}`;
+    ? `${tag.replace(/-/g, " ")} Articles${page > 1 ? ` | Page ${page}` : ""}`
+    : `Software Engineering & Product Journal${page > 1 ? ` | Page ${page}` : ""}`;
 
   return buildMetadata({
     title,

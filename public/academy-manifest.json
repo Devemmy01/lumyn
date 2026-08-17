@@ -4,7 +4,7 @@
   "id": "/academy/dashboard",
   "lang": "en",
   "dir": "ltr",
-  "description": "An installable Lumyn Academy workspace for AI learning paths, projects, progress, and certificates.",
+  "description": "An installable Lumyn Academy workspace for free courses, projects, progress, and certificates.",
   "start_url": "/academy/dashboard",
   "scope": "/academy/dashboard",
   "display": "standalone",
@@ -47,14 +47,19 @@
   "prefer_related_applications": false,
   "shortcuts": [
     {
-      "name": "Build a Path",
-      "url": "/academy/dashboard/generate",
-      "description": "Generate a new learning path"
+      "name": "Course Catalog",
+      "url": "/academy/dashboard/catalog",
+      "description": "Browse and enroll in a free course"
     },
     {
       "name": "My Learning",
       "url": "/academy/dashboard/learning",
       "description": "Continue your active learning path"
+    },
+    {
+      "name": "Rewards",
+      "url": "/academy/dashboard/rewards",
+      "description": "View XP, streaks, badges, and diamonds"
     },
     {
       "name": "Certificates",

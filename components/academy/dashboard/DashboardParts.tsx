@@ -1,5 +1,7 @@
 export * from "@/components/academy/dashboard/AccountPanel";
 export * from "@/components/academy/dashboard/AcademyInstallPrompt";
+export * from "@/components/academy/dashboard/BillingRoute";
+export * from "@/components/academy/dashboard/CatalogRoute";
 export * from "@/components/academy/dashboard/DashboardChrome";
 export * from "@/components/academy/dashboard/DashboardRightRail";
 export * from "@/components/academy/dashboard/CertificateRoute";
@@ -11,7 +13,7 @@ export * from "@/components/academy/dashboard/LessonCard";
 export * from "@/components/academy/dashboard/LoadingStates";
 export * from "@/components/academy/dashboard/NotificationParts";
 export * from "@/components/academy/dashboard/OverviewParts";
-export * from "@/components/academy/dashboard/PointTopUpRoute";
+export * from "@/components/academy/dashboard/RewardsRoute";
 export * from "@/components/academy/dashboard/TutorPanel";
 export * from "@/components/academy/dashboard/icons";
 export * from "@/components/academy/dashboard/utils";

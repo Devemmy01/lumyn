@@ -148,11 +148,6 @@ export function buildLessonWorkspaceFiles(
       language,
       value: starter?.trim() || workspaceStarterCode(language, title, brief),
     },
-    {
-      name: "README.md",
-      language: "markdown",
-      value: `# ${title}\n\n${brief}\n\n## Evidence\n\nPaste terminal output, type-checking notes, or a short explanation of how your solution works.`,
-    },
   ];
 }
 

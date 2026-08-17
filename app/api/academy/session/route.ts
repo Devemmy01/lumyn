@@ -3,9 +3,7 @@ import connectDB, { MongoConnectionUnavailableError } from "@/lib/mongodb";
 import { ACADEMY_SESSION_MAX_AGE_SECONDS, createAcademySessionToken } from "@/lib/academy-session";
 import { FirebaseCertificatesUnavailableError, verifyAcademyToken } from "@/lib/firebase/admin";
 import { sendAcademyEmail } from "@/lib/academy-emails";
-import { STARTER_ACADEMY_POINTS } from "@/lib/academy";
 import { creditAcademyReferral, ensureAcademyReferralCode } from "@/lib/academy-referrals";
-import AcademyPointTransaction from "@/models/AcademyPointTransaction";
 import AcademyStudent, { type IAcademyStudentDocument } from "@/models/AcademyStudent";
 
 export const runtime = "nodejs";
@@ -78,13 +76,9 @@ export async function POST(request: NextRequest) {
         $setOnInsert: {
           role: "student",
           subscription: {
-            planId: "ai-learning-path",
             status: "inactive",
-            provider: "manual",
           },
           mentorshipStatus: "none",
-          pointsBalance: STARTER_ACADEMY_POINTS,
-          starterPointsGrantedAt: new Date(),
         },
       },
       { new: true, upsert: true, runValidators: true },
@@ -104,7 +98,7 @@ export async function POST(request: NextRequest) {
         avatarUrl: student.avatarUrl,
         certificateName: student.certificateName,
         role: student.role,
-        pointsBalance: student.pointsBalance,
+        diamondsBalance: student.diamondsBalance ?? 0,
         referralCode: student.referralCode,
         referralsCount: student.referralsCount ?? 0,
         subscription: student.subscription,
@@ -127,14 +121,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (!existing) {
-      await AcademyPointTransaction.create({
-        studentUid: decoded.uid,
-        studentEmail: decoded.email,
-        type: "starter_grant",
-        points: STARTER_ACADEMY_POINTS,
-        balanceAfter: STARTER_ACADEMY_POINTS,
-        note: "Starter Academy points",
-      });
       await creditAcademyReferral({
         newStudentUid: decoded.uid,
         newStudentEmail: decoded.email,

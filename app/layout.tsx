@@ -21,8 +21,8 @@ import {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Lumyn — Product & Software Development Studio",
-    template: "%s — Lumyn",
+    default: "Lumyn | Product & Software Development Studio",
+    template: "%s | Lumyn",
   },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "Lumyn — Product & Software Development Studio",
+    title: "Lumyn | Product & Software Development Studio",
     description: SITE_DESCRIPTION,
     images: [
       {
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lumyn — Product & Software Development Studio",
+    title: "Lumyn | Product & Software Development Studio",
     description: SITE_DESCRIPTION,
     images: [absoluteUrl(DEFAULT_OG_IMAGE)],
     creator: "@lumynstudio",
@@ -138,6 +138,62 @@ const jsonLd = {
         },
       ],
       makesOffer: [
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            "@id": `${SITE_URL}/#service-strategy`,
+            name: "Product Strategy Consulting",
+            serviceType: "Product strategy consulting",
+            description:
+              "Clarifying the product, the system, and the path to market before expensive code gets written.",
+            provider: { "@id": `${SITE_URL}/#organization` },
+            areaServed: "Worldwide",
+            url: absoluteUrl("/#capabilities"),
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            "@id": `${SITE_URL}/#service-design`,
+            name: "Product Design",
+            serviceType: "Digital product design",
+            description:
+              "Design systems and interfaces that feel coherent at every size, built on foundations a product can grow on.",
+            provider: { "@id": `${SITE_URL}/#organization` },
+            areaServed: "Worldwide",
+            url: absoluteUrl("/#capabilities"),
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            "@id": `${SITE_URL}/#service-engineering`,
+            name: "Custom Software Development",
+            serviceType: "Custom software engineering",
+            description:
+              "Fast, durable web applications and MVPs built with modern technology and careful technical judgment.",
+            provider: { "@id": `${SITE_URL}/#organization` },
+            areaServed: "Worldwide",
+            url: absoluteUrl("/#capabilities"),
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            "@id": `${SITE_URL}/#service-ai`,
+            name: "Applied AI Integration",
+            serviceType: "Applied AI product development",
+            description:
+              "Useful AI woven into real product workflows, integrated with intent rather than added as a decoration.",
+            provider: { "@id": `${SITE_URL}/#organization` },
+            areaServed: "Worldwide",
+            url: absoluteUrl("/#capabilities"),
+          },
+        },
         {
           "@type": "Offer",
           itemOffered: {

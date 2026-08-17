@@ -101,7 +101,7 @@ export default function ProductCard({
         backgroundColor: "var(--bg-primary)",
         borderColor: "var(--border-primary)",
       }}
-      aria-label={`${name} — ${tagline}`}
+      aria-label={`${name}: ${tagline}`}
     >
       {/* Icon + status row */}
       <div className="flex items-start justify-between gap-4 relative z-10">

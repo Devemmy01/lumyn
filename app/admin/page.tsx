@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import dbConnect from "@/lib/mongodb";
-import AcademyCourse from "@/models/AcademyCourse";
+import AcademyEnrollment from "@/models/AcademyEnrollment";
 import AcademyStudent from "@/models/AcademyStudent";
 import Contact from "@/models/Contact";
 import Post from "@/models/Post";
@@ -35,7 +35,7 @@ async function getDashboardSnapshot() {
     subscribersCount: 0,
     inquiriesCount: 0,
     academyStudentsCount: 0,
-    academyCoursesCount: 0,
+    academyEnrollmentsCount: 0,
     recentInquiries: [] as RecentInquiry[],
     recentPosts: [] as RecentPost[],
     healthy: false,
@@ -49,7 +49,7 @@ async function getDashboardSnapshot() {
       Subscriber.countDocuments(),
       Contact.countDocuments(),
       AcademyStudent.countDocuments(),
-      AcademyCourse.countDocuments(),
+      AcademyEnrollment.countDocuments(),
       Contact.find().sort({ createdAt: -1 }).limit(5).lean(),
       Post.find().select("title published createdAt").sort({ createdAt: -1 }).limit(5).lean(),
     ]);
@@ -65,7 +65,7 @@ async function getDashboardSnapshot() {
       subscribersCount: value(2, 0),
       inquiriesCount: value(3, 0),
       academyStudentsCount: value(4, 0),
-      academyCoursesCount: value(5, 0),
+      academyEnrollmentsCount: value(5, 0),
       recentInquiries: value<RecentInquiry[]>(6, []),
       recentPosts: value<RecentPost[]>(7, []),
       healthy: results.every((result) => result.status === "fulfilled"),
@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
     { label: "Journal posts", value: data.postsCount, detail: `${data.publishedCount} published`, href: "/admin/posts", accent: "violet" },
     { label: "Subscribers", value: data.subscribersCount, detail: "newsletter audience", href: "/admin/subscribers", accent: "cyan" },
     { label: "Inquiries", value: data.inquiriesCount, detail: "project conversations", href: "/admin/inquiries", accent: "amber" },
-    { label: "Academy students", value: data.academyStudentsCount, detail: `${data.academyCoursesCount} generated courses`, href: "/admin/academy", accent: "emerald" },
+    { label: "Academy students", value: data.academyStudentsCount, detail: `${data.academyEnrollmentsCount} active enrollments`, href: "/admin/academy", accent: "emerald" },
   ];
 
   return (
@@ -97,16 +97,16 @@ export default async function AdminDashboard() {
         <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-[#7c6cf6]/20 blur-[100px]" />
         <div className="relative flex flex-col justify-between gap-7 md:flex-row md:items-end">
           <div>
-            <div className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">
+            <div className="mb-5 flex items-center gap-2 text-[11px] font-semibold text-white/55">
               <span className={data.healthy ? "h-2 w-2 rounded-full bg-emerald-400" : "h-2 w-2 rounded-full bg-amber-400"} />
               {data.healthy ? "Systems connected" : "Some data is unavailable"}
-              <span className="text-white/15">•</span>
+              <span className="text-white/30">•</span>
               {today}
             </div>
             <h1 className="max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
               Your studio, at a glance.
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/40 sm:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">
               Publish ideas, manage incoming conversations, and keep Academy operations moving from one workspace.
             </p>
           </div>
@@ -128,11 +128,11 @@ export default async function AdminDashboard() {
           <Link key={stat.label} href={stat.href} className="group rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 transition hover:-translate-y-0.5 hover:border-white/[0.14] hover:bg-white/[0.04]">
             <div className="flex items-start justify-between">
               <span className={`h-2.5 w-2.5 rounded-full ${accentColor(stat.accent)}`} />
-              <span className="text-sm text-white/20 transition group-hover:translate-x-0.5 group-hover:text-white/50">→</span>
+              <span className="text-sm text-white/35 transition group-hover:translate-x-0.5 group-hover:text-white/70">→</span>
             </div>
             <p className="mt-7 text-4xl font-semibold tracking-[-0.05em] text-white">{stat.value}</p>
-            <p className="mt-2 text-sm font-semibold text-white/70">{stat.label}</p>
-            <p className="mt-1 text-xs text-white/30">{stat.detail}</p>
+            <p className="mt-2 text-sm font-semibold text-white/85">{stat.label}</p>
+            <p className="mt-1 text-xs text-white/45">{stat.detail}</p>
           </Link>
         ))}
       </section>
@@ -148,11 +148,11 @@ export default async function AdminDashboard() {
                       <p className="truncate text-sm font-semibold text-white">{inquiry.name || "Unknown sender"}</p>
                       <p className="mt-1 truncate text-xs text-[#9d92ff]">{inquiry.email || "No email"}</p>
                     </div>
-                    <time className="shrink-0 text-[11px] text-white/25">
-                      {inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                    <time className="shrink-0 text-[11px] text-white/40">
+                      {inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "No date"}
                     </time>
                   </div>
-                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/35">{inquiry.message || "No message"}</p>
+                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/50">{inquiry.message || "No message"}</p>
                 </div>
               ))}
             </div>
@@ -166,7 +166,7 @@ export default async function AdminDashboard() {
                 <Link key={post._id.toString()} href={`/admin/posts/${post._id}`} className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-white/[0.018] sm:px-6">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-white">{post.title || "Untitled post"}</p>
-                    <p className="mt-1 text-xs text-white/25">{post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No date"}</p>
+                    <p className="mt-1 text-xs text-white/40">{post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No date"}</p>
                   </div>
                   <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${post.published ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-white/10 bg-white/[0.04] text-white/35"}`}>
                     {post.published ? "Published" : "Draft"}
@@ -179,16 +179,16 @@ export default async function AdminDashboard() {
       </section>
 
       <section>
-        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">Quick actions</p>
+        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Quick actions</p>
         <div className="grid gap-3 md:grid-cols-3">
           {[
-            { title: "Manage Academy", description: "Students, points, and courses", href: "/admin/academy" },
+            { title: "Manage Academy", description: "Students, catalog, and enrollments", href: "/admin/academy" },
             { title: "Review subscribers", description: "Search and clean the audience list", href: "/admin/subscribers" },
             { title: "Open email inbox", description: "Review incoming agent mail", href: "/admin/inbox" },
           ].map((action) => (
             <Link key={action.href} href={action.href} className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 transition hover:border-[#7c6cf6]/30 hover:bg-[#7c6cf6]/[0.05]">
               <p className="text-sm font-semibold text-white">{action.title}</p>
-              <p className="mt-1.5 text-xs text-white/30">{action.description}</p>
+              <p className="mt-1.5 text-xs text-white/45">{action.description}</p>
             </Link>
           ))}
         </div>
@@ -219,5 +219,5 @@ function DashboardPanel({ title, action, children }: { title: string; action: { 
 }
 
 function EmptyState({ message }: { message: string }) {
-  return <p className="px-6 py-12 text-center text-sm text-white/25">{message}</p>;
+  return <p className="px-6 py-12 text-center text-sm text-white/40">{message}</p>;
 }

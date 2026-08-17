@@ -193,16 +193,32 @@ async function searchVideoIds(query: string, apiKey: string) {
     .filter((videoId): videoId is string => Boolean(videoId));
 }
 
+// YouTube's videos.list endpoint rejects an `id` filter with more than 50 values.
+const MAX_VIDEO_IDS_PER_REQUEST = 50;
+
 async function getVideoDetails(videoIds: string[], apiKey: string) {
-  if (!videoIds.length) return [];
-  const params = new URLSearchParams({
-    key: apiKey,
-    part: "snippet,contentDetails,statistics,status",
-    id: [...new Set(videoIds)].join(","),
-    fields: "items(id,snippet(title,channelTitle,publishedAt,thumbnails),contentDetails/duration,statistics/viewCount,status(embeddable,privacyStatus))",
-  });
-  const payload = await youtubeJson<VideosPayload>(`${YOUTUBE_VIDEOS_URL}?${params.toString()}`);
-  return (payload.items ?? []).map(toLessonVideo).filter((video): video is YouTubeLessonVideo => Boolean(video));
+  const uniqueIds = [...new Set(videoIds)];
+  if (!uniqueIds.length) return [];
+
+  const chunks: string[][] = [];
+  for (let index = 0; index < uniqueIds.length; index += MAX_VIDEO_IDS_PER_REQUEST) {
+    chunks.push(uniqueIds.slice(index, index + MAX_VIDEO_IDS_PER_REQUEST));
+  }
+
+  const results = await Promise.all(
+    chunks.map(async (chunk) => {
+      const params = new URLSearchParams({
+        key: apiKey,
+        part: "snippet,contentDetails,statistics,status",
+        id: chunk.join(","),
+        fields: "items(id,snippet(title,channelTitle,publishedAt,thumbnails),contentDetails/duration,statistics/viewCount,status(embeddable,privacyStatus))",
+      });
+      const payload = await youtubeJson<VideosPayload>(`${YOUTUBE_VIDEOS_URL}?${params.toString()}`);
+      return payload.items ?? [];
+    }),
+  );
+
+  return results.flat().map(toLessonVideo).filter((video): video is YouTubeLessonVideo => Boolean(video));
 }
 
 export async function attachYouTubeVideos(

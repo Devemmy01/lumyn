@@ -191,6 +191,15 @@ export function AcademyInstallPrompt({
   onDismiss: () => void;
   onClose: () => void;
 }) {
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!open || status === "installed" || status === "checking") return null;
 
   const ios = status === "ios" || status === "ios-legacy";

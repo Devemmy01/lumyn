@@ -33,7 +33,7 @@ export default function PaymentCallback() {
 
       if (providerStatus && ["cancelled", "canceled", "failed"].includes(providerStatus)) {
         setState({
-          detail: "No Academy points were added. You can return to billing and try again whenever you are ready.",
+          detail: "Nothing was charged. You can return to billing and try again whenever you are ready.",
           message: providerStatus === "failed" ? "Payment failed" : "Payment was cancelled",
           status: "error",
         });
@@ -42,7 +42,7 @@ export default function PaymentCallback() {
 
       if (!user || (!reference && !transactionId)) {
         setState({
-          detail: "No Academy points were added. Sign in again, then retry the purchase from billing.",
+          detail: "Sign in again, then retry from billing or certificates.",
           message: "Your payment session could not be verified",
           status: "error",
         });
@@ -57,16 +57,22 @@ export default function PaymentCallback() {
         const response = await fetch(`/api/academy/payment/verify?${query.toString()}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const payload = await response.json() as { alreadyProcessed?: boolean; balance?: number; error?: string; points?: number };
+        const payload = (await response.json()) as {
+          alreadyProcessed?: boolean;
+          kind?: "subscription" | "certificate_unlock";
+          error?: string;
+        };
         if (!response.ok) throw new Error(payload.error ?? "Payment verification failed.");
         if (!isMounted) return;
 
-        const pointsText = typeof payload.points === "number" ? `${payload.points} Academy points` : "Your Academy points";
-        const balanceText = typeof payload.balance === "number" ? ` Your new balance is ${payload.balance} points.` : "";
+        const successText =
+          payload.kind === "certificate_unlock"
+            ? "Your certificate has been unlocked."
+            : "Your Astra subscription is now active.";
         setState({
           detail: payload.alreadyProcessed
             ? "This payment had already been processed. Redirecting you back to the dashboard."
-            : `${pointsText} have been added.${balanceText} Redirecting you back to the dashboard.`,
+            : `${successText} Redirecting you back to the dashboard.`,
           message: "Payment confirmed",
           status: "success",
         });

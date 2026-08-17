@@ -19,10 +19,11 @@ export function MobileRouteHeading({
   const labels: Record<string, { eyebrow: string; title: string }> = {
     overview: { eyebrow: "Your workspace", title: "Overview" },
     learning: { eyebrow: "Keep moving", title: "My learning" },
-    generate: { eyebrow: "AI course studio", title: "Build a path" },
+    catalog: { eyebrow: "Free to learn", title: "Catalog" },
     assignments: { eyebrow: "Practical work", title: "Assignments" },
+    rewards: { eyebrow: "XP, streaks, badges", title: "Rewards" },
     certificates: { eyebrow: "Your achievements", title: "Certificates" },
-    billing: { eyebrow: "Point wallet", title: "Point top-up" },
+    billing: { eyebrow: "Astra subscription", title: "Billing" },
   };
   const current = labels[view] ?? labels.overview;
 
@@ -63,10 +64,13 @@ export function MobileDashboardNav({
   const primaryItems = [
     { label: "Home", href: "/academy/dashboard", view: "overview", icon: "grid" },
     { label: "Learn", href: "/academy/dashboard/learning", view: "learning", icon: "book" },
-    { label: "Build", href: "/academy/dashboard/generate", view: "generate", icon: "spark" },
+    { label: "Catalog", href: "/academy/dashboard/catalog", view: "catalog", icon: "spark" },
     { label: "Work", href: "/academy/dashboard/assignments", view: "assignments", icon: "check" },
   ];
-  const moreActive = currentView === "certificates" || currentView === "billing";
+  const moreActive =
+    currentView === "certificates" ||
+    currentView === "billing" ||
+    currentView === "rewards";
 
   return (
     <>
@@ -75,9 +79,10 @@ export function MobileDashboardNav({
       )}
       {moreOpen && (
         <section className="fixed inset-x-3 bottom-[6.15rem] z-[75] overflow-hidden rounded-[1.8rem] border border-black/[0.08] bg-[#faf9f6]/95 p-3 shadow-[0_24px_80px_rgba(23,19,31,0.28)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#121319]/95 lg:hidden" aria-label="More dashboard actions">
-          <div className="grid grid-cols-2 gap-2">
-            <Link href="/academy/dashboard/certificates" className={`flex items-center gap-3 rounded-2xl p-4 text-sm font-semibold ${currentView === "certificates" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="award" /> Certificates</Link>
-            <Link href="/academy/dashboard/billing" className={`flex items-center gap-3 rounded-2xl p-4 text-sm font-semibold ${currentView === "billing" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="card" /> Point top-up</Link>
+          <div className="grid grid-cols-3 gap-2">
+            <Link href="/academy/dashboard/rewards" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "rewards" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="gem" /> Rewards</Link>
+            <Link href="/academy/dashboard/certificates" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "certificates" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="award" /> Certificates</Link>
+            <Link href="/academy/dashboard/billing" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "billing" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="card" /> Billing</Link>
           </div>
           <button type="button" onClick={onToggleTheme} className="mt-2 flex w-full items-center gap-3 rounded-2xl bg-black/[0.035] p-3.5 text-left dark:bg-white/[0.05]">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] bg-white/70 text-[#6c5ce7] dark:border-white/10 dark:bg-white/[0.06] dark:text-[#b9b1ff]">{isDark ? <SunIcon /> : <MoonIcon />}</span>

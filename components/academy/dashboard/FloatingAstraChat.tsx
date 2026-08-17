@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
+import Link from "next/link";
 import AstraMascot from "@/components/academy/AstraMascot";
 import { ACADEMY_TUTOR_NAME } from "@/lib/academy";
 import { LoadingSpinner } from "@/components/academy/dashboard/LoadingStates";
@@ -18,6 +19,7 @@ export function FloatingAstraChat({
   preferredName,
   question,
   resetting,
+  hasAccess = true,
   onPreferredNameChange,
   onQuestionChange,
   onResetChat,
@@ -31,6 +33,7 @@ export function FloatingAstraChat({
   preferredName: string;
   question: string;
   resetting: boolean;
+  hasAccess?: boolean;
   onPreferredNameChange: (value: string) => void;
   onQuestionChange: (value: string) => void;
   onResetChat: () => void | Promise<void>;
@@ -173,21 +176,41 @@ export function FloatingAstraChat({
               <div className="rounded-2xl border border-dashed border-[#7c6cf6]/25 p-5">
                 <p className="text-center text-sm font-semibold">How should we learn this?</p>
                 <p className="mt-1 text-center text-xs leading-5 text-neutral-500 dark:text-white/42">Astra knows your current module and can explain, hint, or test you.</p>
-                <div className="mt-4 grid gap-2">
-                  {suggestedPrompts.map((prompt) => (
-                    <button key={prompt} type="button" onClick={() => choosePrompt(prompt)} className="rounded-xl border border-black/[0.08] bg-white/70 px-3 py-2.5 text-left text-xs font-bold transition hover:border-[#7c6cf6]/35 hover:text-[#6c5ce7] dark:border-white/10 dark:bg-white/[0.04] dark:hover:text-[#b9b1ff]">{prompt}</button>
-                  ))}
-                </div>
+                {hasAccess && (
+                  <div className="mt-4 grid gap-2">
+                    {suggestedPrompts.map((prompt) => (
+                      <button key={prompt} type="button" onClick={() => choosePrompt(prompt)} className="rounded-xl border border-black/[0.08] bg-white/70 px-3 py-2.5 text-left text-xs font-bold transition hover:border-[#7c6cf6]/35 hover:text-[#6c5ce7] dark:border-white/10 dark:bg-white/[0.04] dark:hover:text-[#b9b1ff]">{prompt}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {pending && !streamingQuestion && <div className="inline-flex items-center gap-2 rounded-full border border-[#7c6cf6]/15 px-3 py-2 text-xs font-semibold text-[#6c5ce7] dark:text-[#b9b1ff]"><LoadingSpinner /> Thinking...</div>}
             <div ref={conversationEndRef} />
           </div>
 
-          <form onSubmit={onSubmit} className="grid shrink-0 gap-2 border-t border-black/[0.07] bg-white/75 p-3 backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#101118]/90 sm:grid-cols-[1fr_auto]">
-            <textarea ref={questionInputRef} value={question} onChange={handleQuestionChange} onKeyDown={submitQuestionFromKeyboard} disabled={pending} rows={1} className="academy-scrollbar max-h-[132px] min-h-12 min-w-0 resize-none overflow-hidden rounded-2xl border border-black/[0.08] bg-white/80 px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#7c6cf6] focus:ring-4 focus:ring-[#7c6cf6]/10 disabled:opacity-60 dark:border-white/10 dark:bg-black/20" placeholder={`Ask ${ACADEMY_TUTOR_NAME}...`} required />
-            <button type="submit" disabled={pending} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#7c6cf6] px-5 text-sm font-bold text-white transition hover:bg-[#6b5bdd] disabled:opacity-60">{pending && <LoadingSpinner />}Ask</button>
-          </form>
+          {hasAccess ? (
+            <form onSubmit={onSubmit} className="grid shrink-0 gap-2 border-t border-black/[0.07] bg-white/75 p-3 backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#101118]/90 sm:grid-cols-[1fr_auto]">
+              <textarea ref={questionInputRef} value={question} onChange={handleQuestionChange} onKeyDown={submitQuestionFromKeyboard} disabled={pending} rows={1} className="academy-scrollbar max-h-[132px] min-h-12 min-w-0 resize-none overflow-hidden rounded-2xl border border-black/[0.08] bg-white/80 px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#7c6cf6] focus:ring-4 focus:ring-[#7c6cf6]/10 disabled:opacity-60 dark:border-white/10 dark:bg-black/20" placeholder={`Ask ${ACADEMY_TUTOR_NAME}...`} required />
+              <button type="submit" disabled={pending} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#7c6cf6] px-5 text-sm font-bold text-white transition hover:bg-[#6b5bdd] disabled:opacity-60">{pending && <LoadingSpinner />}Ask</button>
+            </form>
+          ) : (
+            <div className="shrink-0 border-t border-black/[0.07] bg-white/85 dark:bg-[#101118]/92 p-4 backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#101118]/92">
+              <div className="rounded-2xl border border-[#7c6cf6]/25 bg-[#7c6cf6]/[0.08] p-4 text-center dark:border-[#7c6cf6]/35 dark:bg-[#7c6cf6]/[0.14]">
+                <p className="text-sm font-bold text-[#18181b] dark:text-white">Subscribe to keep chatting with {ACADEMY_TUTOR_NAME}</p>
+                <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-white/70">
+                  A monthly subscription unlocks unlimited {ACADEMY_TUTOR_NAME} conversations and free certificates on every course.
+                </p>
+                <Link
+                  href="/academy/dashboard/billing"
+                  onClick={() => setOpen(false)}
+                  className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#7c6cf6] text-sm font-bold text-white transition hover:bg-[#6b5bdd]"
+                >
+                  Subscribe to {ACADEMY_TUTOR_NAME}
+                </Link>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

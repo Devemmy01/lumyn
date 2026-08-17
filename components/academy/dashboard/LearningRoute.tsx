@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   MIN_MODULE_QUIZ_QUESTIONS,
   type AssignmentSubmission,
@@ -56,10 +56,8 @@ type LearningRouteProps = {
   onLearningStepSelect: (step: LearningStepId) => void;
   onLessonOpen: (lessonIndex: number) => void;
   onLessonToggle: (lessonIndex: number, completed: boolean) => void;
-  onRefreshLessonVideo: (lessonIndex: number, silent?: boolean) => void;
   onQuizAnswerChange: (questionIndex: number, optionIndex: number) => void;
   onRestartQuiz: () => void;
-  onRepairQuiz: () => void;
   onSubmitQuiz: (event: FormEvent<HTMLFormElement>) => void;
   onSubmitAssignment: (event: FormEvent<HTMLFormElement>) => void;
   onSubmitFinalProject: (event: FormEvent<HTMLFormElement>) => void;
@@ -89,10 +87,8 @@ export function LearningRoute({
   onLearningStepSelect,
   onLessonOpen,
   onLessonToggle,
-  onRefreshLessonVideo,
   onQuizAnswerChange,
   onRestartQuiz,
-  onRepairQuiz,
   onSubmitQuiz,
   onSubmitAssignment,
   onSubmitFinalProject,
@@ -102,7 +98,6 @@ export function LearningRoute({
   onFinalProjectFilesChange,
 }: LearningRouteProps) {
   const [quizQuestionIndex, setQuizQuestionIndex] = useState(0);
-  const requestedQuizKey = useRef("");
   const quizQuestions = activeModuleData.quiz.questions;
   const usableQuizQuestionCount = quizQuestions.filter(
     (question) => typeof question !== "string",
@@ -118,26 +113,6 @@ export function LearningRoute({
   useEffect(() => {
     setQuizQuestionIndex(0);
   }, [activeModule]);
-
-  useEffect(() => {
-    if (visibleLearningStep !== "quiz" || quizReady) return;
-    const requestKey = `${selected.id}:${activeModule}`;
-    if (
-      requestedQuizKey.current === requestKey ||
-      pendingAction === `repair-quiz-${activeModule}`
-    ) {
-      return;
-    }
-    requestedQuizKey.current = requestKey;
-    onRepairQuiz();
-  }, [
-    activeModule,
-    onRepairQuiz,
-    pendingAction,
-    quizReady,
-    selected.id,
-    visibleLearningStep,
-  ]);
 
   return (
     <>
@@ -181,9 +156,6 @@ export function LearningRoute({
                   index={index}
                   moduleTitle={activeModuleData.title}
                   pending={pendingAction === `lesson-${activeModule}-${index}`}
-                  videoPending={
-                    pendingAction === `refresh-video-${activeModule}-${index}`
-                  }
                   active={
                     resumeCursor?.step === "lessons" &&
                     resumeCursor.moduleIndex === activeModule &&
@@ -195,9 +167,6 @@ export function LearningRoute({
                       index,
                       lesson.completionStatus !== "completed",
                     )
-                  }
-                  onRefreshVideo={(silent) =>
-                    onRefreshLessonVideo(index, silent)
                   }
                 />
               ))}
@@ -223,39 +192,12 @@ export function LearningRoute({
                 </div>
               )}
               {!quizReady && (
-                <div
-                  className={`mt-6 rounded-2xl border p-4 text-sm leading-6 ${
-                    pendingAction === `repair-quiz-${activeModule}`
-                      ? "border-[#7c6cf6]/25 bg-[#7c6cf6]/10 text-[#5c4cdb] dark:text-[#c9c3ff]"
-                      : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200"
-                  }`}
-                >
-                  {pendingAction === `repair-quiz-${activeModule}` ? (
-                    <div className="flex items-start gap-3">
-                      <LoadingSpinner />
-                      <div>
-                        <p className="font-bold">Preparing your assessment…</p>
-                        <p className="mt-1 text-xs leading-5 opacity-70">
-                          Lumyn is creating {MIN_MODULE_QUIZ_QUESTIONS} focused
-                          questions from the lessons you just studied.
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <p>
-                        This assessment still needs to be prepared. Your course
-                        is safe, and preparing it does not use Academy points.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={onRepairQuiz}
-                        className="mt-4 inline-flex items-center justify-center rounded-xl bg-amber-400 px-4 py-2 text-xs font-bold text-black transition hover:bg-amber-300"
-                      >
-                        Prepare assessment
-                      </button>
-                    </>
-                  )}
+                <div className="mt-6 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm leading-6 text-amber-700 dark:text-amber-200">
+                  <p>
+                    This assessment isn&apos;t available yet. Your progress is
+                    safe. Check back shortly, or reach out to Lumyn support if
+                    this persists.
+                  </p>
                 </div>
               )}
               {quizReady && (

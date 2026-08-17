@@ -1,6 +1,7 @@
-import { creditPurchasedPoints } from "@/lib/academy-points";
+import { unlockCertificateWithPayment } from "@/lib/academy-certificates";
 import connectDB from "@/lib/mongodb";
 import AcademyPayment from "@/models/AcademyPayment";
+import AcademyStudent from "@/models/AcademyStudent";
 
 export type FlutterwaveCharge = {
   id?: number | string;
@@ -12,6 +13,25 @@ export type FlutterwaveCharge = {
   created_at?: string;
   customer?: { email?: string };
 };
+
+const SUBSCRIPTION_PERIOD_DAYS = 30;
+
+async function activateSubscription(studentUid: string) {
+  const currentPeriodEnd = new Date(Date.now() + SUBSCRIPTION_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+  return AcademyStudent.findOneAndUpdate(
+    { firebaseUid: studentUid },
+    {
+      $set: {
+        "subscription.planId": "ai-tutor",
+        "subscription.status": "active",
+        "subscription.provider": "flutterwave",
+        "subscription.currentPeriodEnd": currentPeriodEnd,
+        "subscription.cancelAtPeriodEnd": false,
+      },
+    },
+    { new: true },
+  );
+}
 
 export async function activateAcademyPayment(data: FlutterwaveCharge) {
   await connectDB();
@@ -41,11 +61,14 @@ export async function activateAcademyPayment(data: FlutterwaveCharge) {
   payment.paidAt = data.created_at ? new Date(data.created_at) : new Date();
   await payment.save();
 
-  const student = await creditPurchasedPoints({
-    studentUid: payment.studentUid,
-    points: payment.points,
-    reference: payment.reference,
-  });
+  const student =
+    payment.kind === "subscription"
+      ? await activateSubscription(payment.studentUid)
+      : null;
+
+  if (payment.kind === "certificate_unlock" && payment.enrollmentId) {
+    await unlockCertificateWithPayment(payment.enrollmentId, payment.studentUid);
+  }
 
   return { payment, student, alreadyProcessed: false };
 }

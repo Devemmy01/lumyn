@@ -1,9 +1,10 @@
-var CACHE_NAME = "lumyn-academy-v3";
+var CACHE_NAME = "lumyn-academy-v4";
 var APP_SHELL = [
   "/academy/dashboard",
   "/academy/dashboard/learning",
-  "/academy/dashboard/generate",
+  "/academy/dashboard/catalog",
   "/academy/dashboard/assignments",
+  "/academy/dashboard/rewards",
   "/academy/dashboard/certificates",
   "/academy/dashboard/billing",
   "/android-chrome-192x192.png",

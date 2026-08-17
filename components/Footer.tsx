@@ -19,14 +19,6 @@ const footerLinks = [
       { label: "All products", href: "/products" },
     ],
   },
-  {
-    title: "Connect",
-    links: [
-      { label: "Start a project", href: "/contact" },
-      { label: "X / Twitter", href: "https://x.com/lumynstudio" },
-      { label: "Privacy", href: "/privacy" },
-    ],
-  },
 ];
 
 export default function Footer() {
@@ -67,11 +59,11 @@ export default function Footer() {
             </Link>
             <p className="mt-6 text-sm leading-6 text-[color:var(--text-secondary)]">
               Independent product studio. Strategy, design, engineering and
-              applied AI—working as one clear system.
+              applied AI, working as one clear system.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-2">
             {footerLinks.map((group) => (
               <div key={group.title}>
                 <h4 className="mb-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--text-tertiary)]">
@@ -94,11 +86,12 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-black/10 pt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--text-tertiary)] dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-black/10 pt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--text-tertiary)] dark:border-white/10 sm:flex-row sm:items-center sm:justify-between text-center mx-auto whitespace-nowrap">
           <p>&copy; {year} Lumyn Studio</p>
-          <div className="flex gap-5">
+          <div className="flex gap-5 w-full mx-auto items-center justify-center md:justify-end">
             <Link href="/terms" className="hover:text-[#7c6cf6]">Terms</Link>
             <Link href="/refund-policy" className="hover:text-[#7c6cf6]">Refunds</Link>
+            <Link href="/privacy" className="hover:text-[#7c6cf6]">Privacy</Link>
           </div>
         </div>
       </div>

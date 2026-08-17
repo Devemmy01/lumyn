@@ -26,6 +26,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts",
+    "generate:catalog": "ts-node --project tsconfig.seed.json scripts/generate_academy_catalog.ts",
     "draft:seo": "ts-node --project tsconfig.seed.json scripts/generate_seo_drafts.ts",
     "publish:seo": "ts-node --project tsconfig.seed.json scripts/publish_seo_drafts.ts"
   },
@@ -55,6 +56,7 @@
     "next-auth": "^4.24.15",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.7.0",
     "reading-time": "^1.5.0"
   },
   "devDependencies": {
@@ -68,7 +70,8 @@
     "postcss": "^8.5.25",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "postcss": "$postcss",

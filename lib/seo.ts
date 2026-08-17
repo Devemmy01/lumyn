@@ -18,10 +18,16 @@ export const SITE_KEYWORDS = [
   "digital product studio",
   "software product studio",
   "applied AI product studio",
+  "custom software development company",
+  "product design agency",
+  "MVP development agency",
+  "AI integration consultant",
+  "hire a software development studio",
   "Lumyn Academy",
+  "learn Python for free",
+  "free coding platform",
+  "gamified coding courses",
   "MindFuel",
-  "AI software engineering courses",
-  "personalized coding course",
   "reflection app",
 ];
 export const SOCIAL_PROFILES = ["https://x.com/lumynstudio"];
@@ -61,7 +67,7 @@ export function buildMetadata({
   const url = absoluteUrl(path);
   const usableImage = ogImage.startsWith("data:") ? DEFAULT_OG_IMAGE : ogImage;
   const fullOgImage = absoluteUrl(usableImage);
-  const socialTitle = `${title} — ${SITE_NAME}`;
+  const socialTitle = `${title} | ${SITE_NAME}`;
   const combinedKeywords = Array.from(new Set([...keywords, ...SITE_KEYWORDS]));
 
   return {

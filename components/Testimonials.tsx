@@ -34,7 +34,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
   },
   {
-    quote: "The level of attention to detail and execution was outstanding. Lumyn doesn't just build products—they build solutions.",
+    quote: "The level of attention to detail and execution was outstanding. Lumyn doesn't just build products, they build solutions.",
     author: "Emma Richardson",
     role: "Founder",
     company: "NextGen Collective",

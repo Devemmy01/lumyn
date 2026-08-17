@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2017",
     "module": "commonjs",
-    "lib": ["es2017"],
+    "lib": ["es2017", "dom", "dom.iterable"],
     "strict": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
@@ -13,5 +13,9 @@
     }
   },
   "include": ["scripts/**/*.ts", "lib/data.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "files": true,
+    "require": ["tsconfig-paths/register"]
+  }
 }

@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     ],
     imageAlt: "Lumyn product and software development studio",
   }),
-  title: { absolute: "Lumyn — Product & Software Development Studio" },
+  title: { absolute: "Lumyn | Product & Software Development Studio" },
 };
 
 const jsonLd = {
@@ -105,7 +105,7 @@ const capabilities = [
   {
     number: "04",
     title: "AI experiences",
-    copy: "Useful intelligence woven into real workflows—not AI added just to decorate a pitch.",
+    copy: "Useful intelligence woven into real workflows, not AI added just to decorate a pitch.",
   },
 ];
 
@@ -529,11 +529,7 @@ export default async function HomePage() {
             </h1>
 
             <div className="mt-11 grid gap-8 md:mt-16 md:grid-cols-12 md:items-end">
-              <div className="md:col-span-5">
-                <p className="max-w-md text-[10px] font-semibold uppercase leading-5 tracking-[0.13em] text-[color:var(--text-tertiary)]">
-                  Product strategy · Experience design · Engineering · Applied AI
-                </p>
-              </div>
+              
               <div className="md:col-span-7 lg:col-span-6 lg:col-start-7">
                 <p className="max-w-2xl text-balance text-lg leading-8 text-[color:var(--text-secondary)] md:text-xl">
                   Lumyn turns ambitious ideas into clear digital products.
@@ -612,14 +608,14 @@ export default async function HomePage() {
                 </span>
               </h2>
               <p className="mt-8 max-w-2xl text-lg leading-8 text-[color:var(--text-secondary)]">
-                We connect strategy, design and engineering early—removing
+                We connect strategy, design and engineering early, removing
                 friction before it becomes expensive and making every detail
                 earn its place.
               </p>
             </div>
           </Reveal>
 
-          <div className="mt-12 grid gap-3 md:grid-cols-2 lg:mt-16">
+          <div id="capabilities" className="mt-12 grid gap-3 md:grid-cols-2 lg:mt-16">
             {capabilities.map((capability, index) => (
               <Reveal
                 key={capability.title}

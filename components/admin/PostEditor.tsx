@@ -226,7 +226,7 @@ export default function PostEditor({ post }: PostEditorProps) {
 
                   <div className="h-6 w-px bg-gray-300" />
 
-                  <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="inline-flex h-9 items-center justify-center rounded-md px-3 text-sm text-gray-600 transition hover:bg-gray-200 hover:text-black" title="Horizontal Rule">— HR</button>
+                  <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="inline-flex h-9 items-center justify-center rounded-md px-3 text-sm text-gray-600 transition hover:bg-gray-200 hover:text-black" title="Horizontal Rule">HR</button>
                   <button type="button" onClick={addImage} className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-200 hover:text-black" title="Insert Image">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                   </button>

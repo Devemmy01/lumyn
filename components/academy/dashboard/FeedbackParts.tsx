@@ -9,7 +9,7 @@ import {
 import { AwardIcon } from "@/components/academy/dashboard/icons";
 import { openCertificate } from "@/components/academy/dashboard/utils";
 import type {
-  DashboardCourse,
+  DashboardEnrollment,
   QuizResultState,
   ToastState,
 } from "@/components/academy/dashboard/types";
@@ -333,7 +333,7 @@ export function QuizResultModal({
         <h2 id="quiz-result-title" className="mt-2 text-xl font-semibold sm:text-2xl">
           {result.passed
             ? "Excellent!\nmodule quiz passed!"
-            : "Good attempt—review and retry."}
+            : "Good attempt. Review and retry."}
         </h2>
         <p className="mt-3 text-sm leading-6 text-white/50">
           {title}.{" "}
@@ -513,10 +513,10 @@ export function ModuleCelebrationModal({
 
 export function CertificateCard({
   studentName,
-  course,
+  enrollment,
 }: {
   studentName: string;
-  course?: DashboardCourse;
+  enrollment?: DashboardEnrollment;
 }) {
   return (
     <section
@@ -534,24 +534,24 @@ export function CertificateCard({
           <AwardIcon />
         </span>
       </div>
-      {course?.certificate ? (
+      {enrollment?.certificate ? (
         <>
           <div className="relative mt-5 rounded-2xl border border-[#7c6cf6]/20 bg-[#7c6cf6]/10 p-4">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6c5ce7] dark:text-[#b9b1ff]">
-              {course.certificate.certificateName?.trim() ||
+              {enrollment.certificate.certificateName?.trim() ||
                 studentName ||
                 "Lumyn Academy Student"}
             </p>
             <p className="mt-3 text-sm font-semibold">
-              {course.course.courseTitle}
+              {enrollment.courseTitle}
             </p>
             <p className="mt-2 text-[10px] text-neutral-500">
-              {course.certificate.certificateId}
+              {enrollment.certificate.certificateId}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => void openCertificate(studentName, course)}
+            onClick={() => void openCertificate(studentName, enrollment)}
             className="relative mt-4 w-full rounded-xl border border-[#7c6cf6]/30 bg-[#7c6cf6]/10 p-3 text-sm font-semibold text-[#6c5ce7] transition hover:bg-[#7c6cf6]/15 dark:text-[#b9b1ff]"
           >
             View / save as PDF
@@ -562,11 +562,13 @@ export function CertificateCard({
           <div className="relative mt-5 h-2 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.07]">
             <div
               className="h-full rounded-full bg-amber-500"
-              style={{ width: `${course?.progressPercent ?? 0}%` }}
+              style={{ width: `${enrollment?.progressPercent ?? 0}%` }}
             />
           </div>
           <p className="relative mt-3 text-xs leading-5 text-neutral-500 dark:text-white/40">
-            Finish the path and final project to unlock your certificate.
+            {enrollment
+              ? "Finish the path and final project, then unlock your certificate."
+              : "Enroll in a course to start earning your first certificate."}
           </p>
         </>
       )}

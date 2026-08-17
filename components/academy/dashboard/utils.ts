@@ -1,4 +1,9 @@
-import type { DashboardCourse } from "@/components/academy/dashboard/types";
+import type { DashboardCertificate } from "@/components/academy/dashboard/types";
+
+export type CertificateRecord = {
+  courseTitle?: string;
+  certificate?: DashboardCertificate;
+};
 
 export function lastSevenDays() {
   return Array.from({ length: 7 }, (_, index) => {
@@ -41,8 +46,8 @@ export function buildYouTubeLearningUrl(...topics: Array<string | undefined>) {
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 }
 
-export async function openCertificate(studentName: string, course: DashboardCourse) {
-  if (!course.certificate) return;
+export async function openCertificate(studentName: string, record: CertificateRecord) {
+  if (!record.certificate) return;
 
   const escape = (value: string) =>
     value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&apos;" }[character] ?? character));
@@ -51,12 +56,12 @@ export async function openCertificate(studentName: string, course: DashboardCour
   if (!certificateWindow) return;
 
   const origin = window.location.origin;
-  const certificateName = course.certificate.certificateName?.trim() || studentName.trim() || "Lumyn Academy Student";
-  const issuedAt = new Date(course.certificate.issuedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  const certificateName = record.certificate.certificateName?.trim() || studentName.trim() || "Lumyn Academy Student";
+  const issuedAt = new Date(record.certificate.issuedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
   const astraSignature = `<img class="signatureImg astraSignature" src="${escape(`${origin}/lumyn-signature-emmanuel.png`)}" alt="Astra signature" />`;
   const emmanuelSignature = `<img class="signatureImg emmanuelSignature" src="${escape(`${origin}/lumyn-signature-astra.png`)}" alt="Emmanuel Balogun signature" />`;
 
-  certificateWindow.document.write(`<!doctype html><html><head><title>${escape(course.certificate.certificateId)}</title><style>
+  certificateWindow.document.write(`<!doctype html><html><head><title>${escape(record.certificate.certificateId)}</title><style>
     *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     html{background:#0a0712}
     body{margin:0;background:#0a0712;font-family:"Trebuchet MS",Verdana,sans-serif;color:#f7f4ff;padding:18px}
@@ -104,6 +109,6 @@ export async function openCertificate(studentName: string, course: DashboardCour
       .date{right:18mm;bottom:14mm}
       .gridFloor{left:20mm;right:105mm;bottom:14mm}
     }
-  </style></head><body><div class="toolbar"><button onclick="window.print()">Print or save as PDF</button></div><main class="certificate"><div class="corner tl"></div><div class="corner br"></div><div class="gridFloor"></div><div class="content"><section><div class="logoRow"><div class="brandCopy"><img class="wordmark" src="${escape(`${origin}/logomain.png`)}" alt="Lumyn wordmark"/><div class="brandSub">Academy Credential</div></div></div><h1 class="title">Certificate of Completion</h1><p class="presented">Proudly presented to</p><div class="name">${escape(certificateName)}</div><p class="copy">for completing Lumyn Academy's required lessons, quizzes, practical assignments, and final project for</p><div class="course">${escape(course.course.courseTitle)}</div><div class="metaGrid"><div class="meta"><div class="signatureWrap">${astraSignature}</div><div class="role">Astra<span>AI Learning Guide</span></div></div><div class="meta"><div class="signatureWrap">${emmanuelSignature}</div><div class="role">Emmanuel Balogun<span>Founder, Lumyn</span></div></div></div></section><aside class="side"><div class="chevrons"></div></aside><div class="date">${escape(issuedAt)}<span>Date issued</span></div></div></main></body></html>`);
+  </style></head><body><div class="toolbar"><button onclick="window.print()">Print or save as PDF</button></div><main class="certificate"><div class="corner tl"></div><div class="corner br"></div><div class="gridFloor"></div><div class="content"><section><div class="logoRow"><div class="brandCopy"><img class="wordmark" src="${escape(`${origin}/logomain.png`)}" alt="Lumyn wordmark"/><div class="brandSub">Academy Credential</div></div></div><h1 class="title">Certificate of Completion</h1><p class="presented">Proudly presented to</p><div class="name">${escape(certificateName)}</div><p class="copy">for completing Lumyn Academy's required lessons, quizzes, practical assignments, and final project for</p><div class="course">${escape(record.courseTitle ?? "a Lumyn Academy course")}</div><div class="metaGrid"><div class="meta"><div class="signatureWrap">${astraSignature}</div><div class="role">Astra<span>AI Learning Guide</span></div></div><div class="meta"><div class="signatureWrap">${emmanuelSignature}</div><div class="role">Emmanuel Balogun<span>Founder, Lumyn</span></div></div></div></section><aside class="side"><div class="chevrons"></div></aside><div class="date">${escape(issuedAt)}<span>Date issued</span></div></div></main></body></html>`);
   certificateWindow.document.close();
 }

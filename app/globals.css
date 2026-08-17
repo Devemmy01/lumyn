@@ -55,22 +55,22 @@
     scroll-behavior: smooth;
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     scrollbar-width: thin;
+    scrollbar-gutter: stable;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   *::-webkit-scrollbar {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 0.55rem;
+    height: 0.55rem;
   }
 
   *::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
+    background: transparent;
   }
 
   *::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb);
-    border: 2px solid var(--scrollbar-track);
     border-radius: 999px;
   }
 
@@ -686,6 +686,26 @@ html.light .academy-dashboard-shell .text-white {
 
 .academy-mobile-safe {
   padding-bottom: max(0.7rem, env(safe-area-inset-bottom));
+}
+
+.academy-safe-top {
+  padding-top: max(1.5rem, calc(env(safe-area-inset-top) + 0.75rem));
+}
+
+@keyframes academy-toast-in {
+  from { opacity: 0; transform: translate(-50%, -0.6rem); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (min-width: 640px) {
+  @keyframes academy-toast-in {
+    from { opacity: 0; transform: translateY(-0.6rem); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+.academy-celebration-toast {
+  animation: academy-toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .academy-app-font {

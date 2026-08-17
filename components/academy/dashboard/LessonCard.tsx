@@ -17,25 +17,20 @@ export function LessonCard({
   index,
   moduleTitle,
   pending,
-  videoPending,
   active,
   onOpen,
   onToggle,
-  onRefreshVideo,
 }: {
   courseTitle: string;
   lesson: GeneratedLesson;
   index: number;
   moduleTitle: string;
   pending: boolean;
-  videoPending: boolean;
   active?: boolean;
   onOpen?: () => void;
   onToggle: () => void;
-  onRefreshVideo: (silent?: boolean) => void;
 }) {
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
-  const videoRefreshRequested = useRef(false);
   const codingTask =
     /code|html|css|javascript|typescript|tsx|jsx|react|component|function|api|page|website|app|program|python|sql|java|c\+\+|cpp|c#|csharp|golang|\bgo\b|rust|php|ruby|swift|kotlin|bash|shell|terminal|script/i.test(
       `${lesson.title} ${lesson.practicalTask} ${lesson.challenge ?? ""} ${lesson.starterCode ?? ""}`,
@@ -86,19 +81,6 @@ export function LessonCard({
       detailsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
   }, [active]);
-
-  useEffect(() => {
-    if (
-      !active ||
-      enrichedVideo ||
-      videoPending ||
-      videoRefreshRequested.current
-    ) {
-      return;
-    }
-    videoRefreshRequested.current = true;
-    onRefreshVideo(true);
-  }, [active, enrichedVideo, onRefreshVideo, savedVideo, videoPending]);
 
   return (
     <details
@@ -161,7 +143,7 @@ export function LessonCard({
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[#7c6cf6]/10 text-[9px] font-black text-[#6c5ce7] dark:text-[#b9b1ff] sm:hidden">
                 {stepIndex + 1}
               </span>
-              <p className="hidden text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400 sm:block">
+              <p className="hidden text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500 dark:text-white/45 sm:block">
                 Step {stepIndex + 1}
               </p>
               <p className="text-xs font-semibold leading-5 text-neutral-600 dark:text-white/52 sm:mt-1">
@@ -193,20 +175,16 @@ export function LessonCard({
                   {videoTitle}
                 </p>
                 <p className="mt-2 max-w-sm text-xs leading-5 text-white/45">
-                  {videoPending
-                    ? "Finding a more relevant course-style tutorial for this lesson…"
-                    : "Open the focused YouTube search while this lesson waits for a strong tutorial match."}
+                  Open the focused YouTube search while this lesson waits for a strong tutorial match.
                 </p>
-                {!videoPending && (
-                  <a
-                    href={videoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-[10px] font-black uppercase tracking-[0.1em] text-white transition hover:bg-red-500"
-                  >
-                    Search focused tutorials
-                  </a>
-                )}
+                <a
+                  href={videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-[10px] font-black uppercase tracking-[0.1em] text-white transition hover:bg-red-500"
+                >
+                  Search focused tutorials
+                </a>
               </div>
             )}
             {enrichedVideo?.thumbnailUrl && (
@@ -248,15 +226,6 @@ export function LessonCard({
               >
                 {enrichedVideo ? "Watch on YouTube" : "Search YouTube"}
               </a>
-              <button
-                type="button"
-                onClick={() => onRefreshVideo(false)}
-                disabled={videoPending}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-55 dark:text-red-300 sm:h-10 sm:rounded-xl sm:border sm:border-red-500/20 sm:px-4 sm:hover:bg-red-500/[0.07] md:w-full"
-              >
-                {videoPending && <LoadingSpinner />}
-                {videoPending ? "Finding tutorial…" : "Find better tutorial"}
-              </button>
             </div>
           </div>
           {(lesson.recommendedChannels?.length ||
@@ -543,7 +512,7 @@ function LessonQuickCheck({
         </div>
         {checked && (
           <div className={`mt-4 rounded-xl border p-3 text-xs leading-5 ${correct ? "border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-300" : "border-amber-500/20 bg-amber-500/[0.08] text-amber-700 dark:text-amber-200"}`} role="status">
-            <strong>{correct ? "You got it." : "Not quite—try once more."}</strong> {question.explanation}
+            <strong>{correct ? "You got it." : "Not quite. Try once more."}</strong> {question.explanation}
           </div>
         )}
         <div className="mt-4 flex items-center justify-between gap-3">
@@ -762,7 +731,8 @@ export function PracticeCodeWorkspace({
   const browserRunnable = hasBrowserRunnableFiles(files);
   const primaryExecutableFile = getPrimaryExecutableFile(files);
   const workerRunnable = canRunInBrowserWorker(primaryExecutableFile);
-  const runSupported = browserRunnable || workerRunnable || Boolean(primaryExecutableFile);
+  const pythonRunnable = canRunPythonInBrowser(primaryExecutableFile);
+  const runSupported = browserRunnable || workerRunnable || pythonRunnable || Boolean(primaryExecutableFile);
 
   useEffect(() => {
     const workspaceFiles = files.map(({ name, language: fileLanguage, value }) => ({
@@ -820,6 +790,24 @@ export function PracticeCodeWorkspace({
       return;
     }
 
+    if (pythonRunnable && primaryExecutableFile) {
+      setTerminalOutput(
+        pyodideReady
+          ? "Running..."
+          : "Setting up the Python runtime (first run only, a few seconds)...",
+      );
+      const output = await runPythonInBrowser(primaryExecutableFile, (status) => {
+        setTerminalOutput(
+          status === "loading"
+            ? "Setting up the Python runtime (first run only, a few seconds)..."
+            : "Running...",
+        );
+      });
+      setTerminalOutput(output);
+      setRunning(false);
+      return;
+    }
+
     setTerminalOutput(
       [
         `This workspace needs a ${normalizeProgrammingLanguage(primaryExecutableFile?.language ?? "") || "language"} runtime outside the browser.`,
@@ -839,7 +827,7 @@ export function PracticeCodeWorkspace({
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a99eff]">
             {title}
           </p>
-          <p className="mt-0.5 text-[10px] text-white/35">{subtitle}</p>
+          <p className="mt-0.5 text-[10px] text-white/55">{subtitle}</p>
         </div>
         <button
           type="button"
@@ -852,30 +840,32 @@ export function PracticeCodeWorkspace({
             ? "Running..."
             : browserRunnable
               ? "Run preview"
-              : workerRunnable
+              : workerRunnable || pythonRunnable
                 ? "Run code"
                 : "Show run command"}
         </button>
       </div>
-      <div className="flex flex-wrap gap-1 border-b border-white/[0.08] bg-[#090a0d] px-3 pt-3">
-        {files.map((file) => {
-          const active = file.id === activeFile.id;
-          return (
-            <button
-              key={file.id}
-              type="button"
-              onClick={() => selectFile(file)}
-              className={`rounded-t-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] transition ${
-                active
-                  ? "bg-[#151720] text-[#d8d5ff]"
-                  : "text-white/42 hover:bg-white/[0.05] hover:text-white/70"
-              }`}
-            >
-              {file.name}
-            </button>
-          );
-        })}
-      </div>
+      {files.length > 1 && (
+        <div className="flex flex-wrap gap-1 border-b border-white/[0.08] bg-[#090a0d] px-3 pt-3">
+          {files.map((file) => {
+            const active = file.id === activeFile.id;
+            return (
+              <button
+                key={file.id}
+                type="button"
+                onClick={() => selectFile(file)}
+                className={`rounded-t-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] transition ${
+                  active
+                    ? "bg-[#151720] text-[#d8d5ff]"
+                    : "text-white/60 hover:bg-white/[0.05] hover:text-white/85"
+                }`}
+              >
+                {file.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="grid min-h-72 lg:grid-cols-2">
         <CodeEditor
           value={activeFile.value}
@@ -902,6 +892,7 @@ export function PracticeCodeWorkspace({
             files={files}
             output={terminalOutput}
             onOutputChange={setTerminalOutput}
+            autoRun={pythonRunnable}
           />
         )}
       </div>
@@ -913,10 +904,12 @@ function TerminalOutputPanel({
   files,
   output,
   onOutputChange,
+  autoRun,
 }: {
   files: PlaygroundFile[];
   output: string;
   onOutputChange: (value: string) => void;
+  autoRun?: boolean;
 }) {
   const nonEmptyCount = files.filter((file) => file.value.trim()).length;
   const primaryFile =
@@ -928,7 +921,7 @@ function TerminalOutputPanel({
 
   return (
     <div className="min-h-72 bg-[#05070b] text-white">
-      <div className="flex h-10 items-center justify-between border-b border-white/10 bg-[#0d1117] px-4 text-[10px] font-black uppercase tracking-[0.14em] text-white/42">
+      <div className="flex h-10 items-center justify-between border-b border-white/10 bg-[#0d1117] px-4 text-[10px] font-black uppercase tracking-[0.14em] text-white/60">
         <span>Terminal output</span>
         <span>{nonEmptyCount}/{files.length} files</span>
       </div>
@@ -938,17 +931,21 @@ function TerminalOutputPanel({
             <span className="text-emerald-300">$</span>{" "}
             <span>{command}</span>
           </p>
-          <p className="mt-1 text-[11px] leading-5 text-white/35">
-            Use this Academy terminal panel to record expected output, test
-            cases, errors, or results from the built-in runner. This evidence is
-            included with your submission; do not paste an external link.
+          <p className="mt-1 text-[11px] leading-5 text-white/55">
+            {autoRun
+              ? "This is the real output from running your code in this workspace. Click Run code again any time to refresh it; you can add notes below it too."
+              : "Use this Academy terminal panel to record expected output, test cases, errors, or results from the built-in runner. This evidence is included with your submission; do not paste an external link."}
           </p>
         </div>
         <textarea
           value={output}
           onChange={(event) => onOutputChange(event.target.value)}
           spellCheck={false}
-          placeholder={`Record in-system output or test evidence for ${primaryFile?.name ?? "your code"} here...`}
+          placeholder={
+            autoRun
+              ? `Click "Run code" to see ${primaryFile?.name ?? "your code"}'s output here...`
+              : `Record in-system output or test evidence for ${primaryFile?.name ?? "your code"} here...`
+          }
           className="min-h-[208px] w-full resize-y border-0 bg-[#05070b] p-4 font-mono text-xs leading-6 text-emerald-100 outline-none placeholder:text-white/25"
           aria-label="Terminal output"
         />
@@ -972,6 +969,123 @@ function canRunInBrowserWorker(file?: PlaygroundFile) {
     file.language || languageFromFileName(file.name),
   );
   return language === "javascript" || language === "typescript" || language === "tsx";
+}
+
+function canRunPythonInBrowser(file?: PlaygroundFile) {
+  if (!file) return false;
+  const language = normalizeProgrammingLanguage(
+    file.language || languageFromFileName(file.name),
+  );
+  return language === "python";
+}
+
+const PYODIDE_CDN_BASE = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+const PYODIDE_CDN_URL = `${PYODIDE_CDN_BASE}pyodide.js`;
+
+let pyodideWorker: Worker | null = null;
+let pyodideReady = false;
+let pyodideRequestId = 0;
+
+function createPyodideWorker() {
+  const workerSource = `
+    self.pyodideReadyPromise = null;
+    importScripts(${JSON.stringify(PYODIDE_CDN_URL)});
+
+    async function ensurePyodide() {
+      if (!self.pyodideReadyPromise) {
+        self.pyodideReadyPromise = loadPyodide({ indexURL: ${JSON.stringify(PYODIDE_CDN_BASE)} }).then((pyodide) => {
+          pyodide.runPython(
+            "import builtins\\n" +
+            "def _academy_no_input(prompt=''):\\n" +
+            "    print(prompt, end='')\\n" +
+            "    raise EOFError('input() is not available in the Academy workspace. This workspace does not support interactive input.')\\n" +
+            "builtins.input = _academy_no_input"
+          );
+          return pyodide;
+        });
+      }
+      return self.pyodideReadyPromise;
+    }
+
+    self.addEventListener("message", async (event) => {
+      const { id, code } = event.data;
+      const lines = [];
+      try {
+        self.postMessage({ id, type: "status", text: "loading" });
+        const pyodide = await ensurePyodide();
+        pyodide.setStdout({ batched: (text) => lines.push(text) });
+        pyodide.setStderr({ batched: (text) => lines.push(text) });
+        await pyodide.runPythonAsync(code);
+        self.postMessage({
+          id,
+          type: "done",
+          text: lines.length ? lines.join("\\n") : "Code ran with no output.",
+        });
+      } catch (error) {
+        const message =
+          error && error.message ? String(error.message) : String(error);
+        lines.push(message);
+        self.postMessage({ id, type: "done", text: lines.join("\\n") });
+      }
+    });
+  `;
+  const blob = new Blob([workerSource], { type: "text/javascript" });
+  const worker = new Worker(URL.createObjectURL(blob));
+  worker.onerror = () => {
+    pyodideWorker = null;
+    pyodideReady = false;
+  };
+  return worker;
+}
+
+function runPythonInBrowser(
+  file: PlaygroundFile,
+  onStatus?: (status: "loading" | "running") => void,
+) {
+  return new Promise<string>((resolve) => {
+    if (typeof Worker === "undefined" || typeof Blob === "undefined") {
+      resolve("This browser does not support the in-browser Python runner.");
+      return;
+    }
+
+    if (!pyodideWorker) {
+      pyodideWorker = createPyodideWorker();
+    }
+    const worker = pyodideWorker;
+    const id = ++pyodideRequestId;
+    const timeoutMs = pyodideReady ? 8000 : 30000;
+
+    const timeout = window.setTimeout(() => {
+      worker.terminate();
+      if (pyodideWorker === worker) {
+        pyodideWorker = null;
+        pyodideReady = false;
+      }
+      resolve(
+        pyodideReady
+          ? "Stopped after 8 seconds. Check for infinite loops or long-running code."
+          : "Stopped while setting up the Python runtime. Check your connection and try Run again.",
+      );
+    }, timeoutMs);
+
+    const handleMessage = (event: MessageEvent) => {
+      const message = event.data as
+        | { id: number; type: "status"; text: string }
+        | { id: number; type: "done"; text: string };
+      if (message.id !== id) return;
+      if (message.type === "status") {
+        onStatus?.(message.text === "loading" && !pyodideReady ? "loading" : "running");
+        return;
+      }
+      window.clearTimeout(timeout);
+      pyodideReady = true;
+      worker.removeEventListener("message", handleMessage);
+      resolve(message.text);
+    };
+
+    worker.addEventListener("message", handleMessage);
+    worker.postMessage({ id, code: file.value });
+  });
 }
 
 function transpileForBrowserWorker(file: PlaygroundFile) {

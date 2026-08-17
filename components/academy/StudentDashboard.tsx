@@ -15,11 +15,16 @@ import AcademyHomeLink from "@/components/academy/AcademyHomeLink";
 import AcademyLogo from "@/components/academy/AcademyLogo";
 import { useTheme } from "@/components/ThemeProvider";
 import {
-  ACADEMY_POINT_PRICE_CENTS,
+  AstraCelebrationToast,
+  type CelebrationEvent,
+} from "@/components/academy/dashboard/AstraCelebrationToast";
+import {
   ACADEMY_TUTOR_NAME,
   containsExternalProjectLink,
+  DIAMONDS_TO_UNLOCK_CERTIFICATE,
+  hasPaidAcademyAccess,
   MIN_MODULE_QUIZ_QUESTIONS,
-  POINTS_PER_GENERATION,
+  REFERRALS_PER_DIAMOND,
   type AssignmentSubmission,
   type LearningCursor,
   type SubmissionEvaluation,
@@ -27,6 +32,8 @@ import {
 import {
   AccountPanel,
   AcademyInstallPrompt,
+  BillingRoute,
+  CatalogRoute,
   CelebrationModal,
   CertificateRoute,
   DashboardAuthScreen,
@@ -45,9 +52,8 @@ import {
   OverviewHero,
   OverviewJourney,
   OverviewMetricRail,
-  PointTopUpRoute,
   QuizResultModal,
-  SparkIcon,
+  RewardsRoute,
   SunIcon,
   Toast,
   buildAcademyNotifications,
@@ -64,6 +70,7 @@ import {
 } from "@/components/academy/dashboard/DashboardParts";
 import type {
   DashboardCourse,
+  DashboardEnrollment,
   DashboardPayload,
   QuizResultState,
   ToastState,
@@ -83,49 +90,60 @@ type TutorStreamEvent =
   | { type: "done"; messages: TutorMessage[] }
   | { type: "error"; error: string };
 
-type GenerateCourseResponse = {
+type EnrollmentDetailResponse = {
   success?: boolean;
   error?: string;
-  retryable?: boolean;
-  retryAfterMs?: number;
-  courseId?: string;
-  course?: DashboardCourse["course"];
-  accessType?: "exemption" | "points";
-  pointsSpent?: number;
-  pointsBalance?: number;
+  id: string;
+  slug: string;
+  course: DashboardCourse["course"];
+  status: string;
+  progressPercent: number;
+  quizAttempts?: DashboardCourse["quizAttempts"];
+  assignmentSubmissions?: DashboardCourse["assignmentSubmissions"];
+  finalProjectSubmission?: DashboardCourse["finalProjectSubmission"];
+  learningCursor?: LearningCursor;
+  certificate?: DashboardCourse["certificate"];
+  activityLog?: DashboardCourse["activityLog"];
+  tutorMessages?: TutorMessage[];
 };
 
-const COURSE_STARTERS = [
-  {
-    label: "Frontend",
-    prompt: "Learn modern frontend development from the foundations through React and build accessible, responsive interfaces.",
-    goal: "Build a polished portfolio-ready web application",
-    level: "Beginner",
-  },
-  {
-    label: "Data analysis",
-    prompt: "Learn practical data analysis with spreadsheets, SQL, and Python using realistic business questions.",
-    goal: "Complete an end-to-end data analysis project",
-    level: "Beginner",
-  },
-  {
-    label: "Cybersecurity",
-    prompt: "Learn defensive cybersecurity fundamentals through safe, authorized, and simulated lab exercises.",
-    goal: "Investigate and document a simulated security incident",
-    level: "Beginner",
-  },
-  {
-    label: "Product design",
-    prompt: "Learn product design from user research and information architecture through accessible interface design.",
-    goal: "Design and explain a complete mobile product flow",
-    level: "Beginner",
-  },
-] as const;
+function toDashboardCourse(payload: EnrollmentDetailResponse): DashboardCourse {
+  return {
+    id: payload.id,
+    slug: payload.slug,
+    course: payload.course,
+    status: payload.status,
+    progressPercent: payload.progressPercent,
+    quizAttempts: payload.quizAttempts ?? [],
+    assignmentSubmissions: payload.assignmentSubmissions ?? [],
+    finalProjectSubmission: payload.finalProjectSubmission,
+    activityLog: payload.activityLog ?? [],
+    learningCursor: payload.learningCursor,
+    certificate: payload.certificate,
+    tutorMessages: payload.tutorMessages ?? [],
+  };
+}
+
+function pickDefaultEnrollment(enrollments: DashboardEnrollment[]) {
+  return (
+    enrollments.find((enrollment) => enrollment.status === "active") ??
+    enrollments[0]
+  );
+}
 
 type ModuleLearningStepId = Extract<
   LearningStepId,
   "lessons" | "quiz" | "assignment"
 >;
+
+const BADGE_DISPLAY_NAME: Record<string, string> = {
+  streak_7: "Week Streak",
+  streak_30: "Month Streak",
+  first_certificate: "First Certificate",
+  first_course_completed: "Course Complete",
+  quiz_perfectionist: "Perfectionist",
+  polyglot: "Polyglot",
+};
 
 function courseGamification(course?: DashboardCourse) {
   if (!course) {
@@ -285,17 +303,15 @@ export default function StudentDashboard() {
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [selectedId, setSelectedId] = useState("");
   const [activeModule, setActiveModule] = useState(0);
-  const [prompt, setPrompt] = useState("");
-  const [level, setLevel] = useState("Beginner");
-  const [goal, setGoal] = useState("");
   const [phase, setPhase] = useState<
     "loading" | "auth" | "ready" | "working" | "error"
   >("loading");
   const [loadingDelayed, setLoadingDelayed] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [generationRecoveryAttempt, setGenerationRecoveryAttempt] =
-    useState(0);
+  const [courseDetails, setCourseDetails] = useState<
+    Record<string, DashboardCourse>
+  >({});
   const [quizResult, setQuizResult] = useState<QuizResultState | null>(null);
   const [quizModalOpen, setQuizModalOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -304,6 +320,7 @@ export default function StudentDashboard() {
     useState(false);
   const [moduleCelebration, setModuleCelebration] =
     useState<ModuleCelebrationState | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationEvent | null>(null);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
@@ -318,7 +335,6 @@ export default function StudentDashboard() {
   const [accountPanel, setAccountPanel] = useState<
     "profile" | "settings" | null
   >(null);
-  const [purchasePoints, setPurchasePoints] = useState(10);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [assignmentDraft, setAssignmentDraft] = useState("");
   const [assignmentWorkspaceFiles, setAssignmentWorkspaceFiles] = useState<
@@ -342,12 +358,14 @@ export default function StudentDashboard() {
   const [appOrigin, setAppOrigin] = useState("");
   const academyInstall = useAcademyInstall();
 
-  const selected =
-    dashboard?.courses.find((course) => course.id === selectedId) ??
-    dashboard?.courses[0];
+  const enrollments = useMemo(
+    () => dashboard?.enrollments ?? [],
+    [dashboard],
+  );
+  const selected = selectedId ? courseDetails[selectedId] : undefined;
   const activeCourseDescription =
     selected?.course.courseDescription ??
-    "Create your first personalized course from the Build a path page.";
+    "Enroll in a free course from the catalog to get started.";
   const courseDescriptionNeedsToggle = activeCourseDescription.length > 150;
 
   const handleAssignmentFilesChange = useCallback(
@@ -362,19 +380,16 @@ export default function StudentDashboard() {
     },
     [],
   );
-  const hasGenerationExemption =
-    dashboard?.student.courseGenerationExempt === true;
-  const pointsBalance = dashboard?.student.pointsBalance ?? 0;
-  const hasGenerationAccess =
-    hasGenerationExemption || pointsBalance >= POINTS_PER_GENERATION;
-  const purchaseAmount =
-    ((Number.isFinite(purchasePoints) ? purchasePoints : 0) *
-      ACADEMY_POINT_PRICE_CENTS) /
-    100;
+  const isSubscribed =
+    dashboard?.student.subscription?.status === "active" ||
+    dashboard?.student.subscription?.status === "past_due";
+  const hasFullAcademyAccess = Boolean(dashboard?.student && hasPaidAcademyAccess(dashboard.student));
+  const diamondsBalance = dashboard?.student.diamondsBalance ?? 0;
   const currentView = pathname.split("/").filter(Boolean).at(-1) ?? "dashboard";
   const dashboardView = currentView === "dashboard" ? "overview" : currentView;
   const showOverview = dashboardView === "overview";
-  const showGenerate = dashboardView === "generate";
+  const showCatalog = dashboardView === "catalog";
+  const showRewards = dashboardView === "rewards";
   const showLearning = dashboardView === "learning";
   const showAssignments = dashboardView === "assignments";
   const showCertificates = dashboardView === "certificates";
@@ -388,8 +403,8 @@ export default function StudentDashboard() {
       ? `lumyn_academy_notifications_pushed_${user?.uid ?? dashboard?.student.email}`
       : "";
   const notifications = useMemo(
-    () => buildAcademyNotifications(dashboard, selected),
-    [dashboard, selected],
+    () => buildAcademyNotifications(dashboard),
+    [dashboard],
   );
   const unreadNotificationCount = notifications.filter(
     (notification) => !readNotificationIds.includes(notification.id),
@@ -400,13 +415,11 @@ export default function StudentDashboard() {
   }
 
   function setLearningCursorState(courseId: string, learningCursor: LearningCursor) {
-    setDashboard((current) =>
-      current
+    setCourseDetails((current) =>
+      current[courseId]
         ? {
             ...current,
-            courses: current.courses.map((course) =>
-              course.id === courseId ? { ...course, learningCursor } : course,
-            ),
+            [courseId]: { ...current[courseId], learningCursor },
           }
         : current,
     );
@@ -417,7 +430,7 @@ export default function StudentDashboard() {
     const courseId = selected.id;
     setLearningCursorState(courseId, cursor);
     try {
-      const response = await fetch(`/api/academy/courses/${courseId}`, {
+      const response = await fetch(`/api/academy/enrollments/${courseId}`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -431,6 +444,38 @@ export default function StudentDashboard() {
       }
     } catch {
       // Re-entry state should never interrupt studying.
+    }
+  }
+
+  async function fetchEnrollmentDetail(idToken: string, enrollmentId: string) {
+    try {
+      const response = await fetch(`/api/academy/enrollments/${enrollmentId}`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+        cache: "no-store",
+      });
+      const payload = (await response
+        .json()
+        .catch(() => null)) as EnrollmentDetailResponse | null;
+      if (!response.ok || !payload?.success) return null;
+      return toDashboardCourse(payload);
+    } catch {
+      return null;
+    }
+  }
+
+  async function refreshEnrollmentsList(idToken = token) {
+    if (!idToken) return;
+    try {
+      const response = await fetch("/api/academy/enrollments", {
+        headers: { Authorization: `Bearer ${idToken}` },
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | DashboardPayload
+        | null;
+      if (response.ok && payload) setDashboard(payload);
+    } catch {
+      // Keep the last known list if the refresh fails.
     }
   }
 
@@ -606,26 +651,35 @@ export default function StudentDashboard() {
         const idToken = await currentUser.getIdToken();
         if (cancelled) return;
         setToken(idToken);
-        const response = await fetch("/api/academy/courses", {
+        const response = await fetch("/api/academy/enrollments", {
           headers: { Authorization: `Bearer ${idToken}` },
           cache: "no-store",
         });
-        const payload = await response.json();
+        const payload = (await response.json()) as DashboardPayload & {
+          error?: string;
+        };
         if (!response.ok)
           throw new Error(
             payload.error ?? "Your dashboard could not be loaded.",
           );
         if (cancelled) return;
         setDashboard(payload);
-        const firstCourse = payload.courses[0] as DashboardCourse | undefined;
-        setSelectedId(firstCourse?.id ?? "");
-        if (firstCourse) {
-          const cursor = getResumeCursor(firstCourse);
-          if (cursor.step === "final_project") {
-            setActiveModule(Math.max(0, firstCourse.course.modules.length - 1));
-          } else {
-            setActiveModule(Math.max(0, cursor.moduleIndex ?? 0));
-            setActiveLearningStep(cursor.step as ModuleLearningStepId);
+        const defaultEnrollment = pickDefaultEnrollment(payload.enrollments);
+        setSelectedId(defaultEnrollment?.id ?? "");
+        if (defaultEnrollment) {
+          const detail = await fetchEnrollmentDetail(idToken, defaultEnrollment.id);
+          if (!cancelled && detail) {
+            setCourseDetails((current) => ({
+              ...current,
+              [defaultEnrollment.id]: detail,
+            }));
+            const cursor = getResumeCursor(detail);
+            if (cursor.step === "final_project") {
+              setActiveModule(Math.max(0, detail.course.modules.length - 1));
+            } else {
+              setActiveModule(Math.max(0, cursor.moduleIndex ?? 0));
+              setActiveLearningStep(cursor.step as ModuleLearningStepId);
+            }
           }
         }
         setLoadingDelayed(false);
@@ -633,7 +687,7 @@ export default function StudentDashboard() {
         if (paymentConfirmed)
           setToast({
             type: "success",
-            message: "Payment confirmed. Your points have been added.",
+            message: "Payment confirmed. Thank you!",
           });
       } catch (error) {
         if (!cancelled) {
@@ -659,25 +713,74 @@ export default function StudentDashboard() {
     };
   }, [auth, paymentConfirmed, router]);
 
-  function mergeCourse(update: Partial<DashboardCourse>) {
+  function mergeCourse(
+    update: Partial<DashboardCourse> & {
+      xpAwarded?: number;
+      newBadgeIds?: string[];
+      streakCurrent?: number;
+    },
+  ) {
     if (!selected) return;
+    const enrollmentId = selected.id;
+    setCourseDetails((current) =>
+      current[enrollmentId]
+        ? { ...current, [enrollmentId]: { ...current[enrollmentId], ...update } }
+        : current,
+    );
     setDashboard((current) => {
       if (!current) return current;
-      const courses = current.courses.map((course) =>
-        course.id === selected.id ? { ...course, ...update } : course,
+      const newDates = (update.activityLog ?? []).map((activity) =>
+        activity.createdAt.slice(0, 10),
       );
-      const activityDates = [
-        ...new Set(
-          courses.flatMap((course) =>
-            course.activityLog.map((activity) => activity.createdAt.slice(0, 10)),
-          ),
-        ),
-      ];
-
+      const activityDates = newDates.length
+        ? [...new Set([...current.metrics.activityDates, ...newDates])]
+        : current.metrics.activityDates;
+      const enrollments = current.enrollments.map((enrollment) =>
+        enrollment.id === enrollmentId
+          ? {
+              ...enrollment,
+              progressPercent: update.progressPercent ?? enrollment.progressPercent,
+              status: update.status ?? enrollment.status,
+              certificate:
+                update.certificate !== undefined
+                  ? update.certificate
+                  : enrollment.certificate,
+              courseTitle: update.course?.courseTitle ?? enrollment.courseTitle,
+            }
+          : enrollment,
+      );
+      const xpAwarded = typeof update.xpAwarded === "number" ? update.xpAwarded : 0;
+      const newBadgeIds = update.newBadgeIds ?? [];
+      const streakCurrent = update.streakCurrent;
       return {
         ...current,
-        courses,
-        metrics: { ...current.metrics, activityDates },
+        enrollments,
+        metrics: {
+          ...current.metrics,
+          activityDates,
+          certificateCount: enrollments.filter((enrollment) => Boolean(enrollment.certificate))
+            .length,
+        },
+        student: {
+          ...current.student,
+          gamification: {
+            ...current.student.gamification,
+            xpTotal: current.student.gamification.xpTotal + xpAwarded,
+            streakCurrent: streakCurrent ?? current.student.gamification.streakCurrent,
+            streakLongest: Math.max(
+              current.student.gamification.streakLongest,
+              streakCurrent ?? current.student.gamification.streakLongest,
+            ),
+            badges: newBadgeIds.length
+              ? [
+                  ...current.student.gamification.badges,
+                  ...newBadgeIds
+                    .filter((badgeId) => !current.student.gamification.badges.some((badge) => badge.badgeId === badgeId))
+                    .map((badgeId) => ({ badgeId, earnedAt: new Date().toISOString() })),
+                ]
+              : current.student.gamification.badges,
+          },
+        },
       };
     });
   }
@@ -688,9 +791,10 @@ export default function StudentDashboard() {
   ) {
     if (!selected || !token) return;
     const previousProgress = selected.progressPercent;
+    const previousXpTotal = dashboard?.student.gamification.xpTotal ?? 0;
     setPendingAction(actionKey);
     try {
-      const response = await fetch(`/api/academy/courses/${selected.id}`, {
+      const response = await fetch(`/api/academy/enrollments/${selected.id}`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -702,12 +806,30 @@ export default function StudentDashboard() {
       if (!response.ok)
         throw new Error(payload.error ?? "Progress could not be saved.");
       mergeCourse(payload);
+      const courseJustCompleted =
+        payload.progressPercent === 100 && previousProgress < 100;
       if (payload.moduleCelebration) {
         setModuleCelebration(payload.moduleCelebration);
       }
       setPhase("ready");
-      if (payload.progressPercent === 100 && previousProgress < 100) {
+      if (courseJustCompleted) {
         setShowCelebration(true);
+      }
+      const newBadgeId: string | undefined = payload.newBadgeIds?.[0];
+      const previousLevel = Math.floor(previousXpTotal / 500) + 1;
+      const newLevel = Math.floor((previousXpTotal + (payload.xpAwarded ?? 0)) / 500) + 1;
+      if (newBadgeId) {
+        setCelebration({ kind: "badge", name: BADGE_DISPLAY_NAME[newBadgeId] ?? newBadgeId });
+      } else if (newLevel > previousLevel) {
+        setCelebration({ kind: "level", level: newLevel });
+      } else if (payload.streakJustIncreased && payload.streakCurrent > 1) {
+        setCelebration({ kind: "streak", days: payload.streakCurrent });
+      } else if (
+        payload.xpAwarded > 0 &&
+        !payload.moduleCelebration &&
+        !courseJustCompleted
+      ) {
+        setCelebration({ kind: "xp", amount: payload.xpAwarded });
       }
       if (body.action === "lesson") notify("Lesson progress saved.", "success");
       return payload;
@@ -722,51 +844,55 @@ export default function StudentDashboard() {
     }
   }
 
-  async function deleteSelectedCourse() {
+  async function unenrollSelectedCourse() {
     if (!selected || !token) return;
 
     setPendingAction("delete-course");
     setDeleteConfirmOpen(false);
-    notify(`Deleting "${selected.course.courseTitle}"...`, "info");
+    notify(`Removing "${selected.course.courseTitle}"...`, "info");
     try {
-      const response = await fetch(`/api/academy/courses/${selected.id}`, {
+      const response = await fetch(`/api/academy/enrollments/${selected.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Course could not be deleted.");
+        throw new Error(payload?.error ?? "Course could not be removed.");
       }
 
-      const remainingCourses =
-        dashboard?.courses.filter((course) => course.id !== selected.id) ?? [];
+      const removedId = selected.id;
+      setCourseDetails((current) => {
+        const next = { ...current };
+        delete next[removedId];
+        return next;
+      });
+      const remainingEnrollments = enrollments.filter(
+        (enrollment) => enrollment.id !== removedId,
+      );
       setDashboard((current) => {
         if (!current) return current;
         return {
           ...current,
-          courses: remainingCourses,
+          enrollments: remainingEnrollments,
           metrics: {
             ...current.metrics,
-            certificateCount: remainingCourses.filter((course) =>
-              Boolean(course.certificate),
+            certificateCount: remainingEnrollments.filter((enrollment) =>
+              Boolean(enrollment.certificate),
             ).length,
           },
         };
       });
-      setSelectedId(remainingCourses[0]?.id ?? "");
-      if (remainingCourses[0]) {
-        activateLearningCursor(getResumeCursor(remainingCourses[0]), {
-          course: remainingCourses[0],
-          scroll: false,
-        });
+      if (remainingEnrollments[0]) {
+        void selectCourse(remainingEnrollments[0].id);
       } else {
+        setSelectedId("");
         setActiveModule(0);
       }
       setDeleteConfirmOpen(false);
-      notify("Course deleted.", "success");
+      notify("Course removed from your list.", "success");
     } catch (error) {
       notify(
-        error instanceof Error ? error.message : "Course could not be deleted.",
+        error instanceof Error ? error.message : "Course could not be removed.",
         "error",
       );
     } finally {
@@ -774,136 +900,195 @@ export default function StudentDashboard() {
     }
   }
 
-  async function generateCourse(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function enrollInCourse(slug: string) {
     if (!token) return;
-    setPendingAction("generate");
-    setGenerationRecoveryAttempt(0);
+    setPendingAction(`enroll-${slug}`);
     try {
-      const generationId =
-        typeof window.crypto?.randomUUID === "function"
-          ? window.crypto.randomUUID()
-          : `course_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      const requestAttempts = 3;
-      let payload: GenerateCourseResponse | null = null;
-
-      for (let attempt = 0; attempt < requestAttempts; attempt += 1) {
-        let response: Response | null = null;
-        try {
-          response = await fetch("/api/academy/generate", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ prompt, level, goal, generationId }),
-          });
-        } catch (requestError) {
-          if (attempt === requestAttempts - 1) throw requestError;
-        }
-
-        if (response) {
-          payload = (await response.json().catch(() => null)) as
-            | GenerateCourseResponse
-            | null;
-          if (response.ok) break;
-
-          const retryable =
-            payload?.retryable === true ||
-            response.status === 429 ||
-            response.status === 503;
-          if (!retryable || attempt === requestAttempts - 1) {
-            throw new Error(payload?.error ?? "Course generation failed.");
-          }
-        }
-
-        setGenerationRecoveryAttempt(attempt + 1);
-        const retryAfterMs =
-          typeof payload?.retryAfterMs === "number"
-            ? payload.retryAfterMs
-            : Math.min(3_000 * 2 ** attempt, 10_000);
-        await new Promise((resolve) => window.setTimeout(resolve, retryAfterMs));
-      }
-
-      if (!payload?.success || !payload.courseId || !payload.course) {
-        throw new Error("Course generation could not be completed.");
-      }
-      const newCourse: DashboardCourse = {
-        id: payload.courseId,
-        course: payload.course,
-        status: "active",
-        progressPercent: 0,
-        quizAttempts: [],
-        assignmentSubmissions: [],
-        activityLog: [],
-        tutorMessages: [],
-        createdAt: new Date().toISOString(),
-      };
-      setDashboard((current) =>
-        current
-          ? {
-              ...current,
-              student: {
-                ...current.student,
-                pointsBalance:
-                  typeof payload.pointsBalance === "number"
-                    ? payload.pointsBalance
-                    : current.student.pointsBalance,
-              },
-              courses: [newCourse, ...current.courses],
-            }
-          : current,
-      );
-      setSelectedId(payload.courseId);
-      activateLearningCursor(getResumeCursor(newCourse), {
-        course: newCourse,
-        scroll: false,
-      });
-      setPrompt("");
-      setGoal("");
-      setPhase("ready");
-      notify(
-        payload.accessType === "exemption"
-          ? "Your AI learning path is ready and saved."
-          : `Your AI learning path is ready. ${payload.pointsSpent ?? POINTS_PER_GENERATION} points used.`,
-        "success",
-      );
-    } catch (error) {
-      setPhase("error");
-      notify(
-        error instanceof Error ? error.message : "Course generation failed.",
-        "error",
-      );
-    } finally {
-      setPendingAction(null);
-      setGenerationRecoveryAttempt(0);
-    }
-  }
-
-  async function startPointCheckout(points = purchasePoints) {
-    if (!token) return;
-    setPendingAction("checkout-points");
-    try {
-      const response = await fetch("/api/academy/payment/initialize", {
+      const response = await fetch("/api/academy/enrollments", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ points }),
+        body: JSON.stringify({ slug }),
+      });
+      const payload = await response.json();
+      if (!response.ok)
+        throw new Error(payload.error ?? "Could not enroll in this course.");
+      await refreshEnrollmentsList();
+      await selectCourse(payload.enrollmentId);
+      router.push("/academy/dashboard/learning");
+      notify(
+        payload.alreadyEnrolled
+          ? "Resuming your enrollment."
+          : "Enrolled! Let's get started.",
+        "success",
+      );
+    } catch (error) {
+      notify(
+        error instanceof Error ? error.message : "Could not enroll in this course.",
+        "error",
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  function continueCourseBySlug(slug: string) {
+    const target = enrollments.find((enrollment) => enrollment.slug === slug);
+    if (!target) return;
+    void selectCourse(target.id);
+    router.push("/academy/dashboard/learning");
+  }
+
+  async function startSubscriptionCheckout() {
+    if (!token) return;
+    setPendingAction("subscribe");
+    try {
+      const response = await fetch("/api/academy/subscription/initialize", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
       const payload = await response.json();
       if (!response.ok)
         throw new Error(payload.error ?? "Checkout could not be started.");
-      window.location.assign(payload.authorizationUrl);
+      window.location.href = payload.authorizationUrl;
     } catch (error) {
-      setPhase("error");
       notify(
         error instanceof Error
           ? error.message
           : "Checkout could not be started.",
         "error",
       );
+      setPendingAction(null);
+    }
+  }
+
+  async function cancelSubscription() {
+    if (!token) return;
+    setPendingAction("cancel-subscription");
+    try {
+      const response = await fetch("/api/academy/subscription/cancel", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok)
+        throw new Error(payload.error ?? "Subscription could not be cancelled.");
+      setDashboard((current) =>
+        current
+          ? { ...current, student: { ...current.student, subscription: payload.subscription } }
+          : current,
+      );
+      notify(
+        "Renewal cancelled. Your access stays active until the current period ends.",
+        "success",
+      );
+    } catch (error) {
+      notify(
+        error instanceof Error
+          ? error.message
+          : "Subscription could not be cancelled.",
+        "error",
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function unlockCertificateWithPayment(enrollmentId: string) {
+    if (!token) return;
+    setPendingAction(`unlock-payment-${enrollmentId}`);
+    try {
+      const response = await fetch(
+        `/api/academy/enrollments/${enrollmentId}/unlock-certificate`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ method: "payment" }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok)
+        throw new Error(payload.error ?? "Checkout could not be started.");
+      window.location.href = payload.authorizationUrl;
+    } catch (error) {
+      notify(
+        error instanceof Error
+          ? error.message
+          : "Checkout could not be started.",
+        "error",
+      );
+      setPendingAction(null);
+    }
+  }
+
+  async function unlockCertificateWithDiamonds(enrollmentId: string) {
+    if (!token) return;
+    setPendingAction(`unlock-diamonds-${enrollmentId}`);
+    try {
+      const response = await fetch(
+        `/api/academy/enrollments/${enrollmentId}/unlock-certificate`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ method: "diamonds" }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok)
+        throw new Error(payload.error ?? "Certificate could not be unlocked.");
+      setDashboard((current) => {
+        if (!current) return current;
+        const nextEnrollments = current.enrollments.map((enrollment) =>
+          enrollment.id === enrollmentId
+            ? { ...enrollment, certificate: payload.certificate }
+            : enrollment,
+        );
+        return {
+          ...current,
+          enrollments: nextEnrollments,
+          student: {
+            ...current.student,
+            diamondsBalance: Math.max(
+              0,
+              current.student.diamondsBalance - DIAMONDS_TO_UNLOCK_CERTIFICATE,
+            ),
+          },
+          metrics: {
+            ...current.metrics,
+            certificateCount: nextEnrollments.filter((enrollment) =>
+              Boolean(enrollment.certificate),
+            ).length,
+          },
+        };
+      });
+      setCourseDetails((current) =>
+        current[enrollmentId]
+          ? {
+              ...current,
+              [enrollmentId]: { ...current[enrollmentId], certificate: payload.certificate },
+            }
+          : current,
+      );
+      notify("Certificate unlocked.", "success");
+    } catch (error) {
+      notify(
+        error instanceof Error
+          ? error.message
+          : "Certificate could not be unlocked.",
+        "error",
+      );
+    } finally {
       setPendingAction(null);
     }
   }
@@ -917,7 +1102,7 @@ export default function StudentDashboard() {
       questions.some((question) => typeof question === "string")
     ) {
       notify(
-        `Repair this assessment for free to get at least ${MIN_MODULE_QUIZ_QUESTIONS} AI-generated quiz questions.`,
+        "This assessment is not available yet. Please try again shortly.",
         "warning",
       );
       return;
@@ -943,37 +1128,6 @@ export default function StudentDashboard() {
         activateLearningCursor(payload.learningCursor, { scroll: true });
       }
     }
-  }
-
-  async function repairModuleQuiz() {
-    if (!selected || pendingAction === `repair-quiz-${activeModule}`) return;
-    const payload = await patchCourse(
-      { action: "repair_quiz", moduleIndex: activeModule },
-      `repair-quiz-${activeModule}`,
-    );
-    if (payload?.course) {
-      setQuizAnswers({});
-      setQuizResult(null);
-      notify("Your assessment is ready.", "success");
-    }
-  }
-
-  async function refreshLessonVideo(lessonIndex: number, silent = false) {
-    const payload = await patchCourse(
-      {
-        action: "refresh_video",
-        moduleIndex: activeModule,
-        lessonIndex,
-      },
-      `refresh-video-${activeModule}-${lessonIndex}`,
-    );
-    if (!payload || silent) return;
-    notify(
-      payload.videoRefreshFound
-        ? "A better-matched tutorial is ready."
-        : "No strong tutorial match was found yet. Use the focused YouTube search for now.",
-      payload.videoRefreshFound ? "success" : "warning",
-    );
   }
 
   async function toggleLessonCompletion(lessonIndex: number, completed: boolean) {
@@ -1126,6 +1280,16 @@ export default function StudentDashboard() {
       });
       if (!response.ok) {
         const payload = await response.json();
+        if (response.status === 402) {
+          notify(
+            payload.error ?? `Subscribe to unlock ${ACADEMY_TUTOR_NAME}.`,
+            "warning",
+          );
+          setTutorQuestion(submittedQuestion);
+          setTutorStream(null);
+          setPendingAction(null);
+          return;
+        }
         throw new Error(
           payload.error ?? `${ACADEMY_TUTOR_NAME} could not answer.`,
         );
@@ -1306,13 +1470,22 @@ export default function StudentDashboard() {
     if (options.persist) void persistLearningCursor(cursor);
   }
 
-  function selectCourse(courseId: string) {
-    const course = dashboard?.courses.find((item) => item.id === courseId);
+  async function selectCourse(courseId: string) {
     setSelectedId(courseId);
-    if (course) {
-      activateLearningCursor(getResumeCursor(course), { course, scroll: true });
+    const cached = courseDetails[courseId];
+    if (cached) {
+      activateLearningCursor(getResumeCursor(cached), { course: cached, scroll: true });
+      return;
     }
-    else setActiveModule(0);
+    if (!token) return;
+    const detail = await fetchEnrollmentDetail(token, courseId);
+    if (detail) {
+      setCourseDetails((current) => ({ ...current, [courseId]: detail }));
+      activateLearningCursor(getResumeCursor(detail), { course: detail, scroll: true });
+    } else {
+      notify("This course could not be loaded.", "error");
+      setActiveModule(0);
+    }
   }
 
   function openModule(index: number) {
@@ -1372,20 +1545,35 @@ export default function StudentDashboard() {
                 avatarUrl: savedAvatarUrl,
                 certificateName: savedCertificateName,
               },
-              courses: current.courses.map((course) =>
-                course.certificate
+              enrollments: current.enrollments.map((enrollment) =>
+                enrollment.certificate
                   ? {
-                      ...course,
+                      ...enrollment,
                       certificate: {
-                        ...course.certificate,
+                        ...enrollment.certificate,
                         certificateName: savedCertificateName || undefined,
                       },
                     }
-                  : course,
+                  : enrollment,
               ),
             }
           : current,
       );
+      setCourseDetails((current) => {
+        const next: typeof current = {};
+        for (const [id, course] of Object.entries(current)) {
+          next[id] = course.certificate
+            ? {
+                ...course,
+                certificate: {
+                  ...course.certificate,
+                  certificateName: savedCertificateName || undefined,
+                },
+              }
+            : course;
+        }
+        return next;
+      });
       notify("Profile updated.", "success");
       setAccountPanel(null);
     } catch (error) {
@@ -1408,7 +1596,7 @@ export default function StudentDashboard() {
     try {
       await window.navigator.clipboard.writeText(link);
       notify(
-        "Referral link copied. One point lands when a new student joins with it.",
+        `Referral link copied. ${REFERRALS_PER_DIAMOND} referred signups earn 1 diamond.`,
         "success",
       );
     } catch {
@@ -1441,7 +1629,8 @@ export default function StudentDashboard() {
   const totalModules = selected?.course.modules.length ?? 0;
   const courseReadyForFinalProject =
     Boolean(selected) && totalModules > 0 && completedModules === totalModules;
-  const showRouteAside = !showCertificates && !showBilling;
+  const showRouteAside =
+    !showCertificates && !showBilling && !showCatalog && !showRewards;
   const latestAttempt = selected?.quizAttempts
     .filter((attempt) => attempt.moduleIndex === activeModule)
     .at(-1);
@@ -1463,8 +1652,9 @@ export default function StudentDashboard() {
     selected?.certificate?.certificateName?.trim() ||
     profileName.trim() ||
     name;
-  const earnedCertificates =
-    dashboard?.courses.filter((course) => Boolean(course.certificate)) ?? [];
+  const primaryEnrollment = enrollments.find(
+    (enrollment) => enrollment.id === selectedId,
+  );
   const referralOrigin = appOrigin.includes("localhost")
     ? "https://lumynhq.studio"
     : appOrigin;
@@ -1479,6 +1669,7 @@ export default function StudentDashboard() {
   const resumeCursor = selected ? getResumeCursor(selected) : undefined;
   const activityDates = dashboard?.metrics.activityDates ?? [];
   const currentStreak = learningStreak(activityDates);
+  const accountLevel = Math.floor((dashboard?.student.gamification.xpTotal ?? 0) / 500) + 1;
   const dailyGoalComplete = hasLearningActivityToday(activityDates);
   const assignmentComplete =
     submitted?.evaluation?.passed === true || submitted?.status === "reviewed";
@@ -1530,25 +1721,29 @@ export default function StudentDashboard() {
 
   return (
     <div className="academy-app-font academy-dashboard-shell min-h-screen bg-[#f2f1ed] text-[#18181b] dark:bg-[#08090c] dark:text-white">
+      <AstraCelebrationToast event={celebration} onDismiss={() => setCelebration(null)} />
       <header className="z-40 border-b border-transparent bg-[#f2f1ed] dark:bg-[#08090c] lg:sticky lg:top-0 lg:border-black/[0.08] lg:bg-[#f8f7f4]/90 lg:backdrop-blur-2xl lg:dark:border-white/[0.08] lg:dark:bg-[#0b0c10]/90">
         <div className="mx-auto hidden h-[72px] max-w-[1720px] items-center justify-between gap-4 px-4 sm:px-6 lg:flex lg:px-8">
           <div className="flex items-center gap-4">
             <AcademyHomeLink label="Open Lumyn Academy in browser">
               <AcademyLogo compact />
             </AcademyHomeLink>
-            <span className="hidden h-5 w-px bg-black/10 dark:bg-white/10 sm:block" />
-            <span className="hidden text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400 sm:block">
-              Academy workspace
-            </span>
+            
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden items-center gap-2 rounded-full border border-black/[0.08] bg-white/60 px-3 py-2 text-[11px] font-bold text-neutral-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/50 md:flex">
+              <span aria-hidden="true">🔥</span>
+              {currentStreak} {currentStreak === 1 ? "day" : "days"}
+              <span className="text-neutral-300 dark:text-white/20">|</span>
+              Level {accountLevel}
+            </span>
             <span className="hidden items-center gap-2 rounded-full border border-black/[0.08] bg-white/60 px-3 py-2 text-[11px] font-semibold capitalize text-neutral-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/50 md:flex">
               <span
-                className={`h-2 w-2 rounded-full ${hasGenerationAccess ? "bg-emerald-500" : "bg-amber-500"}`}
+                className={`h-2 w-2 rounded-full ${hasFullAcademyAccess ? "bg-emerald-500" : "bg-amber-500"}`}
               />
-              {hasGenerationExemption
-                ? "Unlimited Academy access"
-                : `${pointsBalance} points available`}
+              {hasFullAcademyAccess
+                ? `${ACADEMY_TUTOR_NAME} active`
+                : `${diamondsBalance} diamond${diamondsBalance === 1 ? "" : "s"}`}
             </span>
             <NotificationBell
               notifications={notifications}
@@ -1645,12 +1840,16 @@ export default function StudentDashboard() {
             </details>
           </div>
         </div>
-        <div className="mx-auto px-5 pb-6 pt-6 sm:px-6 lg:hidden">
+        <div className="academy-safe-top mx-auto px-5 pb-6 sm:px-6 lg:hidden">
           <div className="flex items-start justify-between gap-4">
             <AcademyHomeLink label="Open Lumyn Academy in browser">
               <AcademyLogo className="pt-1" />
             </AcademyHomeLink>
             <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1 rounded-full border border-black/[0.08] bg-white/60 px-2.5 py-1.5 text-[11px] font-bold text-neutral-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/50">
+                <span aria-hidden="true">🔥</span>
+                {currentStreak}
+              </span>
               <NotificationBell
                 notifications={notifications}
                 unreadCount={unreadNotificationCount}
@@ -1744,8 +1943,8 @@ export default function StudentDashboard() {
               Welcome, {name.split(" ")[0] || name}
             </h1>
             <p className="mt-2 max-w-xs text-[0.95rem] leading-6 text-neutral-500 dark:text-white/48">
-              What would you like to learn today? Pick up your path or build a
-              new one.
+              What would you like to learn today? Pick up your path or browse
+              the catalog.
             </p>
           </div>
           <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
@@ -1753,9 +1952,9 @@ export default function StudentDashboard() {
               {selected?.progressPercent ?? 0}% through path
             </span>
             <span className="shrink-0 rounded-full border border-black/[0.07] bg-white/75 px-3 py-2 text-[11px] font-bold text-neutral-600 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/55">
-              {hasGenerationExemption
-                ? "Unlimited courses"
-                : `${pointsBalance} points left`}
+              {hasFullAcademyAccess
+                ? `${ACADEMY_TUTOR_NAME} active`
+                : `${diamondsBalance} diamond${diamondsBalance === 1 ? "" : "s"}`}
             </span>
           </div>
         </div>
@@ -1802,10 +2001,10 @@ export default function StudentDashboard() {
                   "learning",
                 ],
                 [
-                  "Build a path",
-                  "/academy/dashboard/generate",
+                  "Catalog",
+                  "/academy/dashboard/catalog",
                   "spark",
-                  "generate",
+                  "catalog",
                 ],
                 [
                   "Assignments",
@@ -1814,12 +2013,18 @@ export default function StudentDashboard() {
                   "assignments",
                 ],
                 [
+                  "Rewards",
+                  "/academy/dashboard/rewards",
+                  "gem",
+                  "rewards",
+                ],
+                [
                   "Certificates",
                   "/academy/dashboard/certificates",
                   "award",
                   "certificates",
                 ],
-                ["Point top-up", "/academy/dashboard/billing", "card", "billing"],
+                ["Billing", "/academy/dashboard/billing", "card", "billing"],
               ].map(([label, href, icon, view]) => (
                 <Link
                   key={label}
@@ -1832,33 +2037,34 @@ export default function StudentDashboard() {
               ))}
             </nav>
 
-            {dashboard?.courses.length ? (
+            {enrollments.length ? (
               <div className="mt-8 border-t border-black/[0.08] pt-6 dark:border-white/[0.08]">
                 <div className="flex items-center justify-between px-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400 dark:text-white/30">
                     Your paths
                   </p>
                   <span className="text-[10px] text-neutral-400">
-                    {dashboard.courses.length}
+                    {enrollments.length}
                   </span>
                 </div>
                 <div className="mt-3 space-y-1">
-                  {dashboard.courses.slice(0, 4).map((course) => (
+                  {enrollments.slice(0, 4).map((enrollment) => (
                     <button
                       type="button"
-                      key={course.id}
+                      key={enrollment.id}
                       onClick={() => {
-                        selectCourse(course.id);
+                        void selectCourse(enrollment.id);
+                        router.push("/academy/dashboard/learning");
                       }}
-                      className={`w-full rounded-xl px-3 py-3 text-left transition ${selected?.id === course.id ? "bg-white shadow-sm dark:bg-white/[0.06]" : "hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"}`}
+                      className={`w-full rounded-xl px-3 py-3 text-left transition ${selected?.id === enrollment.id ? "bg-white shadow-sm dark:bg-white/[0.06]" : "hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"}`}
                     >
                       <p className="truncate text-xs font-semibold">
-                        {course.course.courseTitle}
+                        {enrollment.courseTitle}
                       </p>
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.08]">
                         <div
                           className="h-full rounded-full bg-[#7c6cf6]"
-                          style={{ width: `${course.progressPercent}%` }}
+                          style={{ width: `${enrollment.progressPercent}%` }}
                         />
                       </div>
                     </button>
@@ -1869,15 +2075,13 @@ export default function StudentDashboard() {
 
             <div className="mt-8 rounded-2xl border border-[#7c6cf6]/20 bg-[#7c6cf6]/[0.07] p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6c5ce7] dark:text-[#b9b1ff]">
-                Point balance
+                Diamonds
               </p>
               <p className="mt-2 text-sm font-semibold">
-                {hasGenerationExemption
-                  ? "Unlimited AI courses"
-                  : `${pointsBalance} points`}
+                {diamondsBalance} diamond{diamondsBalance === 1 ? "" : "s"}
               </p>
               <p className="mt-1 text-xs text-neutral-500 dark:text-white/40">
-                {POINTS_PER_GENERATION} points per generated path
+                {DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds unlocks one certificate for free.
               </p>
             </div>
           </div>
@@ -1888,9 +2092,9 @@ export default function StudentDashboard() {
             <OverviewHero
               name={name}
               course={selected}
-              hasGenerationAccess={hasGenerationAccess}
-              checkoutPending={pendingAction?.startsWith("checkout-") === true}
-              onCheckout={() => startPointCheckout()}
+              isSubscribed={hasFullAcademyAccess}
+              subscribePending={pendingAction === "subscribe"}
+              onSubscribe={() => void startSubscriptionCheckout()}
             />
           )}
 
@@ -1900,7 +2104,7 @@ export default function StudentDashboard() {
               completedModules={completedModules}
               moduleCount={selected?.course.modules.length ?? 0}
               quizAverage={dashboard?.metrics.quizAverage ?? null}
-              xp={gamification.xp}
+              xp={dashboard?.student.gamification.xpTotal ?? 0}
               streak={currentStreak}
             />
           )}
@@ -1914,294 +2118,61 @@ export default function StudentDashboard() {
             />
           )}
 
-          {!hasGenerationAccess && (
-            <section className="mt-6 overflow-hidden rounded-[1.75rem] border border-amber-500/20 bg-amber-500/[0.06] p-5 sm:p-6">
-              <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-600 dark:text-amber-300">
-                    Top up points to keep building
-                  </p>
-                  <h2 className="mt-2 text-xl font-semibold">
-                    You need {POINTS_PER_GENERATION} points to generate another
-                    learning path.
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  disabled={pendingAction === "checkout-points"}
-                  onClick={() => startPointCheckout()}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold shadow-sm transition hover:border-[#7c6cf6] disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.06]"
+          {showOverview && enrollments.length > 1 && (
+            <section className="mt-6 rounded-[1.75rem] border border-black/[0.08] bg-white/75 p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#111219] sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-400">
+                  Your enrollments
+                </p>
+                <Link
+                  href="/academy/dashboard/catalog"
+                  className="text-xs font-bold text-[#6c5ce7] hover:underline dark:text-[#b9b1ff]"
                 >
-                  {pendingAction === "checkout-points" && <LoadingSpinner />}Buy
-                  points
-                </button>
+                  Browse more
+                </Link>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {enrollments.map((enrollment) => (
+                  <button
+                    type="button"
+                    key={enrollment.id}
+                    onClick={() => {
+                      void selectCourse(enrollment.id);
+                      router.push("/academy/dashboard/learning");
+                    }}
+                    className={`rounded-2xl border p-4 text-left transition ${selected?.id === enrollment.id ? "border-[#7c6cf6]/45 bg-[#7c6cf6]/[0.08]" : "border-black/[0.07] bg-black/[0.015] hover:border-[#7c6cf6]/25 dark:border-white/[0.08] dark:bg-white/[0.025]"}`}
+                  >
+                    <p className="truncate text-sm font-bold">{enrollment.courseTitle}</p>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.08]">
+                      <div
+                        className="h-full rounded-full bg-[#7c6cf6]"
+                        style={{ width: `${enrollment.progressPercent}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      {enrollment.certificate
+                        ? "Certificate earned"
+                        : `${enrollment.progressPercent}% complete`}
+                    </p>
+                  </button>
+                ))}
               </div>
             </section>
           )}
 
           <div
             className={`mt-7 grid gap-7 ${
-              showCertificates || showBilling
-                ? "mx-auto max-w-3xl"
-                : showRouteAside
-                  ? "2xl:grid-cols-[minmax(0,1fr)_340px]"
-                  : "mx-auto max-w-5xl"
+              showCatalog
+                ? ""
+                : showCertificates || showBilling || showRewards
+                  ? "mx-auto max-w-4xl"
+                  : showRouteAside
+                    ? "2xl:grid-cols-[minmax(0,1fr)_340px]"
+                    : "mx-auto max-w-5xl"
             }`}
           >
-            {!showCertificates && !showBilling && (
+            {showRouteAside && (
               <div className={`min-w-0 space-y-7 ${dashboardView}-route`}>
-                {showGenerate && (
-                  <section
-                    id="generate"
-                    className="relative overflow-hidden rounded-[1.6rem] border border-black/[0.08] bg-white/85 shadow-[0_24px_70px_rgba(27,22,61,0.08)] dark:border-white/[0.08] dark:bg-[#111219] sm:rounded-[2rem]"
-                    aria-busy={pendingAction === "generate"}
-                  >
-                    <div className="relative overflow-hidden bg-[#10111a] px-5 py-6 text-white sm:px-7 sm:py-8">
-                      <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#7c6cf6]/30 blur-3xl" />
-                      <div className="pointer-events-none absolute -bottom-28 left-1/3 h-52 w-52 rounded-full bg-cyan-400/10 blur-3xl" />
-                      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex min-w-0 items-start gap-3.5 sm:gap-4">
-                        
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-[0.19em] text-[#b9b1ff]">
-                              AI course studio
-                            </p>
-                            <h2 className="mt-1.5 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
-                              Build a path around your goal
-                            </h2>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/52">
-                              Tell Lumyn what you want to learn. You’ll get a structured path with videos, practice, assessments, and an in-system final project.
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.055] px-3.5 py-2 text-xs font-bold text-white/72 sm:self-center">
-                          <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.7)]" />
-                          {hasGenerationExemption
-                            ? "Included with your access"
-                            : `${POINTS_PER_GENERATION} points per path`}
-                        </div>
-                      </div>
-                    </div>
-
-                    {pendingAction === "generate" ? (
-                      <div
-                        className="relative overflow-hidden p-4 sm:p-7"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        <div className="relative overflow-hidden rounded-[1.4rem] border border-[#7c6cf6]/20 bg-[#10111a] p-5 text-white shadow-[0_18px_60px_rgba(38,29,75,0.18)] sm:p-6">
-                          <div className="pointer-events-none absolute -right-12 -top-20 h-48 w-48 rounded-full bg-[#7c6cf6]/25 blur-3xl" />
-                          <div className="relative flex items-start gap-4">
-                            <div className="relative grid size-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.05] sm:size-14">
-                              <span className="absolute inset-1 animate-spin rounded-xl border border-[#7c6cf6]/20 border-t-[#b9b1ff]" />
-                              <SparkIcon small />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#b9b1ff]">
-                                {generationRecoveryAttempt > 0
-                                  ? `Automatic recovery · attempt ${generationRecoveryAttempt + 1}`
-                                  : "Creating your learning path"}
-                              </p>
-                              <h3 className="mt-1.5 text-lg font-semibold tracking-[-0.02em] sm:text-xl">
-                                {generationRecoveryAttempt > 0
-                                  ? "Demand is high, but your request is safe."
-                                  : "Lumyn is designing your curriculum."}
-                              </h3>
-                              <p className="mt-2 text-xs leading-5 text-white/50 sm:text-sm sm:leading-6">
-                                {generationRecoveryAttempt > 0
-                                  ? "Retrying automatically—do not resubmit. Recovery cannot create duplicate paths or extra charges."
-                                  : "Lumyn returns the usable path first. Full assessments prepare automatically when you reach them, so you can start learning sooner."}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="relative mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                            {[
-                              ["01", "Structure", "Mapping modules"],
-                              ["02", "Study", "Matching videos"],
-                              ["03", "Practice", "Writing checks"],
-                              ["04", "Save", "Syncing path"],
-                            ].map(([step, title, detail], index) => (
-                              <div
-                                key={title}
-                                className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.035] p-3"
-                              >
-                                <span
-                                  className="absolute inset-x-0 bottom-0 h-px animate-pulse bg-gradient-to-r from-transparent via-[#8f82ff] to-transparent"
-                                  style={{ animationDelay: `${index * 180}ms` }}
-                                />
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[9px] font-black text-[#b9b1ff]">
-                                    {step}
-                                  </span>
-                                  <span
-                                    className="size-1.5 animate-pulse rounded-full bg-[#8f82ff]"
-                                    style={{ animationDelay: `${index * 180}ms` }}
-                                  />
-                                </div>
-                                <p className="mt-1.5 text-xs font-bold">{title}</p>
-                                <p className="mt-0.5 text-[10px] text-white/38">{detail}</p>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="relative mt-4 rounded-xl border border-white/[0.07] bg-black/15 px-3.5 py-3">
-                            <p className="line-clamp-2 text-xs leading-5 text-white/62">
-                              <span className="mr-2 font-black uppercase tracking-wider text-white/35">Request</span>
-                              {prompt}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
-                        <form
-                          onSubmit={generateCourse}
-                          className="min-w-0 space-y-6 p-4 sm:p-7"
-                        >
-                          <div>
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400 dark:text-white/38">
-                                Start with an idea
-                              </p>
-                              <span className="text-[10px] text-neutral-400 dark:text-white/32">
-                                Optional
-                              </span>
-                            </div>
-                            <div className="mt-2.5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap">
-                              {COURSE_STARTERS.map((starter) => (
-                                <button
-                                  key={starter.label}
-                                  type="button"
-                                  onClick={() => {
-                                    setPrompt(starter.prompt);
-                                    setGoal(starter.goal);
-                                    setLevel(starter.level);
-                                  }}
-                                  className="shrink-0 rounded-full border border-black/[0.08] bg-black/[0.025] px-3.5 py-2 text-xs font-bold text-neutral-600 transition hover:border-[#7c6cf6]/35 hover:bg-[#7c6cf6]/[0.07] hover:text-[#5c4cdb] dark:border-white/10 dark:bg-white/[0.035] dark:text-white/58 dark:hover:text-[#c9c3ff]"
-                                >
-                                  {starter.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <label className="block" htmlFor="course-learning-request">
-                            <span className="flex items-center justify-between gap-3">
-                              <span className="text-xs font-bold">What do you want to learn?</span>
-                              <span className="text-[10px] tabular-nums text-neutral-400 dark:text-white/32">
-                                {prompt.length}/1200
-                              </span>
-                            </span>
-                            <textarea
-                              id="course-learning-request"
-                              value={prompt}
-                              onChange={(event) => setPrompt(event.target.value)}
-                              placeholder="Be specific about the skill, topics, timeframe, or project you have in mind…"
-                              className="mt-2 min-h-36 w-full resize-y rounded-2xl border border-black/[0.09] bg-black/[0.025] p-4 text-sm leading-6 outline-none transition placeholder:text-neutral-400 focus:border-[#7c6cf6] focus:bg-white focus:ring-4 focus:ring-[#7c6cf6]/10 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/28 dark:focus:bg-black/25"
-                              required
-                              maxLength={1200}
-                            />
-                          </label>
-
-                          <fieldset>
-                            <legend className="text-xs font-bold">Your current level</legend>
-                            <div className="mt-2 grid grid-cols-3 gap-2 rounded-2xl border border-black/[0.07] bg-black/[0.025] p-1.5 dark:border-white/[0.08] dark:bg-black/20">
-                              {["Beginner", "Intermediate", "Advanced"].map(
-                                (option) => (
-                                  <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() => setLevel(option)}
-                                    aria-pressed={level === option}
-                                    className={`min-w-0 rounded-xl px-2 py-2.5 text-[11px] font-bold transition sm:text-xs ${
-                                      level === option
-                                        ? "bg-white text-[#5c4cdb] shadow-sm ring-1 ring-black/[0.05] dark:bg-white/10 dark:text-[#cbc5ff] dark:ring-white/10"
-                                        : "text-neutral-500 hover:text-neutral-800 dark:text-white/38 dark:hover:text-white/70"
-                                    }`}
-                                  >
-                                    {option}
-                                  </button>
-                                ),
-                              )}
-                            </div>
-                          </fieldset>
-
-                          <label className="block" htmlFor="course-learning-goal">
-                            <span className="text-xs font-bold">What should you be able to do?</span>
-                            <input
-                              id="course-learning-goal"
-                              value={goal}
-                              onChange={(event) => setGoal(event.target.value)}
-                              placeholder="e.g. Build and explain a production-ready application"
-                              className="mt-2 h-12 w-full rounded-xl border border-black/[0.09] bg-black/[0.025] px-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-[#7c6cf6] focus:bg-white focus:ring-4 focus:ring-[#7c6cf6]/10 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/28 dark:focus:bg-black/25"
-                              required
-                              maxLength={240}
-                            />
-                          </label>
-
-                          {hasGenerationAccess ? (
-                            <button
-                              type="submit"
-                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-6 text-sm font-black text-white shadow-[0_14px_30px_rgba(124,108,246,0.25)] transition hover:-translate-y-0.5 hover:bg-[#6b5bdd] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7c6cf6]/25"
-                            >
-                              <SparkIcon small />
-                              Build my learning path
-                              <span aria-hidden="true">→</span>
-                            </button>
-                          ) : (
-                            <Link
-                              href="/academy/dashboard/billing"
-                              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-6 text-sm font-black text-white shadow-[0_14px_30px_rgba(124,108,246,0.25)] transition hover:-translate-y-0.5 hover:bg-[#6b5bdd]"
-                            >
-                              Get points to build this path
-                              <span aria-hidden="true">→</span>
-                            </Link>
-                          )}
-
-                          <p className="text-center text-[10px] leading-4 text-neutral-400 dark:text-white/30">
-                            Points are returned automatically if a path cannot be completed.
-                          </p>
-                        </form>
-
-                        <aside className="border-t border-black/[0.07] bg-black/[0.018] p-5 dark:border-white/[0.07] dark:bg-white/[0.018] sm:p-7 lg:border-l lg:border-t-0">
-                          <p className="text-[10px] font-black uppercase tracking-[0.17em] text-[#6c5ce7] dark:text-[#b9b1ff]">
-                            Your path includes
-                          </p>
-                          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-                            {[
-                              ["01", "A clear sequence", "Three focused modules that build on each other."],
-                              ["02", "Curated study", "Video targets and concise notes for every lesson."],
-                              ["03", "Active practice", "Quizzes, assignments, and mini projects."],
-                              ["04", "Completion proof", "An in-system final project and certificate path."],
-                            ].map(([step, title, detail]) => (
-                              <div
-                                key={title}
-                                className="rounded-xl border border-black/[0.06] bg-white/60 p-3 dark:border-white/[0.07] dark:bg-white/[0.025]"
-                              >
-                                <div className="flex items-start gap-2.5">
-                                  <span className="mt-0.5 text-[9px] font-black text-[#6c5ce7] dark:text-[#a99eff]">
-                                    {step}
-                                  </span>
-                                  <div>
-                                    <p className="text-xs font-bold">{title}</p>
-                                    <p className="mt-1 text-[10px] leading-4 text-neutral-500 dark:text-white/38">
-                                      {detail}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-4 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06] p-3 text-[10px] leading-4 text-emerald-800/70 dark:text-emerald-200/55">
-                            Practice projects stay inside Lumyn—no external project links required.
-                          </div>
-                        </aside>
-                      </div>
-                    )}
-                  </section>
-                )}
-
                 {showOverview && <OverviewJourney course={selected} />}
 
                 {(showLearning || showAssignments) && (
@@ -2258,15 +2229,15 @@ export default function StudentDashboard() {
                         )}
                         {!selected && (
                           <Link
-                            href="/academy/dashboard/generate"
+                            href="/academy/dashboard/catalog"
                             className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-5 text-sm font-bold text-white shadow-[0_12px_28px_rgba(124,108,246,0.22)] transition hover:-translate-y-0.5 hover:bg-[#6b5bdd]"
                           >
-                            Build my first path
+                            Browse the catalog
                             <span aria-hidden="true">→</span>
                           </Link>
                         )}
                       </div>
-                      {dashboard?.courses.length ? (
+                      {enrollments.length ? (
                         <details className="group w-full lg:max-w-sm">
                           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-[1.35rem] border border-black/[0.08] bg-black/[0.025] p-3 transition hover:border-[#7c6cf6]/35 hover:bg-[#7c6cf6]/[0.045] dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.07] [&::-webkit-details-marker]:hidden">
                             <span className="min-w-0">
@@ -2301,19 +2272,14 @@ export default function StudentDashboard() {
                           </summary>
                           <div className="mt-2 overflow-hidden rounded-[1.35rem] border border-black/[0.08] bg-white/95 p-2 shadow-xl shadow-black/5 backdrop-blur dark:border-white/10 dark:bg-[#171821]/95 dark:shadow-black/20">
                             <div className="max-h-72 space-y-1 overflow-y-auto pr-1">
-                              {dashboard.courses.map((course) => {
-                                const isActive = course.id === selected?.id;
-                                const courseCompletedModules =
-                                  course.course.modules.filter(
-                                    (module) =>
-                                      module.completionStatus === "completed",
-                                  ).length;
+                              {enrollments.map((enrollment) => {
+                                const isActive = enrollment.id === selected?.id;
                                 return (
                                   <button
                                     type="button"
-                                    key={course.id}
+                                    key={enrollment.id}
                                     onClick={(event) => {
-                                      selectCourse(course.id);
+                                      void selectCourse(enrollment.id);
                                       event.currentTarget
                                         .closest("details")
                                         ?.removeAttribute("open");
@@ -2327,23 +2293,23 @@ export default function StudentDashboard() {
                                     <span className="flex items-start justify-between gap-3">
                                       <span className="min-w-0">
                                         <span className="block truncate text-sm font-bold">
-                                          {course.course.courseTitle}
+                                          {enrollment.courseTitle}
                                         </span>
                                         <span className="mt-1 block text-xs text-neutral-500 dark:text-white/42">
-                                          {courseCompletedModules}/
-                                          {course.course.modules.length} modules
-                                          cleared
+                                          {enrollment.certificate
+                                            ? "Certificate earned"
+                                            : `${enrollment.status}`}
                                         </span>
                                       </span>
                                       <span className="shrink-0 rounded-full border border-black/[0.08] px-2 py-1 text-[10px] font-black text-[#6c5ce7] dark:border-white/10 dark:text-[#b9b1ff]">
-                                        {course.progressPercent}%
+                                        {enrollment.progressPercent}%
                                       </span>
                                     </span>
                                     <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.08]">
                                       <span
                                         className="block h-full rounded-full bg-[#7c6cf6]"
                                         style={{
-                                          width: `${course.progressPercent}%`,
+                                          width: `${enrollment.progressPercent}%`,
                                         }}
                                       />
                                     </span>
@@ -2365,8 +2331,8 @@ export default function StudentDashboard() {
                               className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/[0.06] px-4 text-xs font-black text-red-500 transition hover:bg-red-500/[0.1] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {pendingAction === "delete-course"
-                                ? "Deleting..."
-                                : "Delete current path"}
+                                ? "Removing..."
+                                : "Remove from my list"}
                             </button>
                           </div>
                         </details>
@@ -2390,10 +2356,7 @@ export default function StudentDashboard() {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-neutral-500 dark:text-white/45">
                           <span className="rounded-full border border-black/[0.08] px-3 py-1.5 dark:border-white/10">
-                            Level {gamification.level}
-                          </span>
-                          <span className="rounded-full border border-black/[0.08] px-3 py-1.5 dark:border-white/10">
-                            {gamification.xp} XP
+                            {gamification.xp} XP in this course
                           </span>
                           <span className="rounded-full border border-black/[0.08] px-3 py-1.5 dark:border-white/10">
                             {completedModules}/{totalModules} modules cleared
@@ -2461,7 +2424,6 @@ export default function StudentDashboard() {
                       onLessonToggle={(lessonIndex, completed) =>
                         toggleLessonCompletion(lessonIndex, completed)
                       }
-                      onRefreshLessonVideo={refreshLessonVideo}
                       onQuizAnswerChange={(questionIndex, optionIndex) =>
                         setQuizAnswers((answers) => ({
                           ...answers,
@@ -2472,7 +2434,6 @@ export default function StudentDashboard() {
                         setQuizAnswers({});
                         setQuizResult(null);
                       }}
-                      onRepairQuiz={repairModuleQuiz}
                       onSubmitQuiz={submitQuiz}
                       onSubmitAssignment={submitAssignment}
                       onSubmitFinalProject={submitFinalProject}
@@ -2486,26 +2447,53 @@ export default function StudentDashboard() {
               </div>
             )}
 
+            {showCatalog && (
+              <CatalogRoute
+                enrolledSlugs={enrollments.map((enrollment) => enrollment.slug)}
+                pendingSlug={
+                  pendingAction?.startsWith("enroll-")
+                    ? pendingAction.replace("enroll-", "")
+                    : null
+                }
+                onEnroll={(slug) => void enrollInCourse(slug)}
+                onContinue={continueCourseBySlug}
+              />
+            )}
+
+            {showRewards && dashboard && (
+              <RewardsRoute
+                gamification={dashboard.student.gamification}
+                diamondsBalance={diamondsBalance}
+                referralCode={dashboard.student.referralCode}
+                referralsCount={dashboard.student.referralsCount ?? 0}
+                referralLink={referralLink}
+                onCopyReferralLink={() => void copyReferralLink()}
+              />
+            )}
+
             {showCertificates && (
               <CertificateRoute
                 certificateDisplayName={certificateDisplayName}
-                selected={selected}
-                earnedCertificates={earnedCertificates}
+                enrollments={enrollments}
+                isSubscribed={hasFullAcademyAccess}
+                diamondsBalance={diamondsBalance}
+                pendingAction={pendingAction}
+                onUnlockWithPayment={(enrollmentId) =>
+                  void unlockCertificateWithPayment(enrollmentId)
+                }
+                onUnlockWithDiamonds={(enrollmentId) =>
+                  void unlockCertificateWithDiamonds(enrollmentId)
+                }
               />
             )}
 
             {showBilling && (
-              <PointTopUpRoute
-                hasGenerationAccess={hasGenerationAccess}
-                hasGenerationExemption={hasGenerationExemption}
-                pointsBalance={pointsBalance}
-                purchasePoints={purchasePoints}
-                purchaseAmount={purchaseAmount}
+              <BillingRoute
+                subscription={dashboard?.student.subscription}
+                isSubscribed={isSubscribed}
                 pendingAction={pendingAction}
-                onPurchasePointsChange={setPurchasePoints}
-                onCheckout={(points) => {
-                  void startPointCheckout(points);
-                }}
+                onSubscribe={() => void startSubscriptionCheckout()}
+                onCancelSubscription={() => void cancelSubscription()}
               />
             )}
 
@@ -2515,15 +2503,9 @@ export default function StudentDashboard() {
                 showOverviewCards={showOverview}
                 activityDates={dashboard?.metrics.activityDates ?? []}
                 certificateDisplayName={certificateDisplayName}
-                selected={selected}
-                hasGenerationAccess={hasGenerationAccess}
-                hasGenerationExemption={hasGenerationExemption}
-                pointsBalance={pointsBalance}
-                purchasePoints={purchasePoints}
-                purchaseAmount={purchaseAmount}
-                pendingAction={pendingAction}
-                onPurchasePointsChange={setPurchasePoints}
-                onCheckout={() => startPointCheckout()}
+                primaryEnrollment={primaryEnrollment}
+                diamondsBalance={diamondsBalance}
+                isSubscribed={hasFullAcademyAccess}
               />
             )}
           </div>
@@ -2558,6 +2540,7 @@ export default function StudentDashboard() {
           question={tutorQuestion}
           pending={pendingAction === "tutor"}
           resetting={pendingAction === "tutor-reset"}
+          hasAccess={hasFullAcademyAccess}
           onPreferredNameChange={updatePreferredAstraName}
           onQuestionChange={setTutorQuestion}
           onResetChat={startNewTutorChat}
@@ -2599,13 +2582,13 @@ export default function StudentDashboard() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-red-200/80">
-                  Delete learning path
+                  Remove enrollment
                 </p>
                 <h2
                   id="delete-course-title"
                   className="mt-1 text-xl font-semibold tracking-[-0.025em]"
                 >
-                  Delete this path?
+                  Remove this course?
                 </h2>
               </div>
               <button
@@ -2628,7 +2611,8 @@ export default function StudentDashboard() {
             </div>
 
             <p className="mt-4 text-xs leading-5 text-red-100/70">
-              This cannot be undone, and Academy points will not be refunded.
+              This cannot be undone. You can re-enroll for free from the catalog
+              at any time, but progress will not carry over.
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-2.5">
@@ -2642,14 +2626,14 @@ export default function StudentDashboard() {
               </button>
               <button
                 type="button"
-                onClick={() => void deleteSelectedCourse()}
+                onClick={() => void unenrollSelectedCourse()}
                 disabled={pendingAction === "delete-course"}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-xs font-black text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {pendingAction === "delete-course" && <LoadingSpinner />}
                 {pendingAction === "delete-course"
-                  ? "Deleting..."
-                  : "Delete path"}
+                  ? "Removing..."
+                  : "Remove course"}
               </button>
             </div>
           </div>
@@ -2667,10 +2651,10 @@ export default function StudentDashboard() {
               <LoadingSpinner />
             </div>
             <h2 className="mt-4 text-lg font-semibold tracking-[-0.02em]">
-              Deleting path…
+              Removing course…
             </h2>
             <p className="mt-2 text-xs leading-5 text-white/48">
-              Removing the course and its progress. This may take a moment.
+              Removing the enrollment and its progress. This may take a moment.
             </p>
           </div>
         </div>

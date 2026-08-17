@@ -12,8 +12,32 @@ export type TutorMessage = { role: "user" | "assistant"; content: string; create
 export type ToastState = { type: "success" | "error" | "warning" | "info"; message: string };
 export type QuizResultState = { score: number; passed: boolean; answers: number[] };
 
+export type DashboardCertificate = {
+  certificateId: string;
+  issuedAt: string;
+  certificateName?: string;
+  unlockMethod?: "subscription" | "payment" | "diamonds";
+  unlockedAt?: string;
+};
+
+/** Summary row from GET /api/academy/enrollments — one per enrollment, no course content. */
+export type DashboardEnrollment = {
+  id: string;
+  catalogCourseId?: string;
+  slug: string;
+  language?: string;
+  level?: string;
+  courseTitle?: string;
+  status: string;
+  progressPercent: number;
+  certificate?: DashboardCertificate;
+  createdAt: string;
+};
+
+/** Full hydrated detail from GET /api/academy/enrollments/[id]. */
 export type DashboardCourse = {
   id: string;
+  slug: string;
   course: GeneratedCourse;
   status: string;
   progressPercent: number;
@@ -27,9 +51,19 @@ export type DashboardCourse = {
   };
   activityLog: LearningActivity[];
   learningCursor?: LearningCursor;
-  certificate?: { certificateId: string; issuedAt: string; certificateName?: string };
+  certificate?: DashboardCertificate;
   tutorMessages: TutorMessage[];
-  createdAt: string;
+  createdAt?: string;
+};
+
+export type DashboardBadge = { badgeId: string; earnedAt: string; contextSlug?: string };
+
+export type DashboardGamification = {
+  xpTotal: number;
+  streakCurrent: number;
+  streakLongest: number;
+  activeDates: string[];
+  badges: DashboardBadge[];
 };
 
 export type DashboardPayload = {
@@ -39,24 +73,21 @@ export type DashboardPayload = {
     avatarUrl?: string;
     certificateName?: string;
     role: string;
-    pointsBalance: number;
+    vipAccess?: boolean;
+    diamondsBalance: number;
+    gamification: DashboardGamification;
     referralCode?: string;
     referralsCount?: number;
-    courseGenerationExempt?: boolean;
     subscription?: {
       planId?: string;
       status?: SubscriptionStatus;
+      provider?: string;
       currentPeriodEnd?: string;
       cancelAtPeriodEnd?: boolean;
     };
     mentorshipStatus?: string;
-    trial?: {
-      available: boolean;
-      usedAt?: string;
-      courseId?: string;
-    };
   };
-  courses: DashboardCourse[];
+  enrollments: DashboardEnrollment[];
   metrics: {
     quizAverage: number | null;
     pendingAssignments: number;

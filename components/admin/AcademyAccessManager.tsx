@@ -7,8 +7,8 @@ export type AcademyAccessStudent = {
   name?: string;
   email: string;
   subscriptionStatus: string;
-  pointsBalance: number;
-  courseGenerationExempt: boolean;
+  diamondsBalance: number;
+  vipAccess: boolean;
   courseCount: number;
 };
 
@@ -19,7 +19,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
   const [query, setQuery] = useState("");
   const [email, setEmail] = useState("");
   const [grantEmail, setGrantEmail] = useState("");
-  const [grantPoints, setGrantPoints] = useState(10);
+  const [grantDiamonds, setGrantDiamonds] = useState(2);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [pendingGrant, setPendingGrant] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -32,7 +32,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
     );
   }, [query, students]);
 
-  async function updateAccess(targetEmail: string, exempt: boolean) {
+  async function updateAccess(targetEmail: string, vip: boolean) {
     const normalizedEmail = targetEmail.trim().toLowerCase();
     if (!normalizedEmail) return false;
     setPendingEmail(normalizedEmail);
@@ -42,7 +42,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
       const response = await fetch("/api/admin/academy/access", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: normalizedEmail, courseGenerationExempt: exempt }),
+        body: JSON.stringify({ email: normalizedEmail, vipAccess: vip }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Access could not be updated.");
@@ -51,7 +51,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
         const existing = current.find((student) => student.email === normalizedEmail);
         if (existing) {
           return current.map((student) => student.email === normalizedEmail
-          ? { ...student, courseGenerationExempt: exempt }
+          ? { ...student, vipAccess: vip }
             : student
           );
         }
@@ -60,16 +60,16 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
           name: payload.student.name,
           email: payload.student.email,
           subscriptionStatus: "inactive",
-          pointsBalance: payload.student.pointsBalance ?? 0,
-          courseGenerationExempt: exempt,
+          diamondsBalance: payload.student.diamondsBalance ?? 0,
+          vipAccess: vip,
           courseCount: 0,
         }, ...current];
       });
       setNotice({
         type: "success",
-        message: exempt
-          ? `${normalizedEmail} can now generate unlimited Academy courses.`
-          : `Unlimited course access was removed from ${normalizedEmail}.`,
+        message: vip
+          ? `${normalizedEmail} now has VIP access (free tutor + free certificates).`
+          : `VIP access was removed from ${normalizedEmail}.`,
       });
       return true;
     } catch (error) {
@@ -88,7 +88,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
     if (await updateAccess(email, true)) setEmail("");
   }
 
-  async function grantPointsByEmail(event: FormEvent<HTMLFormElement>) {
+  async function grantDiamondsByEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalizedEmail = grantEmail.trim().toLowerCase();
     if (!normalizedEmail) return;
@@ -99,16 +99,16 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
       const response = await fetch("/api/admin/academy/access", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: normalizedEmail, pointsToGrant: grantPoints }),
+        body: JSON.stringify({ email: normalizedEmail, diamondsToGrant: grantDiamonds }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Points could not be granted.");
+      if (!response.ok) throw new Error(payload.error ?? "Diamonds could not be granted.");
 
       setStudents((current) => {
         const existing = current.find((student) => student.email === normalizedEmail);
         if (existing) {
           return current.map((student) => student.email === normalizedEmail
-            ? { ...student, pointsBalance: payload.student.pointsBalance }
+            ? { ...student, diamondsBalance: payload.student.diamondsBalance }
             : student
           );
         }
@@ -117,18 +117,18 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
           name: payload.student.name,
           email: payload.student.email,
           subscriptionStatus: "inactive",
-          pointsBalance: payload.student.pointsBalance,
-          courseGenerationExempt: payload.student.courseGenerationExempt,
+          diamondsBalance: payload.student.diamondsBalance,
+          vipAccess: payload.student.vipAccess,
           courseCount: 0,
         }, ...current];
       });
-      setNotice({ type: "success", message: `${grantPoints} points were added to ${normalizedEmail}.` });
+      setNotice({ type: "success", message: `${grantDiamonds} diamonds were added to ${normalizedEmail}.` });
       setGrantEmail("");
-      setGrantPoints(10);
+      setGrantDiamonds(2);
     } catch (error) {
       setNotice({
         type: "error",
-        message: error instanceof Error ? error.message : "Points could not be granted.",
+        message: error instanceof Error ? error.message : "Diamonds could not be granted.",
       });
     } finally {
       setPendingGrant(false);
@@ -141,9 +141,9 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8f82ff]">Access control</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">Student course exemptions</h2>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-neutral-500">
-              Grant selected accounts extra points or unlimited course generation for special cases.
+            <h2 className="mt-2 text-xl font-semibold text-white">Student VIP access &amp; diamonds</h2>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-neutral-400">
+              Grant selected accounts VIP access (free tutor + free certificates) or bonus diamonds for special cases.
             </p>
           </div>
           <form onSubmit={grantByEmail} className="flex w-full max-w-xl flex-col gap-2 sm:flex-row">
@@ -153,7 +153,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
               onChange={(event) => setEmail(event.target.value)}
               placeholder="student@example.com"
               required
-              className="h-11 min-w-0 flex-1 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition placeholder:text-neutral-700 focus:border-[#7c6cf6]"
+              className="h-12 py-3.5 min-w-0 flex-1 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition placeholder:text-neutral-700 focus:border-[#7c6cf6]"
             />
             <button
               type="submit"
@@ -161,25 +161,25 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7c6cf6] px-5 text-sm font-bold text-white transition hover:bg-[#6959df] disabled:cursor-not-allowed disabled:opacity-55"
             >
               {pendingEmail === email.trim().toLowerCase() && <Spinner />}
-              Grant unlimited
+              Grant VIP
             </button>
           </form>
         </div>
-        <form onSubmit={grantPointsByEmail} className="mt-4 grid gap-2 lg:grid-cols-[minmax(0,1fr)_140px_auto]">
+        <form onSubmit={grantDiamondsByEmail} className="mt-4 grid gap-2 lg:grid-cols-[minmax(0,1fr)_140px_auto]">
           <input
             type="email"
             value={grantEmail}
             onChange={(event) => setGrantEmail(event.target.value)}
             placeholder="student@example.com"
             required
-            className="h-11 min-w-0 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition placeholder:text-neutral-700 focus:border-[#7c6cf6]"
+            className="h-12 min-w-0 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition placeholder:text-neutral-700 focus:border-[#7c6cf6]"
           />
           <input
             type="number"
             min={1}
-            max={500}
-            value={grantPoints}
-            onChange={(event) => setGrantPoints(Number(event.target.value))}
+            max={100}
+            value={grantDiamonds}
+            onChange={(event) => setGrantDiamonds(Number(event.target.value))}
             required
             className="h-11 rounded-xl border border-[#2a2a2a] bg-[#050505] px-4 text-sm text-white outline-none transition focus:border-[#7c6cf6]"
           />
@@ -189,7 +189,7 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-5 text-sm font-bold text-emerald-200 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-55"
           >
             {pendingGrant && <Spinner />}
-            Grant points
+            Grant diamonds
           </button>
         </form>
         {notice && (
@@ -215,22 +215,22 @@ export default function AcademyAccessManager({ initialStudents }: { initialStude
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate font-medium text-white">{student.name || student.email}</p>
-                {student.courseGenerationExempt && <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-300">Unlimited</span>}
+                {student.vipAccess && <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-300">VIP</span>}
               </div>
-              <p className="mt-1 truncate text-sm text-neutral-500">{student.email}</p>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">{student.courseCount} courses · {student.pointsBalance} points</p>
+              <p className="mt-1 truncate text-sm text-neutral-400">{student.email}</p>
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">{student.courseCount} courses · {student.diamondsBalance} diamonds</p>
             </div>
             <button
               type="button"
               disabled={pendingEmail === student.email}
-              onClick={() => updateAccess(student.email, !student.courseGenerationExempt)}
-              className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border px-4 text-xs font-bold transition disabled:opacity-50 ${student.courseGenerationExempt ? "border-red-500/20 bg-red-500/[0.06] text-red-300 hover:bg-red-500/10" : "border-[#7c6cf6]/30 bg-[#7c6cf6]/10 text-[#b8b0ff] hover:bg-[#7c6cf6]/20"}`}
+              onClick={() => updateAccess(student.email, !student.vipAccess)}
+              className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border px-4 text-xs font-bold transition disabled:opacity-50 ${student.vipAccess ? "border-red-500/20 bg-red-500/[0.06] text-red-300 hover:bg-red-500/10" : "border-[#7c6cf6]/30 bg-[#7c6cf6]/10 text-[#b8b0ff] hover:bg-[#7c6cf6]/20"}`}
             >
               {pendingEmail === student.email && <Spinner />}
-              {student.courseGenerationExempt ? "Revoke exemption" : "Grant unlimited"}
+              {student.vipAccess ? "Revoke VIP" : "Grant VIP"}
             </button>
           </div>
-        )) : <p className="p-10 text-center text-sm text-neutral-600">No matching Academy students.</p>}
+        )) : <p className="p-10 text-center text-sm text-neutral-500">No matching Academy students.</p>}
       </div>
     </section>
   );

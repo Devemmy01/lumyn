@@ -1,8 +1,7 @@
 import { randomBytes } from "crypto";
-import AcademyPointTransaction from "@/models/AcademyPointTransaction";
+import { REFERRALS_PER_DIAMOND } from "@/lib/academy";
+import { awardReferralDiamonds } from "@/lib/academy-diamonds";
 import AcademyStudent, { type IAcademyStudentDocument } from "@/models/AcademyStudent";
-
-export const REFERRAL_POINT_REWARD = 1;
 
 function makeReferralCode() {
   return `LUMYN${randomBytes(3).toString("hex").toUpperCase()}`;
@@ -48,6 +47,13 @@ export async function creditAcademyReferral({
   const normalizedCode = referralCode?.trim().toUpperCase();
   if (!normalizedCode) return null;
 
+  const previousReferrer = await AcademyStudent.findOne({
+    referralCode: normalizedCode,
+    firebaseUid: { $ne: newStudentUid },
+  });
+  if (!previousReferrer) return null;
+  const referralsBefore = previousReferrer.referralsCount ?? 0;
+
   const referrer = await AcademyStudent.findOneAndUpdate(
     {
       referralCode: normalizedCode,
@@ -55,7 +61,6 @@ export async function creditAcademyReferral({
     },
     {
       $inc: {
-        pointsBalance: REFERRAL_POINT_REWARD,
         referralsCount: 1,
       },
     },
@@ -75,15 +80,18 @@ export async function creditAcademyReferral({
     },
   );
 
-  await AcademyPointTransaction.create({
-    studentUid: referrer.firebaseUid,
-    studentEmail: referrer.email,
-    type: "referral_credit",
-    points: REFERRAL_POINT_REWARD,
-    balanceAfter: referrer.pointsBalance,
-    reference: newStudentUid,
-    note: `Referral reward for ${newStudentEmail}`,
-  });
+  const referralsAfter = referrer.referralsCount ?? referralsBefore + 1;
+  const diamondsEarned =
+    Math.floor(referralsAfter / REFERRALS_PER_DIAMOND) -
+    Math.floor(referralsBefore / REFERRALS_PER_DIAMOND);
+  if (diamondsEarned > 0) {
+    await awardReferralDiamonds({
+      studentUid: referrer.firebaseUid,
+      studentEmail: referrer.email,
+      diamonds: diamondsEarned,
+      reference: `${newStudentUid}:${newStudentEmail}`,
+    });
+  }
 
   return referrer;
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent } from "@/lib/academy-access";
-import AcademyCourse from "@/models/AcademyCourse";
+import AcademyEnrollment from "@/models/AcademyEnrollment";
 import AcademyStudent from "@/models/AcademyStudent";
 
 const avatarUrls = new Set(Array.from({ length: 17 }, (_, index) => `/pp${index + 1}.png`));
@@ -64,12 +64,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (certificateName) {
-      await AcademyCourse.updateMany(
+      await AcademyEnrollment.updateMany(
         { studentUid: decoded.uid, certificate: { $exists: true } },
         { $set: { "certificate.certificateName": certificateName } },
       );
     } else {
-      await AcademyCourse.updateMany(
+      await AcademyEnrollment.updateMany(
         { studentUid: decoded.uid, certificate: { $exists: true } },
         { $unset: { "certificate.certificateName": "" } },
       );
@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest) {
         avatarUrl: student.avatarUrl,
         certificateName: student.certificateName,
         role: student.role,
-        pointsBalance: student.pointsBalance ?? 0,
+        diamondsBalance: student.diamondsBalance ?? 0,
         referralCode: student.referralCode,
         referralsCount: student.referralsCount ?? 0,
         subscription: student.subscription,

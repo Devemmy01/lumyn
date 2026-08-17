@@ -9,15 +9,15 @@ import {
   FeatureCard,
 } from "@/components/academy/AcademyLandingParts";
 import {
-  ACADEMY_POINT_PRICE_CENTS,
+  ACADEMY_CERTIFICATE_PRICE_CENTS,
   ACADEMY_TUTOR_NAME,
   academyFaqs,
-  academyPlans,
+  academySubscriptionPlan,
   academyTestimonials,
+  DIAMONDS_TO_UNLOCK_CERTIFICATE,
   howAcademyWorks,
   learningPathModules,
-  POINTS_PER_GENERATION,
-  STARTER_ACADEMY_POINTS,
+  REFERRALS_PER_DIAMOND,
 } from "@/lib/academy";
 import {
   buildMetadata,
@@ -27,13 +27,13 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 
-const academyMetadataDescription = `Turn your goals into guided courses across technology, business, design, creative skills, and more—with lessons, practice, assessments, projects, and support from ${ACADEMY_TUTOR_NAME}.`;
+const academyMetadataDescription = `Learn to code with free, structured, gamified courses: lessons, practice, assessments, and projects, with certificates and support from ${ACADEMY_TUTOR_NAME} along the way.`;
 
 const academyMetadataKeywords = [
   "AI learning platform",
-  "personalized learning paths",
-  "learn new skills with AI",
-  "guided online courses",
+  "learn to code for free",
+  "gamified learning paths",
+  "structured online courses",
   "project-based learning",
 ];
 
@@ -52,15 +52,15 @@ export async function generateMetadata({
   return buildMetadata({
     title: hasReferral
       ? "You’re Invited to Lumyn Academy"
-      : "Personalized AI Learning Paths",
+      : "Free, Gamified Courses with an AI Tutor",
     description: hasReferral
-      ? `You’ve been invited to Lumyn Academy. Build a personalized path for the skills you want to learn—from technology and business to design, creative work, and more—with ${ACADEMY_TUTOR_NAME} by your side.`
+      ? `You’ve been invited to Lumyn Academy. Learn to code with free, structured courses, earn XP and badges, and get support from ${ACADEMY_TUTOR_NAME} along the way.`
       : academyMetadataDescription,
     path: "/academy",
     keywords: academyMetadataKeywords,
     ogImage: "/academy/opengraph-image",
     imageAlt:
-      "Lumyn Academy personalized learning paths across technology, business, design, and creative skills",
+      "Lumyn Academy free, gamified courses with an AI tutor and earned certificates",
   });
 }
 export const dynamic = "force-dynamic";
@@ -70,7 +70,7 @@ const jsonLd = {
   "@graph": [
     buildWebPageJsonLd({
       path: "/academy",
-      name: "Lumyn Academy - Personalized AI Learning Paths",
+      name: "Lumyn Academy - Free, Gamified Courses with an AI Tutor",
       description: academyMetadataDescription,
       keywords: academyMetadataKeywords,
     }),
@@ -80,16 +80,26 @@ const jsonLd = {
       name: "Lumyn Academy",
       url: `${SITE_URL}/academy`,
       description:
-        "An AI-powered academy for personalized learning paths across technology, business, design, creative skills, and more.",
+        "A free, gamified academy for structured programming courses, with an AI tutor subscription and earned certificates.",
       parentOrganization: { "@id": `${SITE_URL}/#organization` },
-      offers: academyPlans.map((plan) => ({
-        "@type": "Offer",
-        name: plan.name,
-        price: plan.price.replace(/[^0-9.]/g, "") || "0",
-        priceCurrency: "USD",
-        availability: "https://schema.org/InStock",
-        url: `${SITE_URL}/academy#learning-options`,
-      })),
+      offers: [
+        {
+          "@type": "Offer",
+          name: "All course content",
+          price: "0",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: `${SITE_URL}/academy#learning-options`,
+        },
+        {
+          "@type": "Offer",
+          name: academySubscriptionPlan.name,
+          price: (academySubscriptionPlan.priceCents / 100).toFixed(2),
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: `${SITE_URL}/academy#learning-options`,
+        },
+      ],
     },
     buildProductJsonLd({
       name: "Lumyn Academy",
@@ -97,12 +107,20 @@ const jsonLd = {
       description: academyMetadataDescription,
       image: "/academy/opengraph-image",
       applicationCategory: "EducationalApplication",
-      offers: academyPlans.map((plan) => ({
-        name: plan.name,
-        price: plan.price.replace(/[^0-9.]/g, "") || "0",
-        priceCurrency: "USD",
-        url: "/academy#learning-options",
-      })),
+      offers: [
+        {
+          name: "All course content",
+          price: "0",
+          priceCurrency: "USD",
+          url: "/academy#learning-options",
+        },
+        {
+          name: academySubscriptionPlan.name,
+          price: (academySubscriptionPlan.priceCents / 100).toFixed(2),
+          priceCurrency: "USD",
+          url: "/academy#learning-options",
+        },
+      ],
     }),
   ],
 };
@@ -117,19 +135,9 @@ const faqJsonLd = {
   })),
 };
 
-function describeGeneratedPathCapacity(points: number) {
-  const pathCount = Math.floor(points / POINTS_PER_GENERATION);
-  const remainingPoints = points % POINTS_PER_GENERATION;
-  const pathLabel = `${pathCount} generated ${pathCount === 1 ? "path" : "paths"}`;
-
-  return remainingPoints > 0
-    ? `${pathLabel} + ${remainingPoints} points remaining`
-    : pathLabel;
-}
-
 function buildAcademyStartHref(referralCode?: string) {
-  const params = new URLSearchParams({ plan: "ai-learning-path" });
-  if (referralCode) params.set("ref", referralCode);
+  if (!referralCode) return "/academy/dashboard";
+  const params = new URLSearchParams({ ref: referralCode });
   return `/academy/dashboard?${params.toString()}`;
 }
 
@@ -163,32 +171,32 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
                 Lumyn Academy
               </div>
               <h1 className="max-w-[760px] text-balance text-[clamp(2.85rem,5vw,5.75rem)] font-medium leading-[0.98] tracking-[-0.045em]">
-                Learn by building the path
+                Learn to build, one course
                 <span className="bg-gradient-to-r from-[#7665ed] via-[#9b74ee] to-[#479fdf] bg-clip-text text-transparent dark:from-[#c4bcff] dark:via-[#9588ff] dark:to-[#75c8ff]">
                   {" "}
-                  made for you.
+                  at a time.
                 </span>
               </h1>
               <p className="mt-7 max-w-2xl text-lg leading-8 text-[var(--text-secondary)] md:text-xl">
-                Tell Lumyn your goal. We shape it into interactive lessons,
-                projects, quizzes, {ACADEMY_TUTOR_NAME} support, and visible
-                progress.
+                Structured, gamified courses across languages and levels.
+                Every lesson, project, and quiz is free, with {ACADEMY_TUTOR_NAME}
+                support and visible progress along the way.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href={academyStartHref}
                   className="btn-primary gap-2"
                 >
-                  Start with 10 free points
+                  Start learning for free
                   <ArrowIcon />
                 </Link>
                 <Link href="#learning-options" className="btn-secondary">
-                  See point pricing
+                  See pricing
                 </Link>
               </div>
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs text-[var(--text-tertiary)]">
                 {[
-                  "No fixed curriculum",
+                  "Free forever to learn",
                   "Learn at your level",
                   "Build portfolio proof",
                 ].map((item) => (
@@ -295,7 +303,7 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
               One workspace. Your whole learning story.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[var(--text-secondary)]">
-              Generate the path, study the material, ask for help, submit real
+              Pick a course, study the material, ask for help, submit real
               work, and watch progress become proof.
             </p>
           </Reveal>
@@ -303,8 +311,8 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
             <FeatureCard
               className="lg:col-span-7"
               eyebrow="Curriculum engine"
-              title="A real course—not a list of links."
-              body="Structured modules, detailed lessons, practical exercises, graded quizzes, assignments, and a final project generated around one outcome."
+              title="A real course, not a list of links."
+              body="Structured modules, detailed lessons, practical exercises, graded quizzes, assignments, and a final project built around one outcome."
               accent
             >
               <div className="mt-8 grid gap-2 sm:grid-cols-2">
@@ -367,23 +375,24 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
 
         <div className="relative mx-auto grid max-w-[1400px] gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:items-end">
           <Reveal>
-            <p className="label-sm">Point-based access</p>
+            <p className="label-sm">Simple pricing</p>
             <h2 className="mt-5 max-w-3xl text-4xl font-medium leading-[0.98] tracking-[-0.045em] md:text-6xl">
-              Buy points. Generate when you are ready.
+              Free to learn. Pay only for extras.
             </h2>
             <p className="mt-6 max-w-xl text-base leading-8 text-[var(--text-secondary)]">
-              No monthly lock-in. New students start with enough points to
-              generate their first complete learning path.
+              Every course, lesson, quiz, and project is free, no subscription
+              required. Subscribe for unlimited {ACADEMY_TUTOR_NAME} help, or
+              unlock certificates individually.
             </p>
           </Reveal>
           <Reveal delay={80} variant="scale">
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                [`${STARTER_ACADEMY_POINTS}`, "free starter points"],
-                [`${POINTS_PER_GENERATION}`, "points per path"],
+                ["Free", "every course & lesson"],
+                [academySubscriptionPlan.price, `${ACADEMY_TUTOR_NAME} tutor / mo`],
                 [
-                  `$${((POINTS_PER_GENERATION * ACADEMY_POINT_PRICE_CENTS) / 100).toFixed(2)}`,
-                  "per generated course",
+                  `$${(ACADEMY_CERTIFICATE_PRICE_CENTS / 100).toFixed(2)}`,
+                  "per certificate",
                 ],
               ].map(([value, label]) => (
                 <div
@@ -408,19 +417,18 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
               <div className="relative grid gap-8 md:grid-cols-[0.85fr_1.15fr] md:items-center">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#6c5ce7] dark:text-[#b9b1ff]">
-                    Lumyn points
+                    {academySubscriptionPlan.name}
                   </p>
                   <div className="mt-6 flex items-end gap-2">
                     <p className="text-7xl font-semibold tracking-[-0.05em]">
-                      ${(ACADEMY_POINT_PRICE_CENTS / 100).toFixed(2)}
+                      {academySubscriptionPlan.price}
                     </p>
                     <p className="pb-3 text-sm font-semibold text-[var(--text-tertiary)]">
-                      per point
+                      {academySubscriptionPlan.cadence}
                     </p>
                   </div>
                   <p className="mt-5 text-sm leading-7 text-[var(--text-secondary)]">
-                    Choose any point amount inside the dashboard. The checkout
-                    total updates instantly before Flutterwave opens.
+                    {academySubscriptionPlan.description}
                   </p>
                   <Link
                     href={academyStartHref}
@@ -430,24 +438,13 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
                   </Link>
                 </div>
                 <div className="grid gap-3">
-                  {[10, 25, 50].map((points) => (
+                  {academySubscriptionPlan.includes.map((item) => (
                     <div
-                      key={points}
-                      className="flex items-center justify-between rounded-2xl border border-[var(--border-primary)] bg-[color-mix(in_srgb,var(--text-primary)_3%,transparent)] p-4"
+                      key={item}
+                      className="flex items-center gap-3 rounded-2xl border border-[var(--border-primary)] bg-[color-mix(in_srgb,var(--text-primary)_3%,transparent)] p-4 text-sm"
                     >
-                      <div>
-                        <p className="font-semibold">{points} points</p>
-                        <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-                          {describeGeneratedPathCapacity(points)}
-                        </p>
-                      </div>
-                      <p className="text-xl font-semibold">
-                        $
-                        {(
-                          (Number(points) * ACADEMY_POINT_PRICE_CENTS) /
-                          100
-                        ).toFixed(2)}
-                      </p>
+                      <CheckIcon />
+                      <span>{item}</span>
                     </div>
                   ))}
                 </div>
@@ -457,30 +454,34 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
           <Reveal delay={100} variant="scale">
             <aside className="dark-visual h-full rounded-[2rem] border border-white/10 bg-[#111018] p-6 text-white shadow-[0_28px_90px_rgba(0,0,0,0.22)] md:p-8">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#b9b1ff]">
-                What points unlock
+                Unlock a certificate
               </p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="mt-6 grid gap-3">
                 {[
-                  "AI-generated courses",
-                  "Module quizzes",
-                  "Project assignments",
-                  "Progress tracking",
-                  `${ACADEMY_TUTOR_NAME} context`,
-                  "Certificates",
-                ].map((item) => (
-                  <p
-                    key={item}
-                    className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-sm font-semibold text-white"
+                  ["Subscribe", "Free while your subscription is active"],
+                  [
+                    `$${(ACADEMY_CERTIFICATE_PRICE_CENTS / 100).toFixed(2)}`,
+                    "Pay once per certificate",
+                  ],
+                  [
+                    `${DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds`,
+                    `Earn 1 diamond per ${REFERRALS_PER_DIAMOND} referrals`,
+                  ],
+                ].map(([value, label]) => (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white"
                   >
-                    <CheckIcon />
-                    <span>{item}</span>
-                  </p>
+                    <span>{label}</span>
+                    <span className="text-[#b9b1ff]">{value}</span>
+                  </div>
                 ))}
               </div>
               <div className="mt-8 border-t border-white/10 pt-5 text-sm leading-7 text-white/60">
-                <strong className="text-white">Starter math:</strong>{" "}
-                {STARTER_ACADEMY_POINTS} free points means the first{" "}
-                {POINTS_PER_GENERATION}-point course is covered immediately.
+                <strong className="text-white">Diamonds:</strong> Refer{" "}
+                {REFERRALS_PER_DIAMOND} friends to earn 1 diamond.{" "}
+                {DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds unlock a certificate
+                for free, no subscription needed.
               </div>
             </aside>
           </Reveal>
@@ -560,8 +561,8 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
               A clear path is one decision away.
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-[var(--text-secondary)]">
-              Start with 10 free points. Generate a full AI learning path for 10
-              points.
+              Every course is free to start. Subscribe anytime to unlock{" "}
+              {ACADEMY_TUTOR_NAME}, your AI tutor.
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Link

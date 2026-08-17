@@ -10,7 +10,7 @@ export const samplePosts: Omit<IPost, "_id" | "createdAt" | "updatedAt">[] = [
 
 Open your phone. How many apps have features you've never touched? How much of your interface is occupied by noise?
 
-Modern software has a bloat problem. Not a technical problem — a strategic one. Somewhere along the way, feature parity became the primary metric, and "more" became synonymous with "better."
+Modern software has a bloat problem. Not a technical problem. A strategic one. Somewhere along the way, feature parity became the primary metric, and "more" became synonymous with "better."
 
 The result is a digital environment that feels cluttered, slow, and overwhelming.
 
@@ -34,7 +34,7 @@ The tools that help you work better are almost always the ones that stay out of 
 
 ## The Cost of Complexity
 
-Overbuilt software doesn't just feel heavy — it has measurable costs. It's harder to maintain, slower to load, and more expensive to scale. For the user, it means a steeper learning curve and more cognitive load.
+Overbuilt software doesn't just feel heavy. It has measurable costs. It's harder to maintain, slower to load, and more expensive to scale. For the user, it means a steeper learning curve and more cognitive load.
 
 The apps that seem most powerful are often the ones hindering your productivity.
 
@@ -42,7 +42,7 @@ The apps that seem most powerful are often the ones hindering your productivity.
 
 At Lumyn, we're starting with precision. Every feature has to earn its place. Every interaction has to prove it adds value rather than friction. We validate before we scale.
 
-This is harder than it sounds. Adding feels like progress. Removing feels like risk. But the best tools — a surgical instrument, a clean code base, a sharp brief — are always the ones where everything unnecessary has been removed.
+This is harder than it sounds. Adding feels like progress. Removing feels like risk. But the best tools (a surgical instrument, a clean code base, a sharp brief) are always the ones where everything unnecessary has been removed.
 
 The future of software is high-performance and lean. We intend to build it.`,
     tags: ["product-strategy", "efficiency", "product-design"],
@@ -108,7 +108,7 @@ We don't usually think about design the way we think about engineering. But we s
 
 The interfaces we design are either helping the user achieve their goal or hindering them. There is no neutral ground.
 
-Most software hinders. The best software empowers — by completing tasks cleanly, by making the next action obvious, and by removing the unnecessary.
+Most software hinders. The best software empowers: by completing tasks cleanly, by making the next action obvious, and by removing the unnecessary.
 
 ## The Studio's Responsibility
 
