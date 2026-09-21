@@ -87,5 +87,14 @@ export function buildAdTagHtml(
   // white canvas regardless of dark mode. Baking the resolved --bg-secondary
   // value in as the body background keeps an empty slot visually quiet
   // instead of flashing white.
-  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src ${scriptSrc}; img-src ${imgSrc}; style-src 'unsafe-inline'; frame-src ${frameSrc};"></head><body style="margin:0;padding:0;background-color:${backgroundColor};">${tag}</body></html>`;
+  // Ad creative doesn't always land at exactly the reserved width/height —
+  // a few px of overflow from the network's own markup is common, and
+  // without an explicit overflow rule the browser's default is to show
+  // scrollbars rather than clip it, which is what showed up live (visible
+  // scrollbars around an otherwise-empty ad box). html/body are pinned to
+  // the exact placement size and clipped, so any oversized creative just
+  // gets cropped instead of growing scrollbars.
+  const style = `html,body{margin:0;padding:0;width:${config.width}px;height:${config.height}px;overflow:hidden;background-color:${backgroundColor};}`;
+
+  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src ${scriptSrc}; img-src ${imgSrc}; style-src 'unsafe-inline'; frame-src ${frameSrc};"><style>${style}</style></head><body>${tag}</body></html>`;
 }
