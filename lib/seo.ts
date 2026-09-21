@@ -1,8 +1,30 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://lumynhq.studio"
-).replace(/\/+$/, "");
+/** lumynhq.studio (apex) permanently redirects to www.lumynhq.studio at the
+ * domain level — www is the actual canonical host. Normalizing here means
+ * every canonical tag, OG url, and JSON-LD @id stays correct even if
+ * NEXT_PUBLIC_SITE_URL is ever set to the apex form again (as it was in
+ * production — confirmed live: every page's canonical pointed at the apex,
+ * which 307-redirects, undermining canonicalization on effectively the
+ * whole site). Any other host (preview deployments, localhost, a future
+ * different domain) passes through untouched. */
+function normalizeSiteUrl(raw: string): string {
+  const trimmed = raw.replace(/\/+$/, "");
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname === "lumynhq.studio") {
+      url.hostname = "www.lumynhq.studio";
+      return url.origin;
+    }
+    return trimmed;
+  } catch {
+    return trimmed;
+  }
+}
+
+export const SITE_URL = normalizeSiteUrl(
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.lumynhq.studio",
+);
 
 export const SITE_NAME = "Lumyn";
 export const SITE_LEGAL_NAME = "Lumyn Product Studio";

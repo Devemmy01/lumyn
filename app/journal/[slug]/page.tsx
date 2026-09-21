@@ -8,6 +8,7 @@ import SectionWrapper from "@/components/SectionWrapper";
 import BlogCard from "@/components/BlogCard";
 import UpvoteButton from "@/components/UpvoteButton";
 import ShareButtons from "@/components/ShareButtons";
+import { slugifyTag } from "@/lib/tags";
 import AdSlot from "@/components/ads/AdSlot";
 import { splitAfterBlock } from "@/lib/ads/split-content";
 import {
@@ -263,7 +264,7 @@ export default async function JournalPostPage({ params }: PageProps) {
             </p>
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag: string) => (
-                <Link key={tag} href={`/journal?tag=${encodeURIComponent(tag)}`} className="tag p-2">
+                <Link key={tag} href={`/journal/tag/${slugifyTag(tag)}`} className="tag p-2">
                   {tag.replace(/-/g, " ")}
                 </Link>
               ))}
