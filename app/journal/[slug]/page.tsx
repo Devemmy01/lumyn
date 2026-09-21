@@ -253,6 +253,10 @@ export default async function JournalPostPage({ params }: PageProps) {
             </span>
           </Link>
         </div>
+
+        <div className="mt-10 flex justify-center">
+          <AdSlot placement="journal-inline-2" />
+        </div>
       </SectionWrapper>
 
       {/* Share + Tags */}

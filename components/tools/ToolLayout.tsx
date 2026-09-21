@@ -84,6 +84,10 @@ export default function ToolLayout({
           </h2>
           {explainer}
         </div>
+
+        <div className="no-print mt-12 flex justify-center">
+          <AdSlot placement="tool-below-result-2" />
+        </div>
       </SectionWrapper>
     </>
   );

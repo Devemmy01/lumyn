@@ -14,8 +14,13 @@ import type { AdPlacementConfig } from "@/lib/ads/config";
  */
 const TAG_TEMPLATES: Record<string, string | undefined> = {
   "journal-inline": process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_TAG_TEMPLATE,
+  "journal-inline-2": process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_2_TAG_TEMPLATE,
+  "journal-index-sidebar": process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_SIDEBAR_TAG_TEMPLATE,
+  "journal-index-bottom": process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_BOTTOM_TAG_TEMPLATE,
   "tool-below-result": process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_TAG_TEMPLATE,
+  "tool-below-result-2": process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_2_TAG_TEMPLATE,
   "tools-index": process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_TAG_TEMPLATE,
+  "tools-index-top": process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_TOP_TAG_TEMPLATE,
 };
 
 /**

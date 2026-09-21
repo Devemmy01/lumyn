@@ -10,6 +10,7 @@ import JournalPagination from "@/components/JournalPagination";
 import SubscribeForm from "@/components/SubscribeForm";
 import JournalTagsFilter from "@/components/JournalTagsFilter";
 import InteriorHero from "@/components/InteriorHero";
+import AdSlot from "@/components/ads/AdSlot";
 import { buildMetadata, buildWebPageJsonLd, serializeJsonLd, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -178,11 +179,15 @@ export default async function JournalPage({ searchParams }: PageProps) {
             )}
 
             {/* Pagination Component */}
-            <JournalPagination 
-              currentPage={page} 
-              totalPages={totalPages} 
-              queryParams={queryParams} 
+            <JournalPagination
+              currentPage={page}
+              totalPages={totalPages}
+              queryParams={queryParams}
             />
+
+            <div className="mt-12 flex justify-center">
+              <AdSlot placement="journal-index-bottom" />
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -217,6 +222,10 @@ export default async function JournalPage({ searchParams }: PageProps) {
                 Occasional essays. No fluff.
               </p>
               <SubscribeForm />
+            </div>
+
+            <div className="flex justify-center">
+              <AdSlot placement="journal-index-sidebar" />
             </div>
           </aside>
         </div>

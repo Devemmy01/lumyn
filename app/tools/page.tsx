@@ -49,6 +49,10 @@ export default function ToolsIndexPage() {
       />
 
       <SectionWrapper background="default">
+        <div className="mb-14 flex justify-center">
+          <AdSlot placement="tools-index-top" />
+        </div>
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {TOOLS.map((tool) => (
             <Link

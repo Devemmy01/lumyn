@@ -36,6 +36,31 @@ export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
     height: 120,
     enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_ENABLED !== "false",
   },
+  "journal-inline-2": {
+    network: "adsterra",
+    slotId: process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_2_SLOT_ID ?? "",
+    // Second in-article slot, near the end of the post — needs its own
+    // distinct ad unit from the network dashboard, not a reused slotId
+    // (serving the same unit twice on one page is against most networks'
+    // policies and tends to just no-fill the second one anyway).
+    width: 640,
+    height: 120,
+    enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_2_ENABLED !== "false",
+  },
+  "journal-index-sidebar": {
+    network: "adsterra",
+    slotId: process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_SIDEBAR_SLOT_ID ?? "",
+    width: 300,
+    height: 250,
+    enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_SIDEBAR_ENABLED !== "false",
+  },
+  "journal-index-bottom": {
+    network: "adsterra",
+    slotId: process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_BOTTOM_SLOT_ID ?? "",
+    width: 728,
+    height: 90,
+    enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_BOTTOM_ENABLED !== "false",
+  },
   "tool-below-result": {
     network: "adsterra",
     slotId: process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_SLOT_ID ?? "",
@@ -45,12 +70,26 @@ export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
     height: 250,
     enabled: process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_ENABLED !== "false",
   },
+  "tool-below-result-2": {
+    network: "adsterra",
+    slotId: process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_2_SLOT_ID ?? "",
+    width: 300,
+    height: 250,
+    enabled: process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_2_ENABLED !== "false",
+  },
   "tools-index": {
     network: "adsterra",
     slotId: process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_SLOT_ID ?? "",
     width: 728,
     height: 90,
     enabled: process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_ENABLED !== "false",
+  },
+  "tools-index-top": {
+    network: "adsterra",
+    slotId: process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_TOP_SLOT_ID ?? "",
+    width: 728,
+    height: 90,
+    enabled: process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_TOP_ENABLED !== "false",
   },
 };
 
