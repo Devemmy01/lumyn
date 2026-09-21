@@ -24,9 +24,23 @@ const ADS_ORIGIN = process.env.NEXT_PUBLIC_ADS_ORIGIN;
  * wildcarded). allow-same-origin is required at all: an opaque-origin frame
  * (the old srcDoc approach) can never send a Referer header, and Adsterra's
  * ad server silently no-fills any request with no Referer — confirmed
- * directly against production. No allow-popups (blocks popunders
- * structurally) and no top-level navigation either way.
- */
+ * directly against production.
+ *
+ * allow-popups (+ allow-popups-to-escape-sandbox, so the opened tab is a
+ * normal unsandboxed page — the advertiser's landing page shouldn't be
+ * crippled) is required for the ad to be clickable at all: a banner's
+ * click-through is a target="_blank" link, and without allow-popups the
+ * browser silently swallows that click — confirmed live (hovering showed
+ * the destination URL; clicking did nothing). allow-top-navigation-by-
+ * user-activation covers the alternative target="_top" click-through
+ * shape, gated to only ever fire from a genuine user gesture, never
+ * scripted — the ad can't hijack the tab on its own initiative either way.
+ * This does reopen the door a popunder-format ad *would* need if one were
+ * ever wired in — the actual defense against that is discipline in what
+ * gets created in Adsterra's dashboard (Banner/Native Banner only, never
+ * Popunder/Social Bar/Smartlink), not this sandbox flag; it never was a
+ * sufficient defense on its own, since format selection happens network-
+ * side, not in this iframe. */
 export default function AdSlot({ placement }: { placement: AdPlacement }) {
   const adsAllowed = useAdsAllowed();
   const config = AD_PLACEMENTS[placement];
@@ -83,7 +97,7 @@ export default function AdSlot({ placement }: { placement: AdPlacement }) {
       {frameSrc && (
         <iframe
           title="Advertisement"
-          sandbox="allow-scripts allow-same-origin"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
           width={config.width}
           height={config.height}
           style={{ border: "none", display: "block", width: "100%", height: "100%" }}
