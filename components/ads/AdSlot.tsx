@@ -45,7 +45,14 @@ export default function AdSlot({ placement }: { placement: AdPlacement }) {
 
   useEffect(() => {
     if (!shouldLoad || !active) return;
-    const html = buildAdTagHtml(placement, config);
+    // The sandboxed iframe is its own document and can't see our CSS
+    // variables — resolve the current theme's background once, here, and
+    // bake it into the iframe's own body so a blank/no-fill ad doesn't
+    // flash white in dark mode.
+    const resolvedBg = getComputedStyle(document.documentElement)
+      .getPropertyValue("--bg-secondary")
+      .trim() || "#ffffff";
+    const html = buildAdTagHtml(placement, config, resolvedBg);
     setTagHtml(html);
     if (html) {
       track("ad_slot_render", { placement, network: config.network });

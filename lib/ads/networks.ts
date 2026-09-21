@@ -47,7 +47,11 @@ export function adNetworkScriptOrigins(): string[] {
  * <script> blocks (e.g. Adsterra's atOptions config pattern) — that's safe
  * to allow only because it's scoped to this one sandboxed, isolated
  * document, not the real page's CSP. */
-export function buildAdTagHtml(placement: string, config: AdPlacementConfig): string | null {
+export function buildAdTagHtml(
+  placement: string,
+  config: AdPlacementConfig,
+  backgroundColor = "#ffffff",
+): string | null {
   const template = TAG_TEMPLATES[placement];
   if (!template || !config.slotId) return null;
 
@@ -59,5 +63,10 @@ export function buildAdTagHtml(placement: string, config: AdPlacementConfig): st
   const origins = adNetworkScriptOrigins();
   const scriptSrc = origins.length > 0 ? `'unsafe-inline' ${origins.join(" ")}` : "'none'";
 
-  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${scriptSrc}; img-src ${origins.join(" ") || "'none'"} data:; style-src 'unsafe-inline'; frame-src ${origins.join(" ") || "'none'"};"></head><body style="margin:0;padding:0;">${tag}</body></html>`;
+  // The iframe is its own isolated document — it doesn't inherit our theme's
+  // CSS variables, so a blank/no-fill ad response defaults to the browser's
+  // white canvas regardless of dark mode. Baking the resolved --bg-secondary
+  // value in as the body background keeps an empty slot visually quiet
+  // instead of flashing white.
+  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${scriptSrc}; img-src ${origins.join(" ") || "'none'"} data:; style-src 'unsafe-inline'; frame-src ${origins.join(" ") || "'none'"};"></head><body style="margin:0;padding:0;background-color:${backgroundColor};">${tag}</body></html>`;
 }

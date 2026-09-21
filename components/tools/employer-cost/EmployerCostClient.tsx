@@ -171,7 +171,21 @@ export default function EmployerCostClient() {
   );
 
   const resultPanel = (
-    <div className="print-area space-y-6">
+    <div className="print-area space-y-6 rounded-2xl border p-6" style={{ borderColor: "var(--border-primary)" }}>
+      <div className="hidden items-center justify-between border-b-2 pb-4 print:flex" style={{ borderColor: "#7c6cf6" }}>
+        <span className="text-lg font-bold" style={{ color: "#17131f" }}>
+          Lumyn.
+        </span>
+        <div className="text-right">
+          <p className="text-sm font-bold" style={{ color: "#7c6cf6" }}>
+            EMPLOYER COST BREAKDOWN
+          </p>
+          <p className="text-[10px]" style={{ color: "#6b7280" }}>
+            {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+          </p>
+        </div>
+      </div>
+
       <div>
         <p className="label-sm mb-4">What the employee takes home</p>
         <div className="space-y-2 text-sm">
@@ -193,6 +207,10 @@ export default function EmployerCostClient() {
           <Row label="Total cost to employ" value={fmt(result.totalAnnualCost)} strong accent />
         </div>
       </div>
+
+      <p className="hidden border-t pt-4 text-[10px] print:block" style={{ borderColor: "#e5e7eb", color: "#9ca3af" }}>
+        Generated with Lumyn&apos;s free employer cost calculator — lumynhq.studio/tools
+      </p>
     </div>
   );
 

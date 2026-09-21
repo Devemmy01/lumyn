@@ -24,6 +24,7 @@
   }
 
   html.dark {
+    color-scheme: dark;
     --bg-primary: #050505;
     --bg-secondary: #0a0a0a;
     --bg-tertiary: #111111;
@@ -38,6 +39,7 @@
   }
 
   html.light {
+    color-scheme: light;
     --bg-primary: #f7f4ef;
     --bg-secondary: #eee9e1;
     --bg-tertiary: #e4ddd2;
@@ -584,6 +586,20 @@ html.light .btn-primary:hover {
   color: var(--text-tertiary);
 }
 
+/* Native <select> popups need an opaque background set directly on
+   <option> — the select's own translucent .input-field background (and
+   color-scheme alone) isn't reliably picked up by the browser-drawn
+   options list, which otherwise falls back to a stark white popup in
+   dark mode. */
+select.input-field {
+  background-color: var(--bg-primary);
+}
+
+select.input-field option {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
 .academy-auth-input {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.13);
@@ -819,21 +835,62 @@ html.light .academy-dashboard-shell .text-white {
    cost calculator) — wrap the printable content in .print-area and mark
    anything that should stay screen-only with .no-print. */
 @media print {
+  /* display:none (not visibility) on everything around .print-area, so the
+     hidden siblings stop occupying layout height — otherwise the page still
+     paginates against the full on-screen height and prints several blank
+     pages after the one page of real content. header/footer are hidden by
+     tag; anything else that should stay screen-only gets .no-print. */
   header,
   footer,
   .no-print {
     display: none !important;
   }
 
+  .print-area {
+    margin: 0 !important;
+  }
+
+  /* body is min-h-screen + flex-col and main is flex-1, so main stretches
+     to fill the viewport height even once it has almost no visible content
+     left — that phantom height is what was pushing pagination out to
+     several blank pages. Print doesn't need the flex scaffolding at all. */
+  body {
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  main {
+    flex: none !important;
+    padding-top: 0 !important;
+    min-height: 0 !important;
+  }
+
+  section {
+    padding: 0 !important;
+  }
+
+  /* Force light-theme values for print regardless of the active site theme
+     — dark mode's near-white text vars would otherwise print invisible on
+     the forced white page background. html.light/html.dark (specificity
+     0,1,1) set these same vars, so matching that selector (not :root,
+     which is weaker at 0,1,0) is what actually wins the cascade here. */
+  html.light,
+  html.dark {
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffffff;
+    --text-primary: #17131f;
+    --text-secondary: #5f596a;
+    --text-tertiary: #8b8495;
+    --border-primary: rgba(23, 19, 31, 0.12);
+    color-scheme: light;
+  }
+
   body {
     background: #ffffff !important;
   }
 
-  .print-area {
-    position: absolute;
-    inset: 0;
-    margin: 0 !important;
-    padding: 0 !important;
+  @page {
+    margin: 12mm;
   }
 }
 

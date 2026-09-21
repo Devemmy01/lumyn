@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import InteriorHero from "@/components/InteriorHero";
+import IndexHero from "@/components/store/IndexHero";
 import SectionWrapper from "@/components/SectionWrapper";
 import GuideCover from "@/components/store/GuideCover";
 import { PRODUCTS, SINGLE_PRODUCT_SLUGS } from "@/lib/store/products";
@@ -38,13 +38,16 @@ export default function GuidesIndexPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
 
-      <InteriorHero
+      <IndexHero
         eyebrow="Field Guides"
         title="Practical guides for"
         accent="running a business in Nigeria."
         description="Short, direct guides on the things that actually trip up Nigerian business owners — pricing a website, getting found, and getting paid. No fluff, no theory."
-        signals={["Instant download", "Written for Nigeria", "One-time payment"]}
-        note="Lumyn field guides"
+        stats={[
+          { value: "3", label: "Field Guides" },
+          { value: "₦15k", label: "Starting At" },
+          { value: "Instant", label: "Download" },
+        ]}
       />
 
       <SectionWrapper background="default">

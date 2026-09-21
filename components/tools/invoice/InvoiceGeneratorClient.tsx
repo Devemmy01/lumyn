@@ -310,7 +310,7 @@ export default function InvoiceGeneratorClient() {
 
   const resultPanel = (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="no-print flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2 rounded-full border p-1" style={{ borderColor: "var(--border-primary)" }}>
           {(["modern", "classic"] as InvoiceTemplate[]).map((option) => (
             <button
@@ -340,7 +340,7 @@ export default function InvoiceGeneratorClient() {
         {template === "modern" ? <ModernTemplate invoice={invoice} /> : <ClassicTemplate invoice={invoice} />}
       </div>
 
-      <p className="text-right text-xs" style={{ color: "var(--text-tertiary)" }}>
+      <p className="no-print text-right text-xs" style={{ color: "var(--text-tertiary)" }}>
         Total due: <strong>{formatCurrency(totals.total, currency)}</strong>
       </p>
     </div>

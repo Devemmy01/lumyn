@@ -9,6 +9,8 @@ const footerLinks = [
     links: [
       { label: "Studio", href: "/about" },
       { label: "Journal", href: "/journal" },
+      { label: "Free Tools", href: "/tools" },
+      { label: "Field Guides", href: "/guides" },
     ],
   },
   {

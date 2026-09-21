@@ -1,4 +1,4 @@
-export type AdNetwork = "adsterra" | "monetag";
+export type AdNetwork = "adsterra";
 
 export interface AdPlacementConfig {
   network: AdNetwork;
@@ -19,8 +19,11 @@ export interface AdPlacementConfig {
  * Adsterra's Banner vs Native Banner units), so the template has to be
  * per-placement, not per-network.
  *
- * journal-inline ships disabled — the journal is client-facing and ads there
- * are a separate call, not bundled into this rollout.
+ * Monetag isn't used: their only verification path installs a service
+ * worker at the site root for their push-notification ad format, which is
+ * exactly the format this project's ad rules exclude, and a root service
+ * worker can't be contained by the sandboxed-iframe architecture every
+ * other placement relies on. Adsterra only, for now.
  */
 export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
   "journal-inline": {
@@ -31,7 +34,7 @@ export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
     // an exact Adsterra spec. Adjust once you see the real rendered size.
     width: 640,
     height: 120,
-    enabled: false,
+    enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_ENABLED !== "false",
   },
   "tool-below-result": {
     network: "adsterra",

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
-import Image from "next/image";
 
 type HeroAction = {
   label: string;
@@ -44,15 +43,14 @@ export default function InteriorHero({
   return (
     <section className="relative overflow-hidden border-b border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)]">
       <div className="pointer-events-none absolute -left-40 top-[-18rem] h-[34rem] w-[34rem] rounded-full bg-[#7c6cf6]/12 blur-[130px]" />
-      <div className="pointer-events-none absolute right-[-14rem] top-[-10rem] h-[32rem] w-[32rem] rounded-full bg-[#7c6cf6]/10 blur-[140px]" />
 
-      <div className="container-wide relative grid min-h-[570px] items-stretch gap-12 py-16 sm:py-20 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 lg:py-24">
-        <Reveal className="flex max-w-5xl flex-col justify-center">
+      <div className="container-wide relative py-16 sm:py-20 lg:py-24">
+        <Reveal className="max-w-3xl">
           <p className="label-sm mb-7 flex items-center gap-3">
             <span className="h-1.5 w-1.5 rounded-full bg-[#7c6cf6] shadow-[0_0_14px_rgba(124,108,246,0.7)]" />
             {eyebrow}
           </p>
-          <h1 className="text-balance text-[clamp(3.2rem,7.6vw,7.4rem)] font-medium leading-[0.86] tracking-[-0.065em] text-[color:var(--text-primary)]">
+          <h1 className="text-balance text-[clamp(3rem,7.2vw,6.4rem)] font-medium leading-[0.9] tracking-[-0.065em] text-[color:var(--text-primary)]">
             {title}
             {accent ? (
               <span className="mt-2 block font-[Georgia] font-normal italic tracking-[-0.055em] text-[#897af8]">
@@ -79,48 +77,31 @@ export default function InteriorHero({
               ) : null}
             </div>
           ) : null}
-        </Reveal>
 
-        <Reveal
-          delay={100}
-          variant="scale"
-          className="relative hidden min-h-[360px] lg:block"
-        >
-          <div className="dark-visual lumyn-noise absolute inset-0 overflow-hidden rounded-[2rem] border border-white/10 bg-[#09090b] p-6 text-white shadow-[0_35px_100px_rgba(0,0,0,0.3)]">
-            <div className="lumyn-grid absolute inset-0 opacity-30" />
-            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#7c6cf6]/25 blur-[95px]" />
-
-            <div className="relative flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between text-[9px] font-semibold uppercase tracking-[0.2em] text-white/35">
-                <span>{note}</span>
-                <span>2026</span>
-              </div>
-
-              <div className="space-y-3">
-                {signals.map((signal, index) => (
-                  <div
+          {signals.length > 0 ? (
+            <div
+              className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3 border-t pt-7"
+              style={{ borderColor: "var(--border-primary)" }}
+            >
+              <span
+                className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                {note}
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                {signals.map((signal) => (
+                  <span
                     key={signal}
-                    className="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-5 py-4 transition hover:border-[#7c6cf6]/50 hover:bg-white/[0.06]"
+                    className="rounded-full border px-3.5 py-1.5 text-xs font-medium"
+                    style={{ borderColor: "var(--border-primary)", color: "var(--text-secondary)" }}
                   >
-                    <span className="text-[10px] font-semibold text-white/30">
-                      0{index + 1}
-                    </span>
-                    <span className="text-sm font-medium text-white/80">
-                      {signal}
-                    </span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#7c6cf6] opacity-45 transition group-hover:opacity-100" />
-                  </div>
+                    {signal}
+                  </span>
                 ))}
               </div>
-
-              <div className="flex items-end justify-between border-t border-white/10 pt-5">
-                <p className="max-w-[14rem] text-sm leading-6 text-white/45">
-                  Clear thinking, carefully translated into useful digital systems.
-                </p>
-                <Image src="/logo.png" alt="Lumyn Logo" width={36} height={36} />
-              </div>
             </div>
-          </div>
+          ) : null}
         </Reveal>
       </div>
     </section>

@@ -207,6 +207,53 @@ export default async function JournalPostPage({ params }: PageProps) {
         </div>
       </SectionWrapper>
 
+      {/* Free resources promo — every article funnels toward the free tools
+          and paid guides, since journal traffic converts best right after
+          someone's finished reading, not from the nav alone. */}
+      <SectionWrapper background="default" container="narrow" size="sm">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Link
+            href="/tools"
+            className="group flex flex-col gap-2 rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1"
+            style={{ borderColor: "var(--border-primary)", backgroundColor: "var(--bg-secondary)" }}
+          >
+            <p className="label-sm">Free Tools</p>
+            <p className="font-medium" style={{ color: "var(--text-primary)" }}>
+              Invoicing, money transfer, and hiring-cost calculators
+            </p>
+            <span
+              className="mt-1 flex items-center gap-1.5 text-sm font-medium transition-all duration-200 group-hover:translate-x-1"
+              style={{ color: "#7c6cf6" }}
+            >
+              Try a free tool
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          </Link>
+
+          <Link
+            href="/guides"
+            className="group flex flex-col gap-2 rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1"
+            style={{ borderColor: "var(--border-primary)", backgroundColor: "var(--bg-secondary)" }}
+          >
+            <p className="label-sm">Field Guides</p>
+            <p className="font-medium" style={{ color: "var(--text-primary)" }}>
+              Practical guides on pricing, visibility, and getting paid
+            </p>
+            <span
+              className="mt-1 flex items-center gap-1.5 text-sm font-medium transition-all duration-200 group-hover:translate-x-1"
+              style={{ color: "#7c6cf6" }}
+            >
+              Browse field guides
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          </Link>
+        </div>
+      </SectionWrapper>
+
       {/* Share + Tags */}
       <SectionWrapper background="secondary" container="narrow" size="sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-t pt-8" style={{ borderColor: "var(--border-primary)" }}>

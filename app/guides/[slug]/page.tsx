@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import InteriorHero from "@/components/InteriorHero";
 import SectionWrapper from "@/components/SectionWrapper";
 import GuideCover from "@/components/store/GuideCover";
 import { PRODUCT_SLUGS, getProduct } from "@/lib/store/products";
 import { getProductContent } from "@/lib/store/content";
 import { formatNaira } from "@/lib/store/format";
+import { TOOLS } from "@/lib/tools/registry";
 import { buildMetadata, buildWebPageJsonLd, buildFaqJsonLd, serializeJsonLd } from "@/lib/seo";
 
 interface PageProps {
@@ -36,6 +36,7 @@ export default async function GuideProductPage({ params }: PageProps) {
   if (!product) notFound();
 
   const content = getProductContent(product.slug);
+  const relatedTools = TOOLS.filter((tool) => tool.fieldGuideSlug === product.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -53,13 +54,14 @@ export default async function GuideProductPage({ params }: PageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
 
-      <InteriorHero
-        eyebrow="Field Guide"
-        title={product.title}
-        description={content.tagline}
-        signals={["Instant download", "Written for Nigeria", "One-time payment"]}
-        note="Lumyn field guides"
-      />
+      <SectionWrapper background="default" size="sm">
+        <Link href="/guides" className="text-sage mb-6 inline-block font-medium hover:underline">
+          ← All field guides
+        </Link>
+        <p className="label-sm mb-3">Field Guide</p>
+        <h1 className="heading-md mb-4 max-w-3xl">{product.title}</h1>
+        <p className="body-md max-w-2xl">{content.tagline}</p>
+      </SectionWrapper>
 
       <SectionWrapper background="default">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[280px_1fr]">
@@ -75,14 +77,40 @@ export default async function GuideProductPage({ params }: PageProps) {
               <Link href={`/guides/checkout?product=${product.slug}`} className="btn-primary w-full">
                 Buy now
               </Link>
-              <a
-                href={content.sampleFile}
-                className="btn-secondary mt-3 w-full"
-                download
-              >
-                Download free sample
-              </a>
             </div>
+
+            {relatedTools.length > 0 && (
+              <div
+                className="mt-4 rounded-2xl border p-5"
+                style={{ borderColor: "var(--border-primary)", backgroundColor: "var(--bg-secondary)" }}
+              >
+                <p className="label-sm mb-3">Free tool to try first</p>
+                <div className="space-y-3">
+                  {relatedTools.map((tool) => (
+                    <Link
+                      key={tool.slug}
+                      href={`/tools/${tool.slug}`}
+                      className="group flex items-center justify-between gap-3"
+                    >
+                      <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                        {tool.name}
+                      </span>
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        aria-hidden="true"
+                        className="shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                        style={{ color: "#7c6cf6" }}
+                      >
+                        <path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-12">
