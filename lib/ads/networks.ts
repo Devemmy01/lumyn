@@ -66,7 +66,15 @@ export function buildAdTagHtml(
     .replaceAll("{{height}}", String(config.height));
 
   const origins = adNetworkScriptOrigins();
-  const scriptSrc = origins.length > 0 ? `'unsafe-inline' ${origins.join(" ")}` : "'none'";
+  // 'unsafe-eval' too — the ad chain calls eval()/new Function() somewhere
+  // in its rendering path (confirmed by a page error captured directly
+  // against the real ad script). script-src is still what actually bounds
+  // this: only code that already loaded from one of these exact 2 trusted
+  // origins can run at all, so letting that same already-trusted code use
+  // eval isn't a new attack surface beyond the trust this already grants
+  // it via 'unsafe-inline' — it's just another way code from those same
+  // origins can run more code, not a path for anything untrusted to run.
+  const scriptSrc = origins.length > 0 ? `'unsafe-inline' 'unsafe-eval' ${origins.join(" ")}` : "'none'";
 
   // The invoke.js script itself routes creative through ad-tech redirect
   // chains on domains that rotate per-request and can't be predicted or
@@ -75,12 +83,19 @@ export function buildAdTagHtml(
   // network's own domain) — a static allowlist for img-src/frame-src is
   // fundamentally incompatible with how programmatic ad delivery works,
   // and produced a live, visible broken-image icon where a real ad should
-  // render. Left open for images/frames; script-src stays the actual
-  // security boundary, locked to the exact hosts from each ad tag — a
-  // compromised or malicious creative still can't load or run a script
+  // render. Left open for images/frames/fetch (connect-src — the creative
+  // pipeline turned out to depend on its own fetch()/XHR calls completing,
+  // e.g. impression pixels and a secondary script fetch, before it renders
+  // anything visible; blocked via CSP with no visible failure other than
+  // the ad staying blank, confirmed directly by capturing the browser
+  // console's CSP violation messages against the real ad chain).
+  // script-src stays the actual security boundary, locked to the exact
+  // hosts from each ad tag — a compromised or malicious creative can still
+  // only ever fetch or display data from anywhere, never execute a script
   // from anywhere but those.
   const imgSrc = "* data:";
   const frameSrc = "*";
+  const connectSrc = "*";
 
   // The iframe is its own isolated document — it doesn't inherit our theme's
   // CSS variables, so a blank/no-fill ad response defaults to the browser's
@@ -96,5 +111,5 @@ export function buildAdTagHtml(
   // gets cropped instead of growing scrollbars.
   const style = `html,body{margin:0;padding:0;width:${config.width}px;height:${config.height}px;overflow:hidden;background-color:${backgroundColor};}`;
 
-  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src ${scriptSrc}; img-src ${imgSrc}; style-src 'unsafe-inline'; frame-src ${frameSrc};"><style>${style}</style></head><body>${tag}</body></html>`;
+  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src ${scriptSrc}; img-src ${imgSrc}; connect-src ${connectSrc}; style-src 'unsafe-inline'; frame-src ${frameSrc};"><style>${style}</style></head><body>${tag}</body></html>`;
 }
