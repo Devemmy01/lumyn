@@ -21,7 +21,25 @@ const nextConfig: NextConfig = {
   experimental: {},
   async headers() {
     const adsOrigin = process.env.NEXT_PUBLIC_ADS_ORIGIN;
-    const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL;
+    // Both the apex and www origins, regardless of which one
+    // NEXT_PUBLIC_SITE_URL happens to be set to — frame-ancestors requires
+    // an exact origin match, so if the env var and the actual browsing host
+    // ever disagree (e.g. apex vs www), the ad iframe would silently fail
+    // its own CSP check and never render, with no visible error anywhere.
+    const siteOrigins = (() => {
+      const raw = process.env.NEXT_PUBLIC_SITE_URL;
+      if (!raw) return [];
+      try {
+        const url = new URL(raw);
+        const bare = url.origin;
+        const alt = url.hostname.startsWith("www.")
+          ? `${url.protocol}//${url.hostname.slice(4)}`
+          : `${url.protocol}//www.${url.hostname}`;
+        return [bare, alt];
+      } catch {
+        return [raw];
+      }
+    })();
     // frame-src: what THIS site's pages are allowed to embed as an iframe.
     // Only 'self' plus the dedicated ads subdomain, if configured — nothing
     // else on the site ever needs to frame third-party content.
@@ -61,7 +79,7 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       {
         key: "Content-Security-Policy",
-        value: `frame-ancestors 'self'${siteOrigin ? ` ${siteOrigin}` : ""};`,
+        value: `frame-ancestors 'self' ${siteOrigins.join(" ")};`,
       },
     ];
 
