@@ -40,33 +40,6 @@ export function adNetworkScriptOrigins(): string[] {
     .filter(Boolean);
 }
 
-/** The ad creative (images) an invoke.js script pulls in commonly comes
- * from a different subdomain of the same ad-network domain than the script
- * itself was loaded from (e.g. a CDN subdomain, not www.<network>.com) —
- * a real ad rendered as a visible browser broken-image icon on the live
- * site traced back to exactly this: img-src only allowlisted the exact
- * script host, so the creative's actual <img> request got silently
- * dropped by CSP with no console-visible network failure (blocked
- * subresource requests inside a sandboxed CSP'd document don't always
- * surface as a request Playwright/devtools can see either — it just never
- * fires). Wildcarding one subdomain level for images only (never for
- * script-src, which stays exact) keeps script execution locked to the
- * literal hosts from each ad tag while giving creative assets realistic
- * room to load. */
-function wildcardSubdomains(origins: string[]): string[] {
-  const wildcards = origins.flatMap((origin) => {
-    try {
-      const url = new URL(origin);
-      const parts = url.hostname.split(".");
-      const baseDomain = parts.length > 2 ? parts.slice(-2).join(".") : url.hostname;
-      return [`${url.protocol}//${baseDomain}`, `${url.protocol}//*.${baseDomain}`];
-    } catch {
-      return [];
-    }
-  });
-  return Array.from(new Set([...origins, ...wildcards]));
-}
-
 /** Returns the HTML to write into the sandboxed iframe's document, or null
  * if this placement's template isn't configured yet — the caller should
  * fall back to an empty reserved box, not a broken page.
@@ -94,14 +67,25 @@ export function buildAdTagHtml(
 
   const origins = adNetworkScriptOrigins();
   const scriptSrc = origins.length > 0 ? `'unsafe-inline' ${origins.join(" ")}` : "'none'";
-  const assetOrigins = wildcardSubdomains(origins);
-  const imgSrc = assetOrigins.join(" ") || "'none'";
-  const frameSrc = assetOrigins.join(" ") || "'none'";
+
+  // The invoke.js script itself routes creative through ad-tech redirect
+  // chains on domains that rotate per-request and can't be predicted or
+  // allowlisted (confirmed by pulling the real script: it references
+  // entirely different, unrelated-looking domains, not subdomains of the
+  // network's own domain) — a static allowlist for img-src/frame-src is
+  // fundamentally incompatible with how programmatic ad delivery works,
+  // and produced a live, visible broken-image icon where a real ad should
+  // render. Left open for images/frames; script-src stays the actual
+  // security boundary, locked to the exact hosts from each ad tag — a
+  // compromised or malicious creative still can't load or run a script
+  // from anywhere but those.
+  const imgSrc = "* data:";
+  const frameSrc = "*";
 
   // The iframe is its own isolated document — it doesn't inherit our theme's
   // CSS variables, so a blank/no-fill ad response defaults to the browser's
   // white canvas regardless of dark mode. Baking the resolved --bg-secondary
   // value in as the body background keeps an empty slot visually quiet
   // instead of flashing white.
-  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${scriptSrc}; img-src ${imgSrc} data:; style-src 'unsafe-inline'; frame-src ${frameSrc};"></head><body style="margin:0;padding:0;background-color:${backgroundColor};">${tag}</body></html>`;
+  return `<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src ${scriptSrc}; img-src ${imgSrc}; style-src 'unsafe-inline'; frame-src ${frameSrc};"></head><body style="margin:0;padding:0;background-color:${backgroundColor};">${tag}</body></html>`;
 }
