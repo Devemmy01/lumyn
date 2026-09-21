@@ -133,16 +133,28 @@ export default async function JournalPostPage({ params }: PageProps) {
             Back to Journal
           </Link>
 
-          {/* Tags */}
+          {/* Tags — a single horizontally-scrollable row on mobile (tag
+              labels are often multi-word and each one can be nearly as
+              wide as a phone screen, which turned flex-wrap into a tall
+              stack of one tag per row); wraps normally from md: up where
+              there's enough width for that to look fine. */}
           {post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6" aria-label="Article topics">
+            <div
+              className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0"
+              aria-label="Article topics"
+            >
               {post.tags.map((tag: string) => (
-                <span key={tag} className="rounded-full border border-[color:var(--border-primary)] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">{tag.replace(/-/g, " ")}</span>
+                <span
+                  key={tag}
+                  className="shrink-0 rounded-full border border-[color:var(--border-primary)] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]"
+                >
+                  {tag.replace(/-/g, " ")}
+                </span>
               ))}
             </div>
           )}
 
-          <h1 className="mb-7 max-w-4xl text-balance text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.92] tracking-[-0.055em] opacity-0 animate-fade-up" style={{
+          <h1 className="mb-7 max-w-4xl text-balance text-[clamp(2rem,4.5vw,4.25rem)] font-medium leading-[1.05] tracking-[-0.03em] opacity-0 animate-fade-up" style={{
             color: "var(--text-primary)",
             animationDelay: "100ms",
             animationFillMode: "forwards"
