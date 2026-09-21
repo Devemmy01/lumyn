@@ -39,19 +39,20 @@ export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
   "journal-inline-2": {
     network: "adsterra",
     slotId: process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_2_SLOT_ID ?? "",
-    // Second in-article slot, near the end of the post — needs its own
-    // distinct ad unit from the network dashboard, not a reused slotId
-    // (serving the same unit twice on one page is against most networks'
-    // policies and tends to just no-fill the second one anyway).
-    width: 640,
-    height: 120,
+    // Adsterra caps Native Banner at one unit per registered site, so this
+    // second in-article slot uses a Banner unit instead — 468x60, the
+    // smallest fixed size still available once 300x250/728x90 were used.
+    width: 468,
+    height: 60,
     enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INLINE_2_ENABLED !== "false",
   },
   "journal-index-sidebar": {
     network: "adsterra",
+    // 160x600 skyscraper — a natural fit for the sticky sidebar's width,
+    // unlike centering a tall unit under a list of articles.
     slotId: process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_SIDEBAR_SLOT_ID ?? "",
-    width: 300,
-    height: 250,
+    width: 160,
+    height: 600,
     enabled: process.env.NEXT_PUBLIC_AD_JOURNAL_INDEX_SIDEBAR_ENABLED !== "false",
   },
   "journal-index-bottom": {
@@ -73,8 +74,8 @@ export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
   "tool-below-result-2": {
     network: "adsterra",
     slotId: process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_2_SLOT_ID ?? "",
-    width: 300,
-    height: 250,
+    width: 160,
+    height: 300,
     enabled: process.env.NEXT_PUBLIC_AD_TOOL_BELOW_RESULT_2_ENABLED !== "false",
   },
   "tools-index": {
@@ -87,8 +88,8 @@ export const AD_PLACEMENTS: Record<string, AdPlacementConfig> = {
   "tools-index-top": {
     network: "adsterra",
     slotId: process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_TOP_SLOT_ID ?? "",
-    width: 728,
-    height: 90,
+    width: 320,
+    height: 50,
     enabled: process.env.NEXT_PUBLIC_AD_TOOLS_INDEX_TOP_ENABLED !== "false",
   },
 };
