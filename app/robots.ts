@@ -8,6 +8,10 @@ export default function robots(): MetadataRoute.Robots {
     "/academy/dashboard/",
     "/academy/sign-in",
     "/academy/payment/",
+    "/guides/checkout",
+    "/guides/success",
+    "/guides/download/",
+    "/guides/resend",
   ];
   const aiAndSearchCrawlers = [
     "GPTBot",

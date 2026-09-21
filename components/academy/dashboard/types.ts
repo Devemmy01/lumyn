@@ -67,6 +67,9 @@ export type DashboardGamification = {
 };
 
 export type DashboardPayload = {
+  pricing?: {
+    certificatePriceCents: number;
+  };
   student: {
     name?: string;
     email: string;

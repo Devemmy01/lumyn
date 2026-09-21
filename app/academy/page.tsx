@@ -9,7 +9,6 @@ import {
   FeatureCard,
 } from "@/components/academy/AcademyLandingParts";
 import {
-  ACADEMY_CERTIFICATE_PRICE_CENTS,
   ACADEMY_TUTOR_NAME,
   academyFaqs,
   academySubscriptionPlan,
@@ -19,6 +18,7 @@ import {
   learningPathModules,
   REFERRALS_PER_DIAMOND,
 } from "@/lib/academy";
+import { certificatePriceCents } from "@/lib/flutterwave";
 import {
   buildMetadata,
   buildProductJsonLd,
@@ -28,6 +28,19 @@ import {
 } from "@/lib/seo";
 
 const academyMetadataDescription = `Learn to code with free, structured, gamified courses: lessons, practice, assessments, and projects, with certificates and support from ${ACADEMY_TUTOR_NAME} along the way.`;
+
+// Computed from the live, env-overridable price (lib/flutterwave.ts) rather than
+// the static code constant, so this page can never quote a certificate price
+// that differs from what checkout actually charges.
+const certificatePrice = `$${(certificatePriceCents() / 100).toFixed(2)}`;
+const resolvedAcademyFaqs = academyFaqs.map((faq) =>
+  faq.question === "How much does a certificate cost?"
+    ? {
+        ...faq,
+        answer: `Certificates are ${certificatePrice} each, free for active subscribers, or free once you've earned ${DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds.`,
+      }
+    : faq,
+);
 
 const academyMetadataKeywords = [
   "AI learning platform",
@@ -128,7 +141,7 @@ const jsonLd = {
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: academyFaqs.map((item) => ({
+  mainEntity: resolvedAcademyFaqs.map((item) => ({
     "@type": "Question",
     name: item.question,
     acceptedAnswer: { "@type": "Answer", text: item.answer },
@@ -150,7 +163,7 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
   const academyStartHref = buildAcademyStartHref(referralCode);
 
   return (
-    <div className="academy-app-font overflow-hidden mt-5 bg-[var(--bg-primary)] text-[var(--text-primary)]">
+    <div className="academy-app-font -mt-24 overflow-hidden bg-[var(--bg-primary)] pt-24 text-[var(--text-primary)] md:-mt-28 md:pt-28">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
@@ -160,8 +173,10 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
       />
 
-      <section className="relative border-b border-[var(--border-primary)] px-6 pb-24 pt-16 md:px-12 md:pb-32 md:pt-24">
+      <section className="relative overflow-hidden border-b border-[var(--border-primary)] px-6 pb-24 pt-16 md:px-12 md:pb-32 md:pt-24">
+        <div className="ambient-glow pointer-events-none absolute inset-x-0 top-0 h-[48rem] bg-[radial-gradient(circle_at_24%_0%,rgba(124,108,246,0.2),transparent_52%)]" />
         <div className="lumyn-grid pointer-events-none absolute inset-0 opacity-30 [mask-image:linear-gradient(to_bottom,black,transparent_90%)]" />
+        <div className="ambient-glow pointer-events-none absolute -right-24 top-24 h-72 w-72 rounded-full bg-cyan-300/[0.07] blur-[110px] [animation-delay:-10s] [animation-direction:alternate-reverse]" />
 
         <div className="relative mx-auto grid max-w-[1400px] gap-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <div>
@@ -212,7 +227,7 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
           <Reveal delay={120} variant="scale">
             <div className="relative">
               <CourseStudioPreview />
-              <div className="pointer-events-none absolute -bottom-8 -left-5 hidden w-44 rounded-[1.7rem] border border-[#7c6cf6]/20 bg-white/85 p-3 shadow-[0_24px_70px_rgba(53,42,110,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111018]/88 sm:block lg:-bottom-10 lg:-left-8 lg:w-52">
+              <div className="pointer-events-none absolute -bottom-8 -right-5 hidden w-44 rounded-[1.7rem] border border-[#7c6cf6]/20 bg-white/85 p-3 shadow-[0_24px_70px_rgba(53,42,110,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111018]/88 sm:block lg:-bottom-10 lg:-right-8 lg:w-52">
                 <div className="flex items-center gap-3">
                   <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#7c6cf6]/10">
                     <AstraMascot expression="happy" className="h-20 w-20 translate-y-1" priority />
@@ -390,10 +405,7 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
               {[
                 ["Free", "every course & lesson"],
                 [academySubscriptionPlan.price, `${ACADEMY_TUTOR_NAME} tutor / mo`],
-                [
-                  `$${(ACADEMY_CERTIFICATE_PRICE_CENTS / 100).toFixed(2)}`,
-                  "per certificate",
-                ],
+                [certificatePrice, "per certificate"],
               ].map(([value, label]) => (
                 <div
                   key={label}
@@ -459,10 +471,7 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
               <div className="mt-6 grid gap-3">
                 {[
                   ["Subscribe", "Free while your subscription is active"],
-                  [
-                    `$${(ACADEMY_CERTIFICATE_PRICE_CENTS / 100).toFixed(2)}`,
-                    "Pay once per certificate",
-                  ],
+                  [certificatePrice, "Pay once per certificate"],
                   [
                     `${DIAMONDS_TO_UNLOCK_CERTIFICATE} diamonds`,
                     `Earn 1 diamond per ${REFERRALS_PER_DIAMOND} referrals`,
@@ -532,7 +541,7 @@ export default async function AcademyPage({ searchParams }: AcademyPageProps) {
             </h2>
           </Reveal>
           <div className="divide-y divide-[var(--border-primary)] border-y border-[var(--border-primary)]">
-            {academyFaqs.map((faq, index) => (
+            {resolvedAcademyFaqs.map((faq, index) => (
               <Reveal key={faq.question} delay={index * 35}>
                 <details className="group py-6">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-semibold">

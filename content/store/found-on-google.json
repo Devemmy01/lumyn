@@ -1,0 +1,27 @@
+{
+  "slug": "found-on-google",
+  "tagline": "A practical playbook for showing up when Nigerian customers search for what you sell.",
+  "coverImage": "/covers/found-on-google.jpg",
+  "sampleFile": "/samples/found-on-google-sample.pdf",
+  "whatsInside": [
+    "How to set up and actually optimize Google Business Profile for a Nigerian business",
+    "The handful of on-page SEO basics that matter most for a small site, in plain language",
+    "How local, Nigeria-specific search behaviour differs from generic SEO advice you'll find online",
+    "A monthly checklist to keep your visibility improving without hiring an agency"
+  ],
+  "whoFor": "Small business owners and solo founders in Nigeria who want customers to find them on Google without paying for ads or an SEO agency.",
+  "faq": [
+    {
+      "q": "Do I need a developer to do any of this?",
+      "a": "No. Everything in the guide is something a business owner can do themselves in an afternoon, with no code."
+    },
+    {
+      "q": "Will this work if I don't have a website yet?",
+      "a": "Most of the biggest wins — Google Business Profile, reviews, local listings — don't require a website at all. It'll also tell you when a website starts to matter."
+    },
+    {
+      "q": "How fast will I see results?",
+      "a": "Local search improvements usually show up in weeks, not months, once Google Business Profile is set up correctly — the guide explains why."
+    }
+  ]
+}

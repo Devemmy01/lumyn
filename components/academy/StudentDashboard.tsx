@@ -36,6 +36,8 @@ import {
   CatalogRoute,
   CelebrationModal,
   CertificateRoute,
+  CreatorCoursesRoute,
+  CreatorEarningsRoute,
   DashboardAuthScreen,
   DashboardIcon,
   DashboardLoading,
@@ -44,10 +46,12 @@ import {
   FloatingAstraChat,
   LearningRoute,
   LoadingSpinner,
+  MarketplaceRoute,
   MobileDashboardNav,
   ModuleCelebrationModal,
   ModulePathPicker,
   MoonIcon,
+  MyPurchasesRoute,
   NotificationBell,
   OverviewHero,
   OverviewJourney,
@@ -394,6 +398,10 @@ export default function StudentDashboard() {
   const showAssignments = dashboardView === "assignments";
   const showCertificates = dashboardView === "certificates";
   const showBilling = dashboardView === "billing";
+  const showMarketplace = dashboardView === "marketplace";
+  const showPurchases = dashboardView === "purchases";
+  const showCreator = dashboardView === "creator";
+  const showCreatorEarnings = dashboardView === "creator-earnings";
   const notificationStorageKey =
     user?.uid || dashboard?.student.email
       ? `lumyn_academy_notifications_read_${user?.uid ?? dashboard?.student.email}`
@@ -1590,7 +1598,7 @@ export default function StudentDashboard() {
     const code = dashboard?.student.referralCode;
     if (!code) return;
     const origin = window.location.origin.includes("localhost")
-      ? "https://lumynhq.studio"
+      ? "https://www.lumynhq.studio"
       : window.location.origin;
     const link = `${origin}/academy?ref=${encodeURIComponent(code)}`;
     try {
@@ -1630,7 +1638,14 @@ export default function StudentDashboard() {
   const courseReadyForFinalProject =
     Boolean(selected) && totalModules > 0 && completedModules === totalModules;
   const showRouteAside =
-    !showCertificates && !showBilling && !showCatalog && !showRewards;
+    !showCertificates &&
+    !showBilling &&
+    !showCatalog &&
+    !showRewards &&
+    !showMarketplace &&
+    !showPurchases &&
+    !showCreator &&
+    !showCreatorEarnings;
   const latestAttempt = selected?.quizAttempts
     .filter((attempt) => attempt.moduleIndex === activeModule)
     .at(-1);
@@ -1656,7 +1671,7 @@ export default function StudentDashboard() {
     (enrollment) => enrollment.id === selectedId,
   );
   const referralOrigin = appOrigin.includes("localhost")
-    ? "https://lumynhq.studio"
+    ? "https://www.lumynhq.studio"
     : appOrigin;
   const referralLink =
     dashboard?.student.referralCode && appOrigin
@@ -2025,6 +2040,10 @@ export default function StudentDashboard() {
                   "certificates",
                 ],
                 ["Billing", "/academy/dashboard/billing", "card", "billing"],
+                ["Marketplace", "/academy/dashboard/marketplace", "store", "marketplace"],
+                ["My purchases", "/academy/dashboard/purchases", "book", "purchases"],
+                ["Creator studio", "/academy/dashboard/creator", "briefcase", "creator"],
+                ["Earnings", "/academy/dashboard/creator-earnings", "wallet", "creator-earnings"],
               ].map(([label, href, icon, view]) => (
                 <Link
                   key={label}
@@ -2477,6 +2496,7 @@ export default function StudentDashboard() {
                 enrollments={enrollments}
                 isSubscribed={hasFullAcademyAccess}
                 diamondsBalance={diamondsBalance}
+                certificatePriceCents={dashboard?.pricing?.certificatePriceCents}
                 pendingAction={pendingAction}
                 onUnlockWithPayment={(enrollmentId) =>
                   void unlockCertificateWithPayment(enrollmentId)
@@ -2496,6 +2516,14 @@ export default function StudentDashboard() {
                 onCancelSubscription={() => void cancelSubscription()}
               />
             )}
+
+            {showMarketplace && <MarketplaceRoute />}
+
+            {showPurchases && <MyPurchasesRoute />}
+
+            {showCreator && <CreatorCoursesRoute />}
+
+            {showCreatorEarnings && <CreatorEarningsRoute />}
 
             {showRouteAside && (
               <DashboardRightRail

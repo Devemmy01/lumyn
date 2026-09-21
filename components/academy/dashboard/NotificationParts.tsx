@@ -313,7 +313,7 @@ export function NotificationBell({
               </div>
             </div>
 
-            <div className="max-h-[28rem] space-y-3 overflow-y-auto p-3">
+            <div className="academy-scrollbar max-h-[28rem] space-y-3 overflow-y-auto p-3">
               {notifications.length ? (
                 notifications.map((notification) => {
                   const read = readNotificationIds.includes(notification.id);

@@ -144,279 +144,56 @@ function AcademyMark() {
   );
 }
 
-function HeroProductCanvas() {
-  return (
-    <div className="dark-visual lumyn-noise relative mx-auto max-w-[1280px] overflow-hidden rounded-[1.75rem] border border-white/[0.12] bg-[#09090b] shadow-[0_45px_140px_rgba(0,0,0,0.48)] md:rounded-[2.5rem]">
-      <div className="pointer-events-none absolute left-[12%] top-[-9rem] h-96 w-96 rounded-full bg-[#7c6cf6]/20 blur-[120px]" />
-      <div className="pointer-events-none absolute bottom-[-12rem] right-[-6rem] h-[30rem] w-[30rem] rounded-full bg-emerald-300/[0.07] blur-[130px]" />
-
-      <div className="relative flex h-14 items-center justify-between border-b border-white/[0.08] px-5 md:h-16 md:px-7">
-        <div className="flex items-center gap-5">
-          <div className="flex gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-white/20" />
-            <span className="h-2 w-2 rounded-full bg-white/20" />
-            <span className="h-2 w-2 rounded-full bg-[#7c6cf6]" />
-          </div>
-          <span className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35 sm:block">
-            Lumyn / Product constellation
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/40">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.9)]" />
-          Systems online
-        </div>
-      </div>
-
-      <div className="relative grid min-h-[610px] md:grid-cols-[72px_1fr]">
-        <aside className="hidden flex-col items-center justify-between border-r border-white/[0.08] py-7 md:flex">
-          <div className="flex flex-col gap-5">
-            {["01", "02", "03"].map((item, index) => (
-              <span
-                key={item}
-                className={`flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-semibold ${
-                  index === 0
-                    ? "bg-[#7c6cf6] text-white shadow-[0_8px_24px_rgba(124,108,246,0.35)]"
-                    : "border border-white/10 text-white/30"
-                }`}
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-          <span className="-rotate-90 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.28em] text-white/20">
-            Built by Lumyn
-          </span>
-        </aside>
-
-        <div className="grid gap-3 p-3 sm:gap-4 sm:p-4 lg:grid-cols-[1.18fr_0.82fr] lg:p-5">
-          <div className="grid gap-3 sm:gap-4 lg:grid-rows-[1.28fr_0.72fr]">
-            <div className="relative flex min-h-[430px] flex-col justify-between overflow-hidden rounded-[1.35rem] border border-white/[0.09] bg-[#121217] p-6 sm:p-8 md:rounded-[1.75rem] md:p-10">
-              <div className="lumyn-grid pointer-events-none absolute inset-0 opacity-30" />
-              <div className="pointer-events-none absolute right-[-5rem] top-[-5rem] h-72 w-72 rounded-full bg-[#7c6cf6]/20 blur-[90px]" />
-
-              <div className="relative flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <AcademyMark />
-                  <div>
-                    <p className="text-sm font-semibold text-white">
-                      Lumyn Academy
-                    </p>
-                    <p className="mt-0.5 text-xs text-white/35">
-                      Adaptive learning system
-                    </p>
-                  </div>
-                </div>
-                <span className="hidden rounded-full border border-[#a99ef9]/25 bg-[#7c6cf6]/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#bcb2ff] sm:block">
-                  Flagship / 01
-                </span>
-              </div>
-
-              <div className="relative my-10">
-                <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35">
-                  Generated for your ambition
-                </p>
-                <h2 className="max-w-xl text-[clamp(2.4rem,5vw,4.65rem)] font-medium leading-[0.9] tracking-[-0.06em] text-white">
-                  Learn what
-                  <span className="block font-[Georgia] font-normal italic text-[#a99ef9]">
-                    moves you forward.
-                  </span>
-                </h2>
-              </div>
-
-              <div className="relative">
-                <div className="mb-4 flex items-end justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/30">
-                      AI Product Engineer
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-white/75">
-                      Personal learning path
-                    </p>
-                  </div>
-                  <p className="text-3xl font-medium tracking-[-0.05em] text-white">
-                    68<span className="text-base text-white/30">%</span>
-                  </p>
-                </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
-                  <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-[#7c6cf6] via-[#a99ef9] to-[#d5d0ff]" />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-[0.92fr_1.08fr] sm:gap-4">
-              <div className="flex min-h-40 flex-col justify-between rounded-[1.35rem] bg-[#7c6cf6] p-6 text-white md:rounded-[1.75rem]">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">
-                  Our operating idea
-                </p>
-                <p className="max-w-xs text-2xl font-medium leading-[1.03] tracking-[-0.04em]">
-                  Make the complex feel inevitable.
-                </p>
-              </div>
-              <div className="flex min-h-40 flex-col justify-between rounded-[1.35rem] border border-white/[0.09] bg-white/[0.035] p-6 md:rounded-[1.75rem]">
-                <div className="flex items-center justify-between text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30">
-                  <span>Studio signal</span>
-                  <span>2026</span>
-                </div>
-                <div>
-                  <div className="mb-3 flex h-12 items-end gap-1">
-                    {[24, 40, 31, 54, 45, 67, 59, 82, 73, 92].map(
-                      (height, index) => (
-                        <span
-                          key={`${height}-${index}`}
-                          className="flex-1 rounded-sm bg-gradient-to-t from-[#7c6cf6]/25 to-[#a99ef9]"
-                          style={{ height: `${height}%` }}
-                        />
-                      ),
-                    )}
-                  </div>
-                  <p className="text-sm font-medium text-white/75">
-                    Strategy → experience → shipped product
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:gap-4 lg:grid-rows-[1fr_auto]">
-            <div className="group relative min-h-[410px] overflow-hidden">
-              <Image
-                src="/mindfuel2.png"
-                alt="MindFuel reflection network interface"
-                fill
-                priority
-                sizes="(max-width: 1024px) 94vw, 35vw"
-                className="object-cover object-left-top "
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#030a07] via-transparent to-black/20" />
-              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7">
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/45">
-                    MindFuel / Product 02
-                  </p>
-                  <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.15em] text-emerald-200">
-                    Live
-                  </span>
-                </div>
-                <p className="max-w-sm text-3xl font-medium leading-[1.02] tracking-[-0.045em] text-white">
-                  A quieter place for louder thoughts.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {[
-                ["02", "Live products"],
-                ["01", "Connected studio"],
-              ].map(([value, label]) => (
-                <div
-                  key={label}
-                  className="rounded-[1.35rem] border border-white/[0.09] bg-white/[0.035] p-5 md:rounded-[1.75rem]"
-                >
-                  <p className="text-3xl font-medium tracking-[-0.05em] text-white">
-                    {value}
-                  </p>
-                  <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/30">
-                    {label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function AcademyProductVisual() {
   const modules = [
-    ["Product foundations", "Complete", "100%"],
-    ["Working with AI models", "In progress", "68%"],
-    ["Build and ship", "Up next", "22%"],
+    ["Product foundations", "100%"],
+    ["Working with AI models", "68%"],
+    ["Build and ship", "22%"],
   ];
 
   return (
-    <div className="dark-visual relative min-h-[500px] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0a0a0c] p-2 shadow-[0_30px_100px_rgba(0,0,0,0.32)] sm:rounded-[2rem] sm:p-6">
-      <div className="lumyn-grid absolute inset-0 opacity-25" />
-      <div className="absolute -right-28 -top-24 h-80 w-80 rounded-full bg-[#7c6cf6]/20 blur-[100px]" />
+    <div className="dark-visual relative overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0a0a0c] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.32)] sm:rounded-[2rem] sm:p-8">
+      <div className="lumyn-grid pointer-events-none absolute inset-0 opacity-20" />
+      <div className="ambient-glow pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#7c6cf6]/15 blur-[100px] [animation-duration:22s]" />
 
-      <div className="relative rounded-[1.5rem] border border-white/10 bg-[#111116]/95 p-5 sm:p-7">
-        <div className="mb-10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AcademyMark />
-            <div>
-              <p className="text-sm font-semibold text-white">My learning path</p>
-              <p className="text-xs text-white/35">AI Product Engineer</p>
-            </div>
-          </div>
-          <span className="hidden rounded-full bg-emerald-400/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-300 sm:inline-flex">
-            On track
-          </span>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[1.12fr_0.88fr]">
-          <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
-              Path progress
-            </p>
-            <div className="my-7 flex items-end gap-2">
-              <p className="text-6xl font-medium tracking-[-0.06em] text-white">
-                68
-              </p>
-              <p className="pb-2 text-lg text-white/35">%</p>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full w-[68%] rounded-full bg-[#7c6cf6]" />
-            </div>
-            <div className="mt-8 rounded-xl border border-white/10 bg-white/[0.035] p-4">
-              <p className="text-xs text-white/35">Up next</p>
-              <p className="mt-2 text-sm font-medium text-white/80">
-                Build your first AI workflow
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {modules.map(([title, status, progress], index) => (
-              <div
-                key={title}
-                className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] ${
-                      index === 0
-                        ? "bg-emerald-400 text-black"
-                        : index === 1
-                          ? "bg-[#7c6cf6] text-white"
-                          : "bg-white/10 text-white/40"
-                    }`}
-                  >
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white/80">
-                      {title}
-                    </p>
-                    <div className="mt-2 flex justify-between text-[10px] text-white/30">
-                      <span>{status}</span>
-                      <span>{progress}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+      <div className="relative flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <AcademyMark />
+          <div>
+            <p className="text-sm font-semibold text-white">My learning path</p>
+            <p className="text-xs text-white/35">AI Product Engineer</p>
           </div>
         </div>
+        <p className="text-4xl font-medium tracking-[-0.05em] text-white">
+          68<span className="text-base text-white/30">%</span>
+        </p>
       </div>
 
-      <div className="relative mt-4 flex flex-wrap w-full gap-3">
-        {["Astra tutor", "Build projects", "Earn certificates"].map((item) => (
+      <div className="relative mt-6 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="h-full w-[68%] rounded-full bg-[#7c6cf6]" />
+      </div>
+
+      <div className="relative mt-8 space-y-3">
+        {modules.map(([title, progress], index) => (
           <div
-            key={item}
-            className="rounded-2xl w-full border border-white/10 bg-white/[0.035] px-3 py-4 text-center text-[11px] text-white/50"
+            key={title}
+            className="flex items-center justify-between border-b border-white/[0.06] pb-3 last:border-0 last:pb-0"
           >
-            {item}
+            <div className="flex items-center gap-3">
+              <span
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                  index === 0
+                    ? "bg-emerald-400 text-black"
+                    : index === 1
+                      ? "bg-[#7c6cf6] text-white"
+                      : "bg-white/10 text-white/40"
+                }`}
+              >
+                {index + 1}
+              </span>
+              <p className="text-sm font-medium text-white/75">{title}</p>
+            </div>
+            <span className="text-xs text-white/30">{progress}</span>
           </div>
         ))}
       </div>
@@ -426,61 +203,20 @@ function AcademyProductVisual() {
 
 function MindFuelProductVisual() {
   return (
-    <div className="dark-visual relative min-h-[500px] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#080a0a] p-2 shadow-[0_30px_100px_rgba(0,0,0,0.32)] sm:rounded-[2rem] sm:p-6">
-      <div className="absolute -bottom-24 -right-20 h-80 w-80 rounded-full bg-emerald-400/10 blur-[100px]" />
-      <div className="lumyn-grid absolute inset-0 opacity-25" />
-
-      <div className="relative grid min-h-[450px] gap-2 md:grid-cols-[0.76fr_1.24fr] md:gap-4">
-        <div className="flex flex-col justify-between rounded-[1.25rem] border border-white/10 bg-[#101314] p-5 sm:rounded-[1.5rem]">
-          <div>
-            <div className="mb-8 flex items-center gap-3">
-              <Image
-                src="/mindlogo.png"
-                alt=""
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-xl object-cover"
-              />
-              <div>
-                <p className="text-sm font-semibold text-white">MindFuel</p>
-                <p className="text-xs text-white/35">Daily reflection</p>
-              </div>
-            </div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
-              Today&apos;s thought
-            </p>
-            <p className="mt-4 text-2xl font-medium leading-tight tracking-[-0.035em] text-white">
-              What did life teach you when you slowed down?
-            </p>
-          </div>
-          <div className="space-y-2">
-            {["Perspective", "Growth", "Human"].map((tag) => (
-              <div
-                key={tag}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3"
-              >
-                <span className="text-xs text-white/50">{tag}</span>
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300/70" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="group relative min-h-[470px] overflow-hidden rounded-[1.25rem] border border-white/10 bg-[radial-gradient(circle_at_50%_38%,rgba(52,211,153,0.12),transparent_48%),linear-gradient(145deg,#111817,#050606)] sm:rounded-[1.5rem] md:min-h-[450px]">
-          <Image
-            src="/mindfuel2.png"
-            alt="MindFuel mobile reflection experience"
-            fill
-            sizes="(max-width: 767px) 92vw, 42vw"
-            className="object-contain object-center p-3 drop-shadow-[0_30px_45px_rgba(0,0,0,0.5)] transition duration-700 group-hover:scale-[1.025] sm:p-5"
-          />
-          <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-xl sm:right-5 sm:top-5">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-            <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/65">
-              Live mobile experience
-            </span>
-          </div>
-        </div>
+    <div className="dark-visual group relative min-h-[420px] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[radial-gradient(circle_at_50%_38%,rgba(52,211,153,0.12),transparent_48%),linear-gradient(145deg,#111817,#050606)] shadow-[0_30px_100px_rgba(0,0,0,0.32)] sm:min-h-[480px] sm:rounded-[2rem]">
+      <div className="ambient-glow pointer-events-none absolute -bottom-24 -right-20 h-80 w-80 rounded-full bg-emerald-400/10 blur-[100px] [animation-delay:-14s]" />
+      <Image
+        src="/mindfuel2.png"
+        alt="MindFuel mobile reflection experience"
+        fill
+        sizes="(max-width: 767px) 92vw, 55vw"
+        className="object-contain object-center p-6 drop-shadow-[0_30px_45px_rgba(0,0,0,0.5)] transition duration-700 group-hover:scale-[1.02] sm:p-8"
+      />
+      <div className="absolute right-5 top-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-xl sm:right-6 sm:top-6">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
+        <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/65">
+          Live mobile experience
+        </span>
       </div>
     </div>
   );
@@ -506,9 +242,9 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
-      <section className="relative overflow-hidden bg-[color:var(--bg-primary)] pb-20 pt-12 md:pb-28 md:pt-20 lg:pb-36">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[54rem] bg-[radial-gradient(circle_at_72%_0%,rgba(124,108,246,0.2),transparent_52%)]" />
-        <div className="pointer-events-none absolute left-[-8rem] top-56 h-72 w-72 rounded-full bg-cyan-300/[0.06] blur-[100px]" />
+      <section className="relative -mt-24 overflow-hidden bg-[color:var(--bg-primary)] pb-20 pt-36 md:-mt-28 md:pb-28 md:pt-48 lg:pb-36">
+        <div className="ambient-glow pointer-events-none absolute inset-x-0 top-0 h-[54rem] bg-[radial-gradient(circle_at_72%_0%,rgba(124,108,246,0.2),transparent_52%)]" />
+        <div className="ambient-glow pointer-events-none absolute left-[-8rem] top-56 h-72 w-72 rounded-full bg-cyan-300/[0.06] blur-[100px] [animation-delay:-9s] [animation-direction:alternate-reverse]" />
         <div className="container-wide relative">
           <div className="border-b border-black/10 pb-10 dark:border-white/10 md:pb-14">
             <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between md:mb-16">
@@ -558,15 +294,10 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative mt-10 md:mt-14">
-            <div className="pointer-events-none absolute -inset-x-10 top-20 h-[65%] rounded-full bg-[#7c6cf6]/10 blur-[100px]" />
-            <HeroProductCanvas />
-          </div>
-
           <Reveal
             delay={100}
             variant="fade"
-            className="mt-7 grid grid-cols-2 border-y border-black/10 dark:border-white/10 sm:grid-cols-4"
+            className="mt-14 grid grid-cols-2 border-y border-black/10 dark:border-white/10 sm:grid-cols-4 md:mt-20"
           >
             {[
               ["01", "Studio practice"],
@@ -871,8 +602,9 @@ export default async function HomePage() {
 
       <section
         id="journal"
-        className="bg-[color:var(--bg-primary)] py-20 md:py-28"
+        className="relative overflow-hidden bg-[color:var(--bg-primary)] py-20 md:py-28"
       >
+        <div className="ambient-glow pointer-events-none absolute -top-32 right-[8%] h-96 w-96 rounded-full bg-[#7c6cf6]/[0.12] blur-[120px] [animation-delay:-6s]" />
         <div className="container-wide">
           <Reveal className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
@@ -903,7 +635,6 @@ export default async function HomePage() {
                     readingTime={post.readingTime}
                     createdAt={post.createdAt}
                     index={index}
-                    variant={index === 0 ? "featured" : "default"}
                   />
                 </Reveal>
               ))}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AcademyDatabaseUnavailableError, getVerifiedAcademyStudent } from "@/lib/academy-access";
+import { certificatePriceCents } from "@/lib/flutterwave";
 import connectDB from "@/lib/mongodb";
 import AcademyCatalogCourse from "@/models/AcademyCatalogCourse";
 import AcademyEnrollment from "@/models/AcademyEnrollment";
@@ -39,6 +40,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      pricing: {
+        certificatePriceCents: certificatePriceCents(),
+      },
       student: {
         name: student.name,
         email: student.email,

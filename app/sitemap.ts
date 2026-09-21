@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
 import { SITE_URL } from "@/lib/seo";
 import Post from "@/models/Post";
+import { PRODUCT_SLUGS } from "@/lib/store/products";
+import { TOOLS } from "@/lib/tools/registry";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,19 @@ const publicPages: Array<{
   { path: "/terms", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
   { path: "/refund-policy", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
+  { path: "/guides", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/guides/payment-policy", changeFrequency: "yearly", priority: 0.3, lastModified: LEGAL_UPDATED_AT },
+  ...PRODUCT_SLUGS.map((slug) => ({
+    path: `/guides/${slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  })),
+  { path: "/tools", changeFrequency: "monthly", priority: 0.85 },
+  ...TOOLS.map((tool) => ({
+    path: `/tools/${tool.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  })),
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -62,5 +77,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...articlePages];
+  let tagPages: MetadataRoute.Sitemap = [];
+
+  try {
+    await dbConnect();
+    const tagCounts = (await Post.aggregate([
+      { $match: { published: true } },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
+    ])) as Array<{ _id: string; count: number }>;
+
+    // Thin (<3 post) tag pages are noindexed on the page itself, and left out
+    // of the sitemap for the same reason — they aren't worth crawl budget.
+    tagPages = tagCounts
+      .filter((tag) => tag.count >= 3)
+      .map((tag) => ({
+        url: `${SITE_URL}/journal/tag/${tag._id}`,
+        lastModified: CONTENT_UPDATED_AT,
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      }));
+  } catch (error) {
+    console.warn("Sitemap generated without journal tag pages.", error);
+  }
+
+  return [...staticPages, ...articlePages, ...tagPages];
 }

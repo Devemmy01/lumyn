@@ -5,19 +5,21 @@ interface JournalPaginationProps {
   currentPage: number;
   totalPages: number;
   queryParams: URLSearchParams;
+  basePath?: string;
 }
 
 export default function JournalPagination({
   currentPage,
   totalPages,
   queryParams,
+  basePath = "/journal",
 }: JournalPaginationProps) {
   if (totalPages <= 1) return null;
 
   const createPageUrl = (page: number) => {
     const params = new URLSearchParams(queryParams.toString());
     params.set("page", page.toString());
-    return `/journal?${params.toString()}`;
+    return `${basePath}?${params.toString()}`;
   };
 
   return (

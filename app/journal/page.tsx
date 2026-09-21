@@ -22,22 +22,14 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const params = await searchParams;
   const page = Math.max(1, Number.parseInt(String(params.page ?? "1"), 10) || 1);
   const query = typeof params.q === "string" ? params.q.trim() : "";
-  const tag = typeof params.tag === "string" ? params.tag.trim() : "";
-  const canonicalParams = new URLSearchParams();
-
-  if (tag) canonicalParams.set("tag", tag);
-  if (page > 1) canonicalParams.set("page", String(page));
-
-  const suffix = canonicalParams.toString();
-  const title = tag
-    ? `${tag.replace(/-/g, " ")} Articles${page > 1 ? ` | Page ${page}` : ""}`
-    : `Software Engineering & Product Journal${page > 1 ? ` | Page ${page}` : ""}`;
+  const suffix = page > 1 ? `?page=${page}` : "";
+  const title = `Software Engineering & Product Journal${page > 1 ? ` | Page ${page}` : ""}`;
 
   return buildMetadata({
     title,
     description:
       "Practical essays on software engineering, MVP development, web applications, product strategy, and building useful digital products.",
-    path: `/journal${suffix ? `?${suffix}` : ""}`,
+    path: `/journal${suffix}`,
     keywords: [
       "software engineering blog",
       "product strategy",
@@ -84,7 +76,6 @@ export default async function JournalPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
   const page = parseInt(resolvedParams.page as string) || 1;
   const query = (resolvedParams.q as string) || "";
-  const tag = (resolvedParams.tag as string) || "";
   const limit = 6;
   const skip = (page - 1) * limit;
 
@@ -96,9 +87,6 @@ export default async function JournalPage({ searchParams }: PageProps) {
       { slug: { $regex: query, $options: "i" } },
       { excerpt: { $regex: query, $options: "i" } }
     ];
-  }
-  if (tag) {
-    filter.tags = tag;
   }
 
   // Fetch db data
@@ -113,13 +101,12 @@ export default async function JournalPage({ searchParams }: PageProps) {
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
-  const featured = page === 1 && !query && !tag ? posts[0] : null;
+  const featured = page === 1 && !query ? posts[0] : null;
   const rest = featured ? posts.slice(1) : posts;
 
   // Parse query params for links/pagination
   const queryParams = new URLSearchParams();
   if (query) queryParams.set("q", query);
-  if (tag) queryParams.set("tag", tag);
 
   return (
     <>
@@ -145,7 +132,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
             {!posts.length && (
               <div className="py-12 border border-dashed  text-center" style={{ borderColor: "var(--border-primary)", color: "var(--text-secondary)" }}>
                 <p>No posts found matching your criteria.</p>
-                {(query || tag) && (
+                {query && (
                   <Link href="/journal" className="text-sage font-medium mt-4 inline-block hover:underline">
                     Clear filters
                   </Link>
@@ -213,10 +200,8 @@ export default async function JournalPage({ searchParams }: PageProps) {
             </div>
 
             {/* Tags */}
-            <JournalTagsFilter 
-              allTags={allTags as string[]} 
-              currentTag={tag}
-              currentQuery={query}
+            <JournalTagsFilter
+              allTags={allTags as string[]}
             />
 
             {/* Subscribe box */}

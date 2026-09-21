@@ -1,0 +1,27 @@
+{
+  "slug": "website-costs",
+  "tagline": "What you should actually pay for a website in Nigeria — and where the number really comes from.",
+  "coverImage": "/covers/website-costs.jpg",
+  "sampleFile": "/samples/website-costs-sample.pdf",
+  "whatsInside": [
+    "Realistic price ranges for a landing page, a small business site, and a full web app in Nigeria today",
+    "The cost drivers agencies and freelancers rarely explain up front — hosting, domains, design, revisions, maintenance",
+    "Red flags in a quote that predict scope creep or disappearing developers",
+    "A short brief template you can hand to any developer or agency to get comparable quotes"
+  ],
+  "whoFor": "Business owners and founders in Nigeria who are about to commission a website and want to know if a quote is fair before they pay for it.",
+  "faq": [
+    {
+      "q": "Is this specific to Nigeria, or generic advice?",
+      "a": "Specific to Nigeria — pricing in naira, local hosting and domain realities, and the freelancer/agency market as it actually works here."
+    },
+    {
+      "q": "I already have a developer. Is this still useful?",
+      "a": "Yes. Most of the guide is about knowing what you're paying for and spotting scope creep before it costs you, not about finding a developer."
+    },
+    {
+      "q": "How long is it?",
+      "a": "A focused read, not a textbook — built to be finished in one sitting and referenced again when you're getting quotes."
+    }
+  ]
+}

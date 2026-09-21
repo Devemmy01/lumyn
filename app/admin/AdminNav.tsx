@@ -19,6 +19,7 @@ const links = [
   { href: "/admin/subscribers", label: "Subscribers", icon: "users" },
   { href: "/admin/inquiries", label: "Inquiries", icon: "message" },
   { href: "/admin/academy", label: "Academy", icon: "spark" },
+  { href: "/admin/marketplace", label: "Marketplace", icon: "store" },
   { href: "/admin/inbox", label: "Email inbox", icon: "mail" },
 ] as const;
 
@@ -155,6 +156,7 @@ function AdminIcon({ name, active }: { name: (typeof links)[number]["icon"]; act
     message: <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />,
     spark: <path d="m12 3-1.6 4.4L6 9l4.4 1.6L12 15l1.6-4.4L18 9l-4.4-1.6L12 3ZM5 15l-.8 2.2L2 18l2.2.8L5 21l.8-2.2L8 18l-2.2-.8L5 15Z" />,
     mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>,
+    store: <><path d="M4 9.5 5 4h14l1 5.5" /><path d="M4.5 9.5v9.3c0 .7.6 1.2 1.2 1.2h12.6c.7 0 1.2-.5 1.2-1.2V9.5" /><path d="M9 20v-5.5h6V20" /></>,
   };
 
   return (

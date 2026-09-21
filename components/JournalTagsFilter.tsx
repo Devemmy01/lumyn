@@ -6,13 +6,11 @@ import Link from "next/link";
 interface JournalTagsFilterProps {
   allTags: string[];
   currentTag?: string;
-  currentQuery?: string;
 }
 
 export default function JournalTagsFilter({
   allTags,
   currentTag,
-  currentQuery,
 }: JournalTagsFilterProps) {
   const [showAllTags, setShowAllTags] = useState(false);
   const visibleCount = 5;
@@ -28,7 +26,7 @@ export default function JournalTagsFilter({
       <h2 className="font-semibold text-sm mb-4 tracking-tight flex items-center justify-between" style={{ color: "var(--text-primary)" }}>
         Browse by Topic
         {currentTag && (
-          <Link href={`/journal${currentQuery ? `?q=${currentQuery}` : ''}`} className="text-xs text-sage font-medium hover:underline">
+          <Link href="/journal" className="text-xs text-sage font-medium hover:underline">
             Clear Tag
           </Link>
         )}
@@ -36,14 +34,11 @@ export default function JournalTagsFilter({
       <div className="flex flex-wrap gap-2">
         {visibleTags.sort().map((t) => {
           const isActive = currentTag === t;
-          const tagParams = new URLSearchParams();
-          if (currentQuery) tagParams.set("q", currentQuery);
-          if (!isActive) tagParams.set("tag", t);
-          
+
           return (
-            <Link 
-              key={t} 
-              href={`/journal?${tagParams.toString()}`}
+            <Link
+              key={t}
+              href={isActive ? "/journal" : `/journal/tag/${t}`}
               className="rounded-full border border-[color:var(--border-primary)] px-3 py-2 text-xs transition-colors hover:border-[#7c6cf6] hover:bg-[#7c6cf6] hover:text-white"
               style={{
                 backgroundColor: isActive ? "#7c6cf6" : "var(--bg-secondary)",

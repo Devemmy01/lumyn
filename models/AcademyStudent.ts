@@ -40,6 +40,30 @@ export interface IAcademyStudentDocument extends Document {
   referralsCount?: number;
   /** Admin-grantable VIP flag: free tutor access and free certificates regardless of subscription. */
   vipAccess?: boolean;
+  /** Marketplace creator status — a student and a creator are the same account, not a separate role. */
+  creatorProfile?: {
+    payoutStatus: "unpaid" | "pending_first_approval" | "active";
+    bankDetails?: {
+      accountNumber: string;
+      bankCode: string;
+      businessName: string;
+    };
+    /** Collected for manual admin verification alongside their first course review — not auto-verified against any ID registry. */
+    identity?: {
+      legalName: string;
+      idType: "nin" | "bvn" | "passport" | "drivers_license" | "voters_card";
+      idNumber: string;
+    };
+    /** Set the moment they check the content-guidelines box while paying the listing fee. */
+    guidelinesAcceptedAt?: Date;
+    paystackSubaccountCode?: string;
+    paystackSplitCode?: string;
+    listingFee: {
+      status: "unpaid" | "paid";
+      paymentReference?: string;
+      paidAt?: Date;
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -155,6 +179,31 @@ const AcademyStudentSchema = new Schema<IAcademyStudentDocument>(
     vipAccess: {
       type: Boolean,
       index: true,
+    },
+    creatorProfile: {
+      payoutStatus: {
+        type: String,
+        enum: ["unpaid", "pending_first_approval", "active"],
+        default: "unpaid",
+      },
+      bankDetails: {
+        accountNumber: String,
+        bankCode: String,
+        businessName: String,
+      },
+      identity: {
+        legalName: String,
+        idType: { type: String, enum: ["nin", "bvn", "passport", "drivers_license", "voters_card"] },
+        idNumber: String,
+      },
+      guidelinesAcceptedAt: Date,
+      paystackSubaccountCode: String,
+      paystackSplitCode: String,
+      listingFee: {
+        status: { type: String, enum: ["unpaid", "paid"], default: "unpaid" },
+        paymentReference: String,
+        paidAt: Date,
+      },
     },
   },
   {

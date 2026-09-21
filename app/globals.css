@@ -413,6 +413,26 @@ html.light body [class~="hover:bg-[#897af8]"]:hover {
       radial-gradient(circle at 82% 10%, rgba(56, 189, 248, 0.08), transparent 28%);
   }
 
+  .ambient-glow {
+    will-change: transform;
+    animation: ambient-drift 26s ease-in-out infinite alternate;
+  }
+
+  @keyframes ambient-drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(2.5%, 3%, 0) scale(1.06);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-glow {
+      animation: none;
+    }
+  }
+
   .input-field {
     @apply w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none transition-all duration-300 focus:border-[#7c6cf6] focus:bg-white/[0.06] focus:shadow-[0_0_0_4px_rgba(124,108,246,0.12)] disabled:cursor-not-allowed disabled:opacity-60;
   }
@@ -501,6 +521,54 @@ html.light .btn-primary:hover {
 }
 
 .academy-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(124, 108, 246, 0.62);
+}
+
+/* Apply the thin, purple-tinted scrollbar to every scrollable element inside
+   the academy app (dashboard shell and auth/sign-in shell) automatically,
+   so individual scroll containers don't each need the .academy-scrollbar
+   class added by hand. */
+.academy-dashboard-shell,
+.academy-auth-shell {
+  scrollbar-color: rgba(124, 108, 246, 0.42) transparent;
+  scrollbar-width: thin;
+}
+
+.academy-dashboard-shell *,
+.academy-auth-shell * {
+  scrollbar-color: rgba(124, 108, 246, 0.42) transparent;
+  scrollbar-width: thin;
+}
+
+.academy-dashboard-shell::-webkit-scrollbar,
+.academy-auth-shell::-webkit-scrollbar,
+.academy-dashboard-shell *::-webkit-scrollbar,
+.academy-auth-shell *::-webkit-scrollbar {
+  width: 0.55rem;
+  height: 0.55rem;
+}
+
+.academy-dashboard-shell::-webkit-scrollbar-track,
+.academy-auth-shell::-webkit-scrollbar-track,
+.academy-dashboard-shell *::-webkit-scrollbar-track,
+.academy-auth-shell *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.academy-dashboard-shell::-webkit-scrollbar-thumb,
+.academy-auth-shell::-webkit-scrollbar-thumb,
+.academy-dashboard-shell *::-webkit-scrollbar-thumb,
+.academy-auth-shell *::-webkit-scrollbar-thumb {
+  background-color: rgba(124, 108, 246, 0.42);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+
+.academy-dashboard-shell::-webkit-scrollbar-thumb:hover,
+.academy-auth-shell::-webkit-scrollbar-thumb:hover,
+.academy-dashboard-shell *::-webkit-scrollbar-thumb:hover,
+.academy-auth-shell *::-webkit-scrollbar-thumb:hover {
   background-color: rgba(124, 108, 246, 0.62);
 }
 
@@ -744,6 +812,29 @@ html.light .academy-dashboard-shell .text-white {
 .certificates-route-aside > :not(#certificates),
 .billing-route-aside > :not(#billing) {
   display: none;
+}
+
+/* ─── Print ─── */
+/* Used by tools that print/download a result (invoice generator, employer
+   cost calculator) — wrap the printable content in .print-area and mark
+   anything that should stay screen-only with .no-print. */
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+
+  .print-area {
+    position: absolute;
+    inset: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }
 
 /* ─── Utilities ─── */

@@ -12,7 +12,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["scripts/**/*.ts", "lib/data.ts"],
+  "include": ["scripts/**/*.ts", "lib/data.ts", "lib/tags.ts", "lib/store/**/*.ts"],
   "exclude": ["node_modules"],
   "ts-node": {
     "files": true,

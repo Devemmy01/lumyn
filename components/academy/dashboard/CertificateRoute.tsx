@@ -12,6 +12,7 @@ export function CertificateRoute({
   enrollments,
   isSubscribed,
   diamondsBalance,
+  certificatePriceCents,
   pendingAction,
   onUnlockWithPayment,
   onUnlockWithDiamonds,
@@ -20,6 +21,8 @@ export function CertificateRoute({
   enrollments: DashboardEnrollment[];
   isSubscribed: boolean;
   diamondsBalance: number;
+  /** The live, env-overridable price from the server — falls back to the code default only if the dashboard payload hasn't loaded yet. */
+  certificatePriceCents?: number;
   pendingAction: string | null;
   onUnlockWithPayment: (enrollmentId: string) => void;
   onUnlockWithDiamonds: (enrollmentId: string) => void;
@@ -28,7 +31,7 @@ export function CertificateRoute({
     (enrollment) => enrollment.status === "completed" && !enrollment.certificate,
   );
   const earnedCertificates = enrollments.filter((enrollment) => Boolean(enrollment.certificate));
-  const certificatePrice = `$${(ACADEMY_CERTIFICATE_PRICE_CENTS / 100).toFixed(2)}`;
+  const certificatePrice = `$${((certificatePriceCents ?? ACADEMY_CERTIFICATE_PRICE_CENTS) / 100).toFixed(2)}`;
 
   return (
     <div className="certificates-route min-w-0 space-y-7">

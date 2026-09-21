@@ -1,0 +1,23 @@
+{
+  "slug": "bundle-all",
+  "tagline": "All three field guides — build it, get found, get paid — at one bundle price.",
+  "coverImage": "/covers/bundle-all.jpg",
+  "sampleFile": "/samples/website-costs-sample.pdf",
+  "whatsInside": [
+    "What a Website Actually Costs in Nigeria",
+    "Found on Google in Nigeria",
+    "Getting Paid in Nigeria",
+    "One download page for all three, and every future update to each guide"
+  ],
+  "whoFor": "Anyone running a Nigerian business who wants the full picture — build it, get found, get paid — instead of buying one guide at a time.",
+  "faq": [
+    {
+      "q": "Is the bundle cheaper than buying all three separately?",
+      "a": "Yes — the bundle is priced below the combined cost of buying all three individually."
+    },
+    {
+      "q": "Do I get three separate downloads?",
+      "a": "Yes. Buying the bundle unlocks all three guides individually on your download page, each with its own link."
+    }
+  ]
+}

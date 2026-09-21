@@ -1,0 +1,27 @@
+{
+  "slug": "getting-paid",
+  "tagline": "Invoicing, payment terms, and getting Nigerian and international clients to actually pay you on time.",
+  "coverImage": "/covers/getting-paid.jpg",
+  "sampleFile": "/samples/getting-paid-sample.pdf",
+  "whatsInside": [
+    "How to structure an invoice and payment terms so late payment becomes the exception, not the norm",
+    "What to do when a client goes quiet — scripts and escalation steps that preserve the relationship",
+    "Getting paid from abroad: what diaspora and international clients expect, and how to price and bill them",
+    "Bank details, receipts, and the paper trail you need if a payment dispute ever happens"
+  ],
+  "whoFor": "Freelancers and small business owners in Nigeria who bill clients directly and are tired of chasing payment.",
+  "faq": [
+    {
+      "q": "Is this only for freelancers?",
+      "a": "No — the invoicing and payment-terms advice applies just as much to a small business billing other businesses."
+    },
+    {
+      "q": "Does it cover getting paid by clients outside Nigeria?",
+      "a": "Yes, including what international clients expect from an invoice and how to think about currency and timing."
+    },
+    {
+      "q": "Is there a template I can use?",
+      "a": "The guide walks through the structure of a strong invoice and payment terms you can apply directly — pair it with the free invoice generator tool for the document itself."
+    }
+  ]
+}

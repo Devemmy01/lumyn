@@ -24,6 +24,10 @@ export function MobileRouteHeading({
     rewards: { eyebrow: "XP, streaks, badges", title: "Rewards" },
     certificates: { eyebrow: "Your achievements", title: "Certificates" },
     billing: { eyebrow: "Astra subscription", title: "Billing" },
+    marketplace: { eyebrow: "From creators", title: "Marketplace" },
+    purchases: { eyebrow: "Courses you own", title: "My purchases" },
+    creator: { eyebrow: "Build and sell", title: "Creator studio" },
+    "creator-earnings": { eyebrow: "What you've made", title: "Earnings" },
   };
   const current = labels[view] ?? labels.overview;
 
@@ -70,7 +74,11 @@ export function MobileDashboardNav({
   const moreActive =
     currentView === "certificates" ||
     currentView === "billing" ||
-    currentView === "rewards";
+    currentView === "rewards" ||
+    currentView === "marketplace" ||
+    currentView === "purchases" ||
+    currentView === "creator" ||
+    currentView === "creator-earnings";
 
   return (
     <>
@@ -83,6 +91,10 @@ export function MobileDashboardNav({
             <Link href="/academy/dashboard/rewards" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "rewards" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="gem" /> Rewards</Link>
             <Link href="/academy/dashboard/certificates" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "certificates" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="award" /> Certificates</Link>
             <Link href="/academy/dashboard/billing" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "billing" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="card" /> Billing</Link>
+            <Link href="/academy/dashboard/marketplace" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "marketplace" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="store" /> Marketplace</Link>
+            <Link href="/academy/dashboard/purchases" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "purchases" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="book" /> Purchases</Link>
+            <Link href="/academy/dashboard/creator" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "creator" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="briefcase" /> Creator</Link>
+            <Link href="/academy/dashboard/creator-earnings" className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center text-xs font-semibold ${currentView === "creator-earnings" ? "bg-[#7c6cf6] text-white" : "bg-black/[0.035] dark:bg-white/[0.05]"}`}><DashboardIcon type="wallet" /> Earnings</Link>
           </div>
           <button type="button" onClick={onToggleTheme} className="mt-2 flex w-full items-center gap-3 rounded-2xl bg-black/[0.035] p-3.5 text-left dark:bg-white/[0.05]">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] bg-white/70 text-[#6c5ce7] dark:border-white/10 dark:bg-white/[0.06] dark:text-[#b9b1ff]">{isDark ? <SunIcon /> : <MoonIcon />}</span>

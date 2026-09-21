@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import { authOptions } from "@/lib/auth";
+import { slugifyTag } from "@/lib/tags";
 
 import readingTime from "reading-time";
 
@@ -20,6 +21,10 @@ export async function POST(req: Request) {
     if (data.content) {
       const stats = readingTime(data.content);
       data.readingTime = Math.ceil(stats.minutes);
+    }
+
+    if (Array.isArray(data.tags)) {
+      data.tags = Array.from(new Set(data.tags.map(slugifyTag).filter(Boolean)));
     }
 
     // Basic slugification if missing

@@ -51,6 +51,10 @@ const nextConfig: NextConfig = {
       { source: "/academy/dashboard/:path*", headers: privateRouteHeaders },
       { source: "/academy/sign-in", headers: privateRouteHeaders },
       { source: "/academy/payment/:path*", headers: privateRouteHeaders },
+      { source: "/guides/checkout/:path*", headers: privateRouteHeaders },
+      { source: "/guides/success", headers: privateRouteHeaders },
+      { source: "/guides/download/:path*", headers: privateRouteHeaders },
+      { source: "/guides/resend", headers: privateRouteHeaders },
     ];
   },
 };

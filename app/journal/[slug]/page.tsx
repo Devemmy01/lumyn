@@ -8,6 +8,8 @@ import SectionWrapper from "@/components/SectionWrapper";
 import BlogCard from "@/components/BlogCard";
 import UpvoteButton from "@/components/UpvoteButton";
 import ShareButtons from "@/components/ShareButtons";
+import AdSlot from "@/components/ads/AdSlot";
+import { splitAfterBlock } from "@/lib/ads/split-content";
 import {
   buildArticleJsonLd,
   buildBreadcrumbJsonLd,
@@ -172,15 +174,33 @@ export default async function JournalPostPage({ params }: PageProps) {
             <Image src={post.coverImage} alt={post.title} width={1200} height={630} className="h-auto w-full object-cover" />
           </div>
         )}
-        <article
-          className="prose prose-lumyn max-w-none prose-a:text-sage prose-a:no-underline hover:prose-a:underline prose-img:"
-          aria-label="Article content"
-          style={{
-            color: "var(--text-secondary)"
-          }}
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-        
+        {(() => {
+          const split = splitAfterBlock(post.content, 3);
+          if (!split) {
+            return (
+              <article
+                className="prose prose-lumyn max-w-none prose-a:text-sage prose-a:no-underline hover:prose-a:underline prose-img:"
+                aria-label="Article content"
+                style={{ color: "var(--text-secondary)" }}
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            );
+          }
+          return (
+            <article
+              className="prose prose-lumyn max-w-none prose-a:text-sage prose-a:no-underline hover:prose-a:underline prose-img:"
+              aria-label="Article content"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              <div dangerouslySetInnerHTML={{ __html: split.before }} />
+              <div className="not-prose my-10 flex justify-center">
+                <AdSlot placement="journal-inline" />
+              </div>
+              <div dangerouslySetInnerHTML={{ __html: split.after }} />
+            </article>
+          );
+        })()}
+
         <div className="mt-16 pt-8 flex flex-col sm:flex-row justify-between items-center gap-8 border-t" style={{ borderColor: "var(--border-primary)" }}>
           <UpvoteButton postId={post._id.toString()} initialUpvotes={post.upvotes || 0} />
           <ShareButtons title={post.title} slug={post.slug} />

@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import { authOptions } from "@/lib/auth";
 import { isValidObjectId } from "mongoose";
+import { slugifyTag } from "@/lib/tags";
 
 export async function GET(
   req: Request,
@@ -50,6 +51,10 @@ export async function PUT(
     if (data.content) {
       const stats = readingTime(data.content);
       data.readingTime = Math.ceil(stats.minutes);
+    }
+
+    if (Array.isArray(data.tags)) {
+      data.tags = Array.from(new Set(data.tags.map(slugifyTag).filter(Boolean)));
     }
 
     const post = await Post.findByIdAndUpdate(id, data, { new: true, runValidators: true });
