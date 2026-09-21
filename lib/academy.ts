@@ -39,8 +39,8 @@ export const academyLanguages: Array<{
   available: boolean;
 }> = [
   { id: "python", label: "Python", available: true },
-  { id: "javascript", label: "JavaScript", available: false },
-  { id: "typescript", label: "TypeScript", available: false },
+  { id: "javascript", label: "JavaScript", available: true },
+  { id: "typescript", label: "TypeScript", available: true },
   { id: "cpp", label: "C++", available: false },
   { id: "java", label: "Java", available: false },
   { id: "go", label: "Go", available: false },

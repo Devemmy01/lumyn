@@ -18,6 +18,12 @@ import AcademyCatalogCourse from "@/models/AcademyCatalogCourse";
 import { pythonBeginnerCourse } from "./content/python/beginner";
 import { pythonIntermediateCourse } from "./content/python/intermediate";
 import { pythonAdvancedCourse } from "./content/python/advanced";
+import { javascriptBeginnerCourse } from "./content/javascript/beginner";
+import { javascriptIntermediateCourse } from "./content/javascript/intermediate";
+import { javascriptAdvancedCourse } from "./content/javascript/advanced";
+import { typescriptBeginnerCourse } from "./content/typescript/beginner";
+import { typescriptIntermediateCourse } from "./content/typescript/intermediate";
+import { typescriptAdvancedCourse } from "./content/typescript/advanced";
 
 const GENERATION_LABEL = "hand-authored";
 
@@ -28,6 +34,12 @@ const CONTENT_REGISTRY: Partial<Record<string, GeneratedCourse>> = {
   "python-beginner": pythonBeginnerCourse,
   "python-intermediate": pythonIntermediateCourse,
   "python-advanced": pythonAdvancedCourse,
+  "javascript-beginner": javascriptBeginnerCourse,
+  "javascript-intermediate": javascriptIntermediateCourse,
+  "javascript-advanced": javascriptAdvancedCourse,
+  "typescript-beginner": typescriptBeginnerCourse,
+  "typescript-intermediate": typescriptIntermediateCourse,
+  "typescript-advanced": typescriptAdvancedCourse,
 };
 
 function loadEnvLocal() {

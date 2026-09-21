@@ -40,3 +40,7 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+
+# Source PDFs for the guide store — uploaded to GridFS via
+# `npm run store:upload`, not served from the repo/build.
+/PDF/
